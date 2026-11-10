@@ -10,6 +10,7 @@ import {
 } from "@/lib/i18n";
 import { Breadcrumbs } from "@/components/Breadcrumbs";
 import { JsonLd } from "@/components/JsonLd";
+import { MarkdownRenderer } from "@/components/MarkdownRenderer";
 import prisma from "@/lib/prisma";
 import {
   Clock,
@@ -91,23 +92,59 @@ export default async function BlogPostDetailPage({ params }: ArticlePageProps) {
     take: 3,
   });
 
+  // Check if content has FAQ section to generate FAQPage Schema
+  let faqSchema: any = null;
+  if (post.content.includes("Frequently Asked Questions")) {
+    const faqSection = post.content.split(/## Frequently Asked Questions/i)[1];
+    if (faqSection) {
+      const qBlocks = faqSection.split(/\n### /).slice(1);
+      if (qBlocks.length > 0) {
+        faqSchema = {
+          "@type": "FAQPage",
+          mainEntity: qBlocks.map((block) => {
+            const firstLineBreak = block.indexOf("\n");
+            const q = firstLineBreak > 0 ? block.slice(0, firstLineBreak).trim() : block.trim();
+            const a = firstLineBreak > 0 ? block.slice(firstLineBreak).trim() : "";
+            return {
+              "@type": "Question",
+              name: q,
+              acceptedAnswer: {
+                "@type": "Answer",
+                text: a,
+              },
+            };
+          }),
+        };
+      }
+    }
+  }
+
   const structuredData = {
     "@context": "https://schema.org",
-    "@type": "Article",
-    headline: post.title,
-    description: post.excerpt,
-    image: post.coverImage || `${baseUrl}/favicon.ico`,
-    author: {
-      "@type": "Person",
-      name: post.author,
-    },
-    publisher: {
-      "@type": "Organization",
-      name: "MediaSnap",
-      logo: `${baseUrl}/favicon.ico`,
-    },
-    datePublished: post.createdAt.toISOString(),
-    dateModified: post.updatedAt.toISOString(),
+    "@graph": [
+      {
+        "@type": "Article",
+        headline: post.title,
+        description: post.excerpt,
+        image: post.coverImage || `${baseUrl}/favicon.ico`,
+        author: {
+          "@type": "Person",
+          name: post.author,
+        },
+        publisher: {
+          "@type": "Organization",
+          name: "MediaSnap",
+          logo: `${baseUrl}/favicon.ico`,
+        },
+        datePublished: post.createdAt.toISOString(),
+        dateModified: post.updatedAt.toISOString(),
+        mainEntityOfPage: {
+          "@type": "WebPage",
+          "@id": `${baseUrl}/${lang}/blog/${post.slug}`,
+        },
+      },
+      ...(faqSchema ? [faqSchema] : []),
+    ],
   };
 
   const articleUrl = `${baseUrl}/${lang}/blog/${post.slug}`;
@@ -202,24 +239,8 @@ export default async function BlogPostDetailPage({ params }: ArticlePageProps) {
       )}
 
       {/* Article Body */}
-      <div className="prose prose-slate dark:prose-invert max-w-none text-slate-800 dark:text-slate-200 leading-relaxed text-base sm:text-lg space-y-6">
-        {post.content.split("\n\n").map((paragraph, i) => {
-          if (paragraph.startsWith("## ")) {
-            return (
-              <h2 key={i} className="text-2xl font-bold text-slate-900 dark:text-white pt-4">
-                {paragraph.replace("## ", "")}
-              </h2>
-            );
-          }
-          if (paragraph.startsWith("### ")) {
-            return (
-              <h3 key={i} className="text-xl font-bold text-slate-900 dark:text-white pt-2">
-                {paragraph.replace("### ", "")}
-              </h3>
-            );
-          }
-          return <p key={i}>{paragraph}</p>;
-        })}
+      <div className="prose prose-slate dark:prose-invert max-w-none text-slate-800 dark:text-slate-200 leading-relaxed text-base sm:text-lg">
+        <MarkdownRenderer content={post.content} />
       </div>
 
       {/* Back to Blog & Related Articles */}

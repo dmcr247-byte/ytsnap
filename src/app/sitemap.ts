@@ -1,9 +1,11 @@
 import { MetadataRoute } from "next";
 import { SUPPORTED_LANGUAGES } from "@/lib/i18n";
 import prisma from "@/lib/prisma";
+import { getSetting } from "@/lib/settings";
 
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
-  const baseUrl = process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3000";
+  const configuredBase = await getSetting("sitemap_base_url", "");
+  const baseUrl = (configuredBase || process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3000").replace(/\/$/, "");
 
   const staticRoutes = [
     "",

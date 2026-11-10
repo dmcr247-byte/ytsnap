@@ -9,6 +9,7 @@ import {
 } from "@/lib/i18n";
 import { Header } from "@/components/Header";
 import { Footer } from "@/components/Footer";
+import { AdBanner } from "@/components/AdBanner";
 
 export async function generateStaticParams() {
   return SUPPORTED_LANGUAGES.map((l) => ({ lang: l.code }));
@@ -32,7 +33,13 @@ export default function LangLayout({ children, params }: LangLayoutProps) {
   return (
     <div dir={dir} className="min-h-screen flex flex-col justify-between">
       <Header lang={lang as SupportedLanguage} dict={dict} />
+      <div className="container mx-auto px-4 max-w-7xl">
+        <AdBanner slot="header_top" />
+      </div>
       <main className="flex-1">{children}</main>
+      <div className="container mx-auto px-4 max-w-7xl">
+        <AdBanner slot="footer_top" />
+      </div>
       <Footer lang={lang as SupportedLanguage} dict={dict} />
     </div>
   );

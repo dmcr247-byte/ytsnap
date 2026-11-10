@@ -2,6 +2,8 @@ import { NextRequest, NextResponse } from "next/server";
 import { verifyAdminToken, ADMIN_COOKIE_NAME } from "@/lib/security";
 import prisma from "@/lib/prisma";
 
+export const dynamic = "force-dynamic";
+
 export async function GET(req: NextRequest) {
   const settings = await prisma.websiteSetting.findMany({
     orderBy: { group: "asc" },

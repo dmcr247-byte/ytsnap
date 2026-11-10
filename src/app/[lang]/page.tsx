@@ -17,6 +17,7 @@ import {
   FaqSection,
 } from "@/components/HomeSections";
 import { JsonLd } from "@/components/JsonLd";
+import { AdBanner } from "@/components/AdBanner";
 import prisma from "@/lib/prisma";
 import { ArrowRight, BookOpen, Calendar, Clock } from "lucide-react";
 
@@ -164,6 +165,10 @@ export default async function HomePage({ params, searchParams }: PageProps) {
         initialVideoId={searchParams?.v}
       />
 
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <AdBanner slot="hero_bottom" />
+      </div>
+
       {/* How It Works Section */}
       <HowItWorksSection dict={dict} />
 
@@ -248,6 +253,10 @@ export default async function HomePage({ params, searchParams }: PageProps) {
           </div>
         </section>
       )}
+
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <AdBanner slot="in_content" />
+      </div>
 
       {/* Frequently Asked Questions */}
       {faqs.length > 0 && <FaqSection dict={dict} faqs={faqs} />}

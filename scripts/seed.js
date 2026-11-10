@@ -34,7 +34,14 @@ async function main() {
     { key: "primary_color", value: "#E62117", group: "general", description: "Primary brand theme color" },
     { key: "default_language", value: "en", group: "general", description: "Default interface language" },
     { key: "youtube_api_key", value: process.env.YOUTUBE_API_KEY || "", group: "api", description: "Optional YouTube Data API v3 key" },
-    { key: "google_analytics_id", value: "", group: "seo", description: "Google Analytics (GA4) Measurement ID" },
+    { key: "google_analytics_id", value: "", group: "seo", description: "Google Analytics (GA4) Measurement ID (e.g. G-XXXXXXXXXX)" },
+    { key: "google_adsense_client_id", value: "", group: "ads", description: "Google AdSense Publisher ID (e.g. ca-pub-1234567890123456)" },
+    { key: "google_adsense_enabled", value: "false", group: "ads", description: "Enable Google AdSense across pages" },
+    { key: "custom_header_code", value: "", group: "code", description: "Custom HTML, CSS <style>, or JS <script> injected into <head>" },
+    { key: "custom_footer_code", value: "", group: "code", description: "Custom JS scripts or widgets injected before </body>" },
+    { key: "robots_txt_content", value: "User-agent: *\nAllow: /\nDisallow: /api/\nDisallow: /admin/\nDisallow: /*/admin/\n\nSitemap: http://localhost:3000/sitemap.xml", group: "seo", description: "Directives served at /robots.txt" },
+    { key: "ads_txt_content", value: "# MediaSnap Ads.txt\n# Example: google.com, pub-XXXXXXXXXXXXXXXX, DIRECT, f08c47fec0942fa0", group: "ads", description: "Publisher lines served at /ads.txt" },
+    { key: "sitemap_base_url", value: "http://localhost:3000", group: "seo", description: "Base domain URL for sitemap.xml" },
     { key: "enable_ads", value: "false", group: "ads", description: "Master switch to display banner ads" },
   ];
 

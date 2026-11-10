@@ -18,6 +18,7 @@ import {
   ExternalLink,
   ShieldCheck,
   FileVideo,
+  Info,
 } from "lucide-react";
 
 interface VideoDownloaderToolProps {
@@ -90,15 +91,16 @@ export function VideoDownloaderTool({ lang, dict }: VideoDownloaderToolProps) {
       title
     )}`;
 
-    // Trigger browser download via hidden anchor
+    // Open direct Google CDN stream in a new tab for instant high-speed download
     const a = document.createElement("a");
     a.href = downloadUrl;
-    a.download = "";
+    a.target = "_blank";
+    a.rel = "noopener noreferrer";
     document.body.appendChild(a);
     a.click();
     a.remove();
 
-    setTimeout(() => setDownloadingItag(null), 3000);
+    setTimeout(() => setDownloadingItag(null), 2500);
   };
 
   return (
@@ -204,6 +206,21 @@ export function VideoDownloaderTool({ lang, dict }: VideoDownloaderToolProps) {
             </div>
           </div>
 
+          {/* Instructions Banner */}
+          <div className="p-4 rounded-2xl bg-blue-50/80 dark:bg-blue-950/30 border border-blue-200/60 dark:border-blue-900/40 text-blue-800 dark:text-blue-300 text-xs sm:text-sm flex items-start gap-3">
+            <Info className="w-5 h-5 shrink-0 text-blue-600 dark:text-blue-400 mt-0.5" />
+            <div className="space-y-1">
+              <p className="font-semibold">
+                {lang === "hi" ? "डाउनलोड कैसे करें:" : "How to save your download:"}
+              </p>
+              <p className="text-blue-700 dark:text-blue-400 leading-relaxed text-xs">
+                {lang === "hi"
+                  ? "बटन पर क्लिक करने पर वीडियो हाई-स्पीड Google CDN से नए टैब में खुलेगा। वीडियो प्लेयर में 3 डॉट्स (⋮) पर क्लिक करके 'Download' चुनें, या कीबोर्ड पर Ctrl + S दबाकर सेव करें।"
+                  : "Clicking download opens the direct high-speed Google CDN stream in a new tab. In the video player, click the 3 dots (⋮) on bottom-right and select 'Download', or press Ctrl + S."}
+              </p>
+            </div>
+          </div>
+
           {/* Formats Tabs (Video vs Audio) */}
           <div className="flex gap-2 border-b border-slate-100 dark:border-slate-800 pb-3">
             <button
@@ -248,13 +265,22 @@ export function VideoDownloaderTool({ lang, dict }: VideoDownloaderToolProps) {
                         <FileVideo className="w-5 h-5" />
                       </div>
                       <div>
-                        <div className="flex items-center gap-2">
+                        <div className="flex items-center gap-2 flex-wrap">
                           <span className="font-bold text-slate-900 dark:text-white text-sm">
                             {f.qualityLabel} MP4
                           </span>
                           <span className="px-2 py-0.5 rounded text-[10px] font-bold bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 uppercase">
                             {f.container}
                           </span>
+                          {f.hasAudio ? (
+                            <span className="px-2 py-0.5 rounded text-[10px] font-bold bg-emerald-50 dark:bg-emerald-950/50 text-emerald-600 dark:text-emerald-400">
+                              ✓ Video + Audio
+                            </span>
+                          ) : (
+                            <span className="px-2 py-0.5 rounded text-[10px] font-bold bg-amber-50 dark:bg-amber-950/50 text-amber-600 dark:text-amber-400">
+                              Video Only
+                            </span>
+                          )}
                         </div>
                         <span className="text-xs text-slate-400">
                           {f.sizeMb ? `Est. Size: ${f.sizeMb}` : "Direct Stream"} • {f.fps || 30} FPS

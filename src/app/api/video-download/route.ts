@@ -36,47 +36,15 @@ export async function GET(req: NextRequest) {
       return new NextResponse("Requested format not available", { status: 404 });
     }
 
-    const cleanTitle = (rawTitle || info.videoDetails?.title || "ytsnap-video")
-      .replace(/[^a-zA-Z0-9_-]/g, "_")
-      .slice(0, 50);
-
-    const ext = targetFormat.container || (targetFormat.hasVideo ? "mp4" : "mp3");
-    const qualityLabel = targetFormat.qualityLabel || `${targetFormat.audioBitrate || 128}kbps`;
-    const filename = `ytsnap-${cleanTitle}-${qualityLabel}.${ext}`;
-
-    // If client requested direct redirect to Google CDN
-    const redirectDirect = searchParams.get("redirect") === "true";
-    if (redirectDirect) {
-      return NextResponse.redirect(targetFormat.url);
-    }
-
-    // Proxy the stream with attachment headers
-    const cdnRes = await fetch(targetFormat.url, {
-      headers: {
-        "User-Agent":
-          "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36",
-      },
-    });
-
-    if (!cdnRes.ok || !cdnRes.body) {
-      // Fallback to redirect if proxy stream blocked
-      return NextResponse.redirect(targetFormat.url);
-    }
-
-    const headers = new Headers();
-    headers.set("Content-Type", cdnRes.headers.get("content-type") || "video/mp4");
-    headers.set("Content-Disposition", `attachment; filename="${filename}"`);
-    if (cdnRes.headers.get("content-length")) {
-      headers.set("Content-Length", cdnRes.headers.get("content-length")!);
-    }
-    headers.set("Cache-Control", "public, max-age=3600");
-
-    return new NextResponse(cdnRes.body as any, {
-      status: 200,
-      headers,
-    });
+    // Direct 307 Temporary Redirect to Google CDN stream.
+    // Bypasses Vercel Serverless Function 4.5MB payload limit and 10s execution timeout,
+    // streaming directly from Google's high-speed CDN to user's browser.
+    return NextResponse.redirect(targetFormat.url, 307);
   } catch (error: any) {
     console.error("Video download streaming error:", error);
-    return new NextResponse("Failed to download video stream", { status: 500 });
+    return new NextResponse(
+      "Failed to retrieve video stream: " + (error?.message || "Unknown error"),
+      { status: 500 }
+    );
   }
 }

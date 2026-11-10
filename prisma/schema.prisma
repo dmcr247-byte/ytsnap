@@ -1,0 +1,153 @@
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+model AdminUser {
+  id           String   @id @default(uuid())
+  email        String   @unique
+  name         String
+  passwordHash String
+  role         String   @default("ADMIN") // ADMIN, EDITOR, VIEWER
+  avatar       String?
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+}
+
+model WebsiteSetting {
+  id          String   @id @default(uuid())
+  key         String   @unique
+  value       String
+  group       String   @default("general") // general, seo, api, ads, social
+  description String?
+  updatedAt   DateTime @updatedAt
+}
+
+model BlogPost {
+  id          String   @id @default(uuid())
+  slug        String
+  language    String   @default("en")
+  title       String
+  excerpt     String
+  content     String
+  category    String   @default("Guides")
+  coverImage  String?
+  author      String   @default("MediaSnap Team")
+  readTime    String   @default("4 min read")
+  tags        String?  // comma separated
+  isPublished Boolean  @default(true)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@unique([slug, language])
+  @@index([language])
+  @@index([slug])
+  @@index([isPublished])
+}
+
+model BlogCategory {
+  id          String   @id @default(uuid())
+  slug        String   @unique
+  name        String
+  description String?
+  order       Int      @default(0)
+  createdAt   DateTime @default(now())
+}
+
+model FaqItem {
+  id        String   @id @default(uuid())
+  question  String
+  answer    String
+  category  String   @default("general") // general, thumbnail, metadata, tools
+  language  String   @default("en")
+  order     Int      @default(0)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([category, language])
+}
+
+model ToolUsage {
+  id        String   @id @default(uuid())
+  toolKey   String   // thumbnail-downloader, video-info, image-resizer, etc.
+  language  String   @default("en")
+  videoId   String?
+  status    String   @default("success") // success, error
+  ipHash    String?
+  userAgent String?
+  meta      String?  // json metadata
+  createdAt DateTime @default(now())
+
+  @@index([toolKey])
+  @@index([createdAt])
+}
+
+model AnalyticsEvent {
+  id        String   @id @default(uuid())
+  eventType String   // page_view, tool_run, download, copy_action
+  path      String
+  language  String   @default("en")
+  referrer  String?
+  ipHash    String?
+  createdAt DateTime @default(now())
+
+  @@index([eventType])
+  @@index([createdAt])
+}
+
+model ApiLog {
+  id           String   @id @default(uuid())
+  endpoint     String
+  method       String
+  statusCode   Int
+  responseTime Int      // ms
+  ipHash       String?
+  errorMessage String?
+  createdAt    DateTime @default(now())
+
+  @@index([endpoint])
+  @@index([createdAt])
+}
+
+model ContactMessage {
+  id        String   @id @default(uuid())
+  name      String
+  email     String
+  subject   String
+  message   String
+  isRead    Boolean  @default(false)
+  ipHash    String?
+  createdAt DateTime @default(now())
+
+  @@index([isRead])
+  @@index([createdAt])
+}
+
+model Advertisement {
+  id          String   @id @default(uuid())
+  slot        String   @unique // header_top, hero_bottom, sidebar, in_content, footer_top
+  name        String
+  htmlContent String?  // ad code snippet or image banner
+  imageUrl    String?
+  targetUrl   String?
+  isActive    Boolean  @default(false)
+  updatedAt   DateTime @updatedAt
+}
+
+model CustomPage {
+  id          String   @id @default(uuid())
+  slug        String
+  language    String   @default("en")
+  title       String
+  content     String
+  metaTitle   String?
+  metaDesc    String?
+  isPublished Boolean  @default(true)
+  updatedAt   DateTime @updatedAt
+
+  @@unique([slug, language])
+}

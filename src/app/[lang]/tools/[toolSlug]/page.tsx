@@ -1,0 +1,331 @@
+import React from "react";
+import { Metadata } from "next";
+import { notFound } from "next/navigation";
+import {
+  isValidLanguage,
+  getDictionary,
+  SUPPORTED_LANGUAGES,
+  SupportedLanguage,
+} from "@/lib/i18n";
+import { Breadcrumbs } from "@/components/Breadcrumbs";
+import { JsonLd } from "@/components/JsonLd";
+import { ThumbnailHero } from "@/components/ThumbnailHero";
+import { VideoInfoTool } from "@/components/tools/VideoInfoTool";
+import { ResizerTool } from "@/components/tools/ResizerTool";
+import { CompressorTool } from "@/components/tools/CompressorTool";
+import { ConverterTool } from "@/components/tools/ConverterTool";
+import { TitleGeneratorTool } from "@/components/tools/TitleGeneratorTool";
+import { DescriptionGeneratorTool } from "@/components/tools/DescriptionGeneratorTool";
+import { TagsGeneratorTool } from "@/components/tools/TagsGeneratorTool";
+import { HashtagGeneratorTool } from "@/components/tools/HashtagGeneratorTool";
+import { AspectRatioTool } from "@/components/tools/AspectRatioTool";
+import { FaqSection } from "@/components/HomeSections";
+
+interface ToolPageProps {
+  params: { lang: string; toolSlug: string };
+  searchParams?: { v?: string };
+}
+
+const VALID_TOOLS = [
+  "youtube-thumbnail-downloader",
+  "youtube-video-information",
+  "thumbnail-resizer",
+  "image-compressor",
+  "image-converter",
+  "youtube-title-generator",
+  "youtube-description-generator",
+  "youtube-tags-generator",
+  "youtube-hashtag-generator",
+  "video-aspect-ratio-calculator",
+];
+
+export async function generateStaticParams() {
+  const params: Array<{ lang: string; toolSlug: string }> = [];
+  for (const lang of SUPPORTED_LANGUAGES) {
+    for (const toolSlug of VALID_TOOLS) {
+      params.push({ lang: lang.code, toolSlug });
+    }
+  }
+  return params;
+}
+
+export async function generateMetadata({ params }: ToolPageProps): Promise<Metadata> {
+  const { lang, toolSlug } = params;
+  if (!isValidLanguage(lang) || !VALID_TOOLS.includes(toolSlug)) return {};
+
+  const dict = getDictionary(lang);
+  const baseUrl = process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3000";
+
+  let title = "Creator Tool";
+  let description = "Free YouTube Creator Utility on MediaSnap.";
+
+  switch (toolSlug) {
+    case "youtube-thumbnail-downloader":
+      title = dict.thumbnail.title;
+      description = dict.thumbnail.subtitle;
+      break;
+    case "youtube-video-information":
+      title = dict.videoInfo.title;
+      description = dict.videoInfo.subtitle;
+      break;
+    case "thumbnail-resizer":
+      title = dict.resizerTool.title;
+      description = dict.resizerTool.subtitle;
+      break;
+    case "image-compressor":
+      title = dict.compressorTool.title;
+      description = dict.compressorTool.subtitle;
+      break;
+    case "image-converter":
+      title = dict.converterTool.title;
+      description = dict.converterTool.subtitle;
+      break;
+    case "youtube-title-generator":
+      title = dict.titleTool.title;
+      description = dict.titleTool.subtitle;
+      break;
+    case "youtube-description-generator":
+      title = dict.descTool.title;
+      description = dict.descTool.subtitle;
+      break;
+    case "youtube-tags-generator":
+      title = dict.tagsTool.title;
+      description = dict.tagsTool.subtitle;
+      break;
+    case "youtube-hashtag-generator":
+      title = dict.hashtagTool.title;
+      description = dict.hashtagTool.subtitle;
+      break;
+    case "video-aspect-ratio-calculator":
+      title = dict.ratioTool.title;
+      description = dict.ratioTool.subtitle;
+      break;
+  }
+
+  const alternatesLanguages: Record<string, string> = {};
+  for (const l of SUPPORTED_LANGUAGES) {
+    alternatesLanguages[l.code] = `${baseUrl}/${l.code}/tools/${toolSlug}`;
+  }
+
+  return {
+    title: `${title} | MediaSnap`,
+    description,
+    alternates: {
+      canonical: `${baseUrl}/${lang}/tools/${toolSlug}`,
+      languages: alternatesLanguages,
+    },
+    openGraph: {
+      title: `${title} | MediaSnap`,
+      description,
+      url: `${baseUrl}/${lang}/tools/${toolSlug}`,
+      siteName: "MediaSnap",
+      type: "website",
+    },
+  };
+}
+
+export default function ToolPage({ params, searchParams }: ToolPageProps) {
+  const { lang, toolSlug } = params;
+
+  if (!isValidLanguage(lang) || !VALID_TOOLS.includes(toolSlug)) {
+    notFound();
+  }
+
+  const dict = getDictionary(lang);
+  const baseUrl = process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3000";
+
+  let toolTitle = "";
+  let toolSubtitle = "";
+  let toolComponent = null;
+  let toolFaqs: Array<{ question: string; answer: string }> = [];
+
+  switch (toolSlug) {
+    case "youtube-thumbnail-downloader":
+      toolTitle = dict.thumbnail.title;
+      toolSubtitle = dict.thumbnail.subtitle;
+      toolComponent = (
+        <ThumbnailHero
+          lang={lang as SupportedLanguage}
+          dict={dict}
+          initialVideoId={searchParams?.v}
+        />
+      );
+      toolFaqs = [
+        {
+          question: "Can I download 4K or 1080p YouTube thumbnails?",
+          answer:
+            "YouTube's CDN generates thumbnails up to 1280x720 (maxresdefault.jpg). While creators often refer to this as 1080p/HD, 1280x720 is the exact maximum resolution stored on Google's YouTube image servers.",
+        },
+        {
+          question: "Do thumbnails downloaded from MediaSnap have watermarks?",
+          answer:
+            "No! MediaSnap retrieves the original, untouched image files directly from Google's YouTube CDN without modifying or adding any watermarks.",
+        },
+      ];
+      break;
+
+    case "youtube-video-information":
+      toolTitle = dict.videoInfo.title;
+      toolSubtitle = dict.videoInfo.subtitle;
+      toolComponent = <VideoInfoTool lang={lang as SupportedLanguage} dict={dict} />;
+      toolFaqs = [
+        {
+          question: "Why does MediaSnap not offer direct YouTube video downloading?",
+          answer:
+            "MediaSnap complies strictly with YouTube Terms of Service and international digital copyright laws. YouTube restricts unauthorized stream ripping. We provide metadata inspection and support authorized media for creators with their own content.",
+        },
+      ];
+      break;
+
+    case "thumbnail-resizer":
+      toolTitle = dict.resizerTool.title;
+      toolSubtitle = dict.resizerTool.subtitle;
+      toolComponent = <ResizerTool lang={lang as SupportedLanguage} dict={dict} />;
+      toolFaqs = [
+        {
+          question: "What is the recommended size for a YouTube thumbnail?",
+          answer:
+            "YouTube recommends 1280 pixels wide by 720 pixels tall (minimum width 640 pixels) with a 16:9 aspect ratio and under 2MB in file size.",
+        },
+      ];
+      break;
+
+    case "image-compressor":
+      toolTitle = dict.compressorTool.title;
+      toolSubtitle = dict.compressorTool.subtitle;
+      toolComponent = <CompressorTool lang={lang as SupportedLanguage} dict={dict} />;
+      toolFaqs = [
+        {
+          question: "What is YouTube's thumbnail file size limit?",
+          answer:
+            "YouTube requires all custom thumbnail uploads to be under 2MB. Our image compressor easily reduces files from 5MB+ down to 400KB-800KB without visible quality loss.",
+        },
+      ];
+      break;
+
+    case "image-converter":
+      toolTitle = dict.converterTool.title;
+      toolSubtitle = dict.converterTool.subtitle;
+      toolComponent = <ConverterTool lang={lang as SupportedLanguage} dict={dict} />;
+      toolFaqs = [
+        {
+          question: "Is PNG or JPG better for YouTube thumbnails?",
+          answer:
+            "JPG is generally best for photographic thumbnails because of smaller file sizes. PNG is best for graphics with text overlays and transparent elements.",
+        },
+      ];
+      break;
+
+    case "youtube-title-generator":
+      toolTitle = dict.titleTool.title;
+      toolSubtitle = dict.titleTool.subtitle;
+      toolComponent = <TitleGeneratorTool lang={lang as SupportedLanguage} dict={dict} />;
+      toolFaqs = [
+        {
+          question: "How long should a YouTube video title be?",
+          answer:
+            "YouTube allows up to 100 characters, but recommends keeping titles under 60-70 characters so they are not cut off on mobile devices.",
+        },
+      ];
+      break;
+
+    case "youtube-description-generator":
+      toolTitle = dict.descTool.title;
+      toolSubtitle = dict.descTool.subtitle;
+      toolComponent = <DescriptionGeneratorTool lang={lang as SupportedLanguage} dict={dict} />;
+      toolFaqs = [
+        {
+          question: "Why are video timestamps important in YouTube descriptions?",
+          answer:
+            "Timestamps create interactive chapters in the YouTube player and enable Google Search to show Key Moments, drastically increasing search visibility.",
+        },
+      ];
+      break;
+
+    case "youtube-tags-generator":
+      toolTitle = dict.tagsTool.title;
+      toolSubtitle = dict.tagsTool.subtitle;
+      toolComponent = <TagsGeneratorTool lang={lang as SupportedLanguage} dict={dict} />;
+      toolFaqs = [
+        {
+          question: "Do tags still matter for YouTube SEO in 2026?",
+          answer:
+            "Yes, tags help YouTube disambiguate common misspellings and categorize video content, especially for new channels and niche search queries.",
+        },
+      ];
+      break;
+
+    case "youtube-hashtag-generator":
+      toolTitle = dict.hashtagTool.title;
+      toolSubtitle = dict.hashtagTool.subtitle;
+      toolComponent = <HashtagGeneratorTool lang={lang as SupportedLanguage} dict={dict} />;
+      toolFaqs = [
+        {
+          question: "Where should I put hashtags on YouTube?",
+          answer:
+            "You can include 1-2 hashtags in the video title or up to 3-5 hashtags at the bottom of the video description.",
+        },
+      ];
+      break;
+
+    case "video-aspect-ratio-calculator":
+      toolTitle = dict.ratioTool.title;
+      toolSubtitle = dict.ratioTool.subtitle;
+      toolComponent = <AspectRatioTool lang={lang as SupportedLanguage} dict={dict} />;
+      toolFaqs = [
+        {
+          question: "What is the aspect ratio for YouTube Shorts?",
+          answer:
+            "YouTube Shorts uses a vertical 9:16 aspect ratio (standard resolution 1080 x 1920 pixels). Standard videos use 16:9 (1920 x 1080).",
+        },
+      ];
+      break;
+  }
+
+  const structuredData = {
+    "@context": "https://schema.org",
+    "@type": "WebApplication",
+    name: `${toolTitle} - MediaSnap`,
+    url: `${baseUrl}/${lang}/tools/${toolSlug}`,
+    description: toolSubtitle,
+    applicationCategory: "MultimediaApplication",
+    offers: {
+      "@type": "Offer",
+      price: "0",
+      priceCurrency: "USD",
+    },
+  };
+
+  return (
+    <div className="py-8 md:py-14">
+      <JsonLd data={structuredData} />
+
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 mb-8">
+        <Breadcrumbs
+          lang={lang as SupportedLanguage}
+          items={[
+            { label: dict.common.creatorTools, href: `/${lang}#tools` },
+            { label: toolTitle },
+          ]}
+        />
+
+        {toolSlug !== "youtube-thumbnail-downloader" && (
+          <div className="text-center max-w-3xl mx-auto my-8">
+            <h1 className="text-3xl sm:text-4xl md:text-5xl font-extrabold text-slate-900 dark:text-white">
+              {toolTitle}
+            </h1>
+            <p className="text-slate-600 dark:text-slate-300 text-sm sm:text-base mt-3 leading-relaxed">
+              {toolSubtitle}
+            </p>
+          </div>
+        )}
+
+        {/* Render Interactive Tool */}
+        <div className="mt-6">{toolComponent}</div>
+      </div>
+
+      {/* Tool-specific FAQs */}
+      {toolFaqs.length > 0 && <FaqSection dict={dict} faqs={toolFaqs} />}
+    </div>
+  );
+}

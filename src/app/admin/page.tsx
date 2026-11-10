@@ -31,6 +31,9 @@ import {
   AlertCircle,
   CheckCircle2,
   Copy,
+  ShieldCheck,
+  KeyRound,
+  UserCheck,
 } from "lucide-react";
 
 export default function AdminPage() {
@@ -46,13 +49,23 @@ export default function AdminPage() {
     | "faqs"
     | "messages"
     | "settings"
+    | "profile"
   >("overview");
 
   // Login form state
-  const [email, setEmail] = useState("admin@ytsnap.tech");
-  const [password, setPassword] = useState("Admin@YTSnap2026!");
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
   const [loginError, setLoginError] = useState("");
   const [isLoggingIn, setIsLoggingIn] = useState(false);
+
+  // Profile & Credentials update state
+  const [profileName, setProfileName] = useState("");
+  const [profileEmail, setProfileEmail] = useState("");
+  const [currentPassword, setCurrentPassword] = useState("");
+  const [newPassword, setNewPassword] = useState("");
+  const [confirmPassword, setConfirmPassword] = useState("");
+  const [profileError, setProfileError] = useState("");
+  const [isUpdatingProfile, setIsUpdatingProfile] = useState(false);
 
   // Data states
   const [stats, setStats] = useState<any>(null);
@@ -104,6 +117,8 @@ export default function AdminPage() {
         const data = await res.json();
         setIsAuthenticated(true);
         setAdminUser(data.user);
+        setProfileName(data.user?.name || "");
+        setProfileEmail(data.user?.email || "");
         loadAllData();
       } else {
         setIsAuthenticated(false);
@@ -129,6 +144,8 @@ export default function AdminPage() {
       if (res.ok) {
         setIsAuthenticated(true);
         setAdminUser(data.user);
+        setProfileName(data.user?.name || "");
+        setProfileEmail(data.user?.email || "");
         loadAllData();
       } else {
         setLoginError(data.error || "Login failed");
@@ -137,6 +154,52 @@ export default function AdminPage() {
       setLoginError("Network error. Please try again.");
     } finally {
       setIsLoggingIn(false);
+    }
+  };
+
+  const handleUpdateProfile = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setProfileError("");
+
+    if (newPassword && newPassword !== confirmPassword) {
+      setProfileError("New password and confirm password do not match");
+      return;
+    }
+
+    if (newPassword && newPassword.length < 8) {
+      setProfileError("New password must be at least 8 characters long");
+      return;
+    }
+
+    setIsUpdatingProfile(true);
+    try {
+      const res = await fetch("/api/admin/auth/me", {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          name: profileName,
+          email: profileEmail,
+          currentPassword,
+          newPassword: newPassword || undefined,
+        }),
+      });
+
+      const data = await res.json();
+      if (res.ok) {
+        setAdminUser(data.user);
+        setProfileName(data.user.name || "");
+        setProfileEmail(data.user.email || "");
+        setCurrentPassword("");
+        setNewPassword("");
+        setConfirmPassword("");
+        showNotification("Admin profile & password updated successfully!");
+      } else {
+        setProfileError(data.error || "Failed to update profile");
+      }
+    } catch {
+      setProfileError("Network error. Please try again.");
+    } finally {
+      setIsUpdatingProfile(false);
     }
   };
 
@@ -366,6 +429,7 @@ export default function AdminPage() {
               <input
                 type="email"
                 required
+                placeholder="admin@yourdomain.com"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
                 className="w-full px-4 py-2.5 rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 text-slate-900 dark:text-white text-sm focus:outline-none focus:ring-2 focus:ring-primary"
@@ -379,6 +443,7 @@ export default function AdminPage() {
               <input
                 type="password"
                 required
+                placeholder="••••••••••••"
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
                 className="w-full px-4 py-2.5 rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 text-slate-900 dark:text-white text-sm focus:outline-none focus:ring-2 focus:ring-primary"
@@ -410,12 +475,6 @@ export default function AdminPage() {
               )}
             </button>
           </form>
-
-          <div className="p-3.5 rounded-2xl bg-slate-50 dark:bg-slate-800/60 border border-slate-200/60 dark:border-slate-700/60 text-xs text-slate-500 dark:text-slate-400 space-y-1">
-            <span className="font-bold text-slate-700 dark:text-slate-300 block">Default Seed Credentials:</span>
-            <div>Email: <code className="font-mono text-primary font-semibold">admin@ytsnap.tech</code></div>
-            <div>Password: <code className="font-mono text-primary font-semibold">Admin@YTSnap2026!</code></div>
-          </div>
         </div>
       </div>
     );
@@ -592,19 +651,51 @@ export default function AdminPage() {
               <Settings className="w-4 h-4" />
               <span>Platform Settings</span>
             </button>
+
+            <button
+              onClick={() => {
+                setActiveTab("profile");
+                if (adminUser) {
+                  setProfileName(adminUser.name || "");
+                  setProfileEmail(adminUser.email || "");
+                }
+              }}
+              className={`w-full flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-xs sm:text-sm font-semibold transition-colors ${
+                activeTab === "profile"
+                  ? "bg-primary text-white shadow-md shadow-primary/20"
+                  : "text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800"
+              }`}
+            >
+              <ShieldCheck className="w-4 h-4" />
+              <span>Admin Profile & Password</span>
+            </button>
           </nav>
         </div>
 
         {/* User Footer & Logout */}
         <div className="p-4 border-t border-slate-100 dark:border-slate-800 flex items-center justify-between">
-          <div className="text-xs">
-            <span className="font-bold text-slate-900 dark:text-white block">{adminUser?.name}</span>
-            <span className="text-slate-400">{adminUser?.email}</span>
-          </div>
+          <button
+            onClick={() => {
+              setActiveTab("profile");
+              if (adminUser) {
+                setProfileName(adminUser.name || "");
+                setProfileEmail(adminUser.email || "");
+              }
+            }}
+            className="text-left text-xs group flex-1 mr-2"
+          >
+            <span className="font-bold text-slate-900 dark:text-white block group-hover:text-primary transition-colors">
+              {adminUser?.name}
+            </span>
+            <span className="text-slate-400 block truncate">{adminUser?.email}</span>
+            <span className="text-[10px] text-primary font-semibold flex items-center gap-1 mt-0.5">
+              <KeyRound className="w-3 h-3" /> Change Username / Password
+            </span>
+          </button>
           <button
             onClick={handleLogout}
             title="Log out"
-            className="p-2 rounded-xl text-slate-500 hover:text-rose-500 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors"
+            className="p-2 rounded-xl text-slate-500 hover:text-rose-500 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors shrink-0"
           >
             <LogOut className="w-4 h-4" />
           </button>
@@ -625,6 +716,8 @@ export default function AdminPage() {
                 ? "Custom Header & Footer Code"
                 : activeTab === "seo_files"
                 ? "SEO Files: Robots.txt, Ads.txt & Sitemap"
+                : activeTab === "profile"
+                ? "Admin Profile & Security Settings"
                 : `${activeTab} Management`}
             </h1>
             <p className="text-xs text-slate-400 mt-1">
@@ -1839,6 +1932,145 @@ export default function AdminPage() {
                   </div>
                 ))}
             </div>
+          </div>
+        )}
+
+        {/* ========================================================= */}
+        {/* 10. ADMIN PROFILE & CREDENTIALS TAB */}
+        {/* ========================================================= */}
+        {activeTab === "profile" && (
+          <div className="max-w-3xl bg-white dark:bg-slate-900 rounded-3xl border border-slate-200 dark:border-slate-800 p-6 sm:p-8 shadow-sm space-y-6">
+            <div className="pb-4 border-b border-slate-100 dark:border-slate-800">
+              <h3 className="text-lg font-bold text-slate-900 dark:text-white flex items-center gap-2">
+                <ShieldCheck className="w-5 h-5 text-primary" />
+                <span>Admin Profile & Security Settings</span>
+              </h3>
+              <p className="text-xs text-slate-400 mt-1">
+                Update your admin display name, login email, and change your password securely.
+              </p>
+            </div>
+
+            <form onSubmit={handleUpdateProfile} className="space-y-6 text-xs">
+              {profileError && (
+                <div className="p-3.5 rounded-2xl bg-rose-50 dark:bg-rose-950/40 border border-rose-200 dark:border-rose-900 text-rose-600 dark:text-rose-400 flex items-center gap-2">
+                  <AlertCircle className="w-4 h-4 shrink-0" />
+                  <span>{profileError}</span>
+                </div>
+              )}
+
+              {/* Basic Info */}
+              <div className="space-y-4">
+                <h4 className="text-xs font-bold uppercase tracking-wider text-slate-400 flex items-center gap-1.5">
+                  <UserCheck className="w-4 h-4 text-secondary" />
+                  <span>Account Information</span>
+                </h4>
+
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                  <div>
+                    <label className="font-bold text-slate-700 dark:text-slate-300 block mb-1">
+                      Admin Display Name / Username *
+                    </label>
+                    <input
+                      type="text"
+                      required
+                      value={profileName}
+                      onChange={(e) => setProfileName(e.target.value)}
+                      placeholder="e.g. Administrator or Your Name"
+                      className="w-full px-4 py-2.5 rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 text-slate-900 dark:text-white"
+                    />
+                  </div>
+
+                  <div>
+                    <label className="font-bold text-slate-700 dark:text-slate-300 block mb-1">
+                      Admin Login Email *
+                    </label>
+                    <input
+                      type="email"
+                      required
+                      value={profileEmail}
+                      onChange={(e) => setProfileEmail(e.target.value)}
+                      placeholder="admin@ytsnap.tech"
+                      className="w-full px-4 py-2.5 rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 text-slate-900 dark:text-white"
+                    />
+                  </div>
+                </div>
+              </div>
+
+              {/* Password Change */}
+              <div className="pt-4 border-t border-slate-100 dark:border-slate-800 space-y-4">
+                <h4 className="text-xs font-bold uppercase tracking-wider text-slate-400 flex items-center gap-1.5">
+                  <KeyRound className="w-4 h-4 text-amber-500" />
+                  <span>Security & Password Update</span>
+                </h4>
+
+                <div>
+                  <label className="font-bold text-slate-700 dark:text-slate-300 block mb-1">
+                    Current Password (वर्तमान पासवर्ड) *
+                  </label>
+                  <input
+                    type="password"
+                    value={currentPassword}
+                    onChange={(e) => setCurrentPassword(e.target.value)}
+                    placeholder="Enter current password to authorize changes"
+                    className="w-full px-4 py-2.5 rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 text-slate-900 dark:text-white"
+                  />
+                  <span className="text-[10px] text-slate-400 mt-1 block">
+                    सुरक्षा पुष्टि: ईमेल या पासवर्ड बदलने के लिए वर्तमान पासवर्ड दर्ज करना आवश्यक है।
+                  </span>
+                </div>
+
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                  <div>
+                    <label className="font-bold text-slate-700 dark:text-slate-300 block mb-1">
+                      New Password (नया पासवर्ड - वैकल्पिक)
+                    </label>
+                    <input
+                      type="password"
+                      value={newPassword}
+                      onChange={(e) => setNewPassword(e.target.value)}
+                      placeholder="कम से कम 8 अक्षर..."
+                      className="w-full px-4 py-2.5 rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 text-slate-900 dark:text-white"
+                    />
+                  </div>
+
+                  <div>
+                    <label className="font-bold text-slate-700 dark:text-slate-300 block mb-1">
+                      Confirm New Password (पुष्टि करें)
+                    </label>
+                    <input
+                      type="password"
+                      value={confirmPassword}
+                      onChange={(e) => setConfirmPassword(e.target.value)}
+                      placeholder="दोबारा नया पासवर्ड दर्ज करें..."
+                      className="w-full px-4 py-2.5 rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 text-slate-900 dark:text-white"
+                    />
+                  </div>
+                </div>
+                <span className="text-[10px] text-slate-400 block">
+                  नोट: यदि आप केवल अपना नाम या ईमेल बदलना चाहते हैं, तो नया पासवर्ड फ़ील्ड खाली छोड़ सकते हैं।
+                </span>
+              </div>
+
+              <div className="pt-2">
+                <button
+                  type="submit"
+                  disabled={isUpdatingProfile}
+                  className="px-6 py-3 bg-primary hover:bg-primary-hover text-white font-bold rounded-xl shadow-md transition-colors flex items-center gap-2"
+                >
+                  {isUpdatingProfile ? (
+                    <>
+                      <Loader2 className="w-4 h-4 animate-spin" />
+                      <span>Updating Credentials...</span>
+                    </>
+                  ) : (
+                    <>
+                      <Save className="w-4 h-4" />
+                      <span>Save Profile & Password</span>
+                    </>
+                  )}
+                </button>
+              </div>
+            </form>
           </div>
         )}
       </main>

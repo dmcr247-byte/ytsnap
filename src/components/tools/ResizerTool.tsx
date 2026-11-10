@@ -116,7 +116,7 @@ export function ResizerTool({ lang, dict }: ResizerToolProps) {
       const downloadUrl = window.URL.createObjectURL(blob);
       const a = document.createElement("a");
       a.href = downloadUrl;
-      a.download = `mediasnap-resized-${width}x${height}.${format === "jpeg" ? "jpg" : format}`;
+      a.download = `ytsnap-resized-${width}x${height}.${format === "jpeg" ? "jpg" : format}`;
       document.body.appendChild(a);
       a.click();
       a.remove();

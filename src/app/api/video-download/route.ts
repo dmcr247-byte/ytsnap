@@ -36,13 +36,13 @@ export async function GET(req: NextRequest) {
       return new NextResponse("Requested format not available", { status: 404 });
     }
 
-    const cleanTitle = (rawTitle || info.videoDetails?.title || "mediasnap-video")
+    const cleanTitle = (rawTitle || info.videoDetails?.title || "ytsnap-video")
       .replace(/[^a-zA-Z0-9_-]/g, "_")
       .slice(0, 50);
 
     const ext = targetFormat.container || (targetFormat.hasVideo ? "mp4" : "mp3");
     const qualityLabel = targetFormat.qualityLabel || `${targetFormat.audioBitrate || 128}kbps`;
-    const filename = `mediasnap-${cleanTitle}-${qualityLabel}.${ext}`;
+    const filename = `ytsnap-${cleanTitle}-${qualityLabel}.${ext}`;
 
     // If client requested direct redirect to Google CDN
     const redirectDirect = searchParams.get("redirect") === "true";

@@ -43,7 +43,7 @@ export async function generateMetadata({ params }: ArticlePageProps): Promise<Me
   }
 
   return {
-    title: `${post.title} | MediaSnap Blog`,
+    title: `${post.title} | YTSnap Blog`,
     description: post.excerpt,
     alternates: {
       canonical: `${baseUrl}/${lang}/blog/${slug}`,
@@ -53,7 +53,7 @@ export async function generateMetadata({ params }: ArticlePageProps): Promise<Me
       title: post.title,
       description: post.excerpt,
       url: `${baseUrl}/${lang}/blog/${slug}`,
-      siteName: "MediaSnap",
+      siteName: "YTSnap",
       type: "article",
       publishedTime: post.createdAt.toISOString(),
       modifiedTime: post.updatedAt.toISOString(),
@@ -133,7 +133,7 @@ export default async function BlogPostDetailPage({ params }: ArticlePageProps) {
         },
         publisher: {
           "@type": "Organization",
-          name: "MediaSnap",
+          name: "YTSnap",
           logo: `${baseUrl}/favicon.ico`,
         },
         datePublished: post.createdAt.toISOString(),

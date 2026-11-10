@@ -8,8 +8,8 @@ export const dynamic = "force-dynamic";
 export const metadata: Metadata = {
   metadataBase: new URL(process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3000"),
   title: {
-    template: "%s | MediaSnap",
-    default: "MediaSnap - Free YouTube Thumbnail & Creator Media Tools",
+    template: "%s | YTSnap",
+    default: "YTSnap - Free YouTube Thumbnail & Creator Media Tools",
   },
   description:
     "Preview and download full HD YouTube thumbnails (1280x720), inspect video metadata, and access 10 free creator utilities in 8 languages.",

@@ -61,7 +61,7 @@ export async function POST(req: NextRequest) {
       method: "HEAD",
       signal: controller.signal,
       headers: {
-        "User-Agent": "MediaSnap-Authorized-Media-Inspector/1.0",
+        "User-Agent": "YTSnap-Authorized-Media-Inspector/1.0",
       },
     });
     clearTimeout(timeout);

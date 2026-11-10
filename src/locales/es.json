@@ -1,6 +1,6 @@
 {
   "common": {
-    "siteName": "MediaSnap",
+    "siteName": "YTSnap",
     "tagline": "Herramientas Gratuitas de Miniaturas y Medios de YouTube",
     "home": "Inicio",
     "videoDownloader": "Descargador de Videos",
@@ -68,7 +68,7 @@
     "downloadPng": "Convertir y Descargar PNG",
     "openImage": "Abrir en Pestaña",
     "copyUrl": "Copiar URL de CDN",
-    "notice": "Las imágenes están alojadas en la CDN de YouTube de Google. MediaSnap verifica la disponibilidad directamente sin alterar los datos.",
+    "notice": "Las imágenes están alojadas en la CDN de YouTube de Google. YTSnap verifica la disponibilidad directamente sin alterar los datos.",
     "resolutionGuideTitle": "Guía de Resoluciones de Miniaturas",
     "resolutionGuideDesc": "No todos los videos tienen miniatura HD (1280x720). YouTube solo genera maxresdefault si el creador subió una imagen HD original."
   },
@@ -86,7 +86,7 @@
     "embedPreview": "Vista Previa Interactiva",
     "directMediaNotice": "Derechos de Medios y Cumplimiento",
     "complianceTitle": "Uso Legítimo y Cumplimiento de la Plataforma",
-    "complianceText": "MediaSnap respeta estrictamente los Términos de Servicio de YouTube y las leyes de propiedad intelectual. No descargamos contenido protegido ni eludimos DRM.",
+    "complianceText": "YTSnap respeta estrictamente los Términos de Servicio de YouTube y las leyes de propiedad intelectual. No descargamos contenido protegido ni eludimos DRM.",
     "officialYoutubeNotice": "Para descargar videos para ver sin conexión con autorización oficial, utiliza la app de YouTube con YouTube Premium.",
     "openInYoutube": "Ver en YouTube",
     "authorizedDownloadSection": "Inspector de Medios Autorizados o Alojados por el Usuario",
@@ -204,17 +204,17 @@
     "estSize": "Tamaño de Archivo Estimado"
   },
   "howItWorks": {
-    "title": "Cómo Usar MediaSnap en 3 Pasos Fáciles",
+    "title": "Cómo Usar YTSnap en 3 Pasos Fáciles",
     "subtitle": "Rápido, sencillo y totalmente gratis sin necesidad de registro ni programas.",
     "step1Title": "1. Copia y Pega el Enlace",
     "step1Desc": "Copia el enlace de cualquier video o Short de YouTube y pégalo en el buscador.",
     "step2Title": "2. Verifica Resoluciones",
-    "step2Desc": "MediaSnap comprueba en tiempo real las resoluciones disponibles (1280x720 hasta 120x90).",
+    "step2Desc": "YTSnap comprueba en tiempo real las resoluciones disponibles (1280x720 hasta 120x90).",
     "step3Title": "3. Previsualiza y Descarga",
     "step3Desc": "Visualiza la imagen en alta definición y descárgala en formato JPG o PNG con un clic."
   },
   "features": {
-    "title": "Por Qué los Creadores Eligen MediaSnap",
+    "title": "Por Qué los Creadores Eligen YTSnap",
     "subtitle": "Diseñado con velocidad, fiabilidad y pleno cumplimiento de las normas de la plataforma.",
     "f1Title": "Verificación Directa en CDN",
     "f1Desc": "Consultamos directamente los servidores de YouTube para evitar enlaces caídos o imágenes con error 404.",
@@ -234,7 +234,7 @@
     "subtitle": "Todo lo que necesitas saber sobre miniaturas de YouTube, resoluciones y derechos de autor."
   },
   "footer": {
-    "desc": "MediaSnap es una plataforma independiente que ofrece herramientas de obtención de miniaturas y utilidades para creadores de YouTube.",
-    "disclaimerNotice": "MediaSnap es una herramienta independiente y no está afiliada, respaldada ni patrocinada por YouTube, Google LLC o Alphabet Inc."
+    "desc": "YTSnap es una plataforma independiente que ofrece herramientas de obtención de miniaturas y utilidades para creadores de YouTube.",
+    "disclaimerNotice": "YTSnap es una herramienta independiente y no está afiliada, respaldada ni patrocinada por YouTube, Google LLC o Alphabet Inc."
   }
 }

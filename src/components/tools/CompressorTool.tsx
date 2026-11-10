@@ -93,7 +93,7 @@ export function CompressorTool({ lang, dict }: CompressorToolProps) {
     const downloadUrl = window.URL.createObjectURL(compressedBlob);
     const a = document.createElement("a");
     a.href = downloadUrl;
-    a.download = `mediasnap-compressed-${quality}q.${format === "jpeg" ? "jpg" : format}`;
+    a.download = `ytsnap-compressed-${quality}q.${format === "jpeg" ? "jpg" : format}`;
     document.body.appendChild(a);
     a.click();
     a.remove();

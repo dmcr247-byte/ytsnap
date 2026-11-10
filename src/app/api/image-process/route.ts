@@ -96,7 +96,7 @@ export async function POST(req: NextRequest) {
     };
 
     const finalMime = mimeTypes[outputFormat] || "image/jpeg";
-    const filename = `mediasnap-processed-${Date.now()}.${outputFormat === "jpeg" ? "jpg" : outputFormat}`;
+    const filename = `ytsnap-processed-${Date.now()}.${outputFormat === "jpeg" ? "jpg" : outputFormat}`;
 
     return new NextResponse(new Uint8Array(processedBuffer), {
       headers: {

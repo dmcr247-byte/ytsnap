@@ -6,8 +6,8 @@ import { Breadcrumbs } from "@/components/Breadcrumbs";
 
 export async function generateMetadata(): Promise<Metadata> {
   return {
-    title: "Privacy Policy | MediaSnap",
-    description: "MediaSnap Privacy Policy. Learn how we handle information, cookies, and protect creator privacy.",
+    title: "Privacy Policy | YTSnap",
+    description: "YTSnap Privacy Policy. Learn how we handle information, cookies, and protect creator privacy.",
   };
 }
 
@@ -34,21 +34,21 @@ export default function PrivacyPolicyPage({ params }: { params: { lang: string }
         <section className="space-y-2">
           <h2 className="text-lg font-bold text-slate-900 dark:text-white">1. Introduction</h2>
           <p>
-            MediaSnap (&quot;we&quot;, &quot;our&quot;, or &quot;us&quot;) respects the privacy of our visitors. This Privacy Policy explains our practices regarding data collection, usage, and disclosure when you use our website and online creator tools.
+            YTSnap (&quot;we&quot;, &quot;our&quot;, or &quot;us&quot;) respects the privacy of our visitors. This Privacy Policy explains our practices regarding data collection, usage, and disclosure when you use our website and online creator tools.
           </p>
         </section>
 
         <section className="space-y-2">
           <h2 className="text-lg font-bold text-slate-900 dark:text-white">2. No Personal Data Storage for General Tool Usage</h2>
           <p>
-            You do not need to create an account or provide any personal information to use MediaSnap creator utilities. We do not store your name, email, or passwords for public tool queries.
+            You do not need to create an account or provide any personal information to use YTSnap creator utilities. We do not store your name, email, or passwords for public tool queries.
           </p>
         </section>
 
         <section className="space-y-2">
           <h2 className="text-lg font-bold text-slate-900 dark:text-white">3. Information Collected Automatically</h2>
           <p>
-            Like most modern web services, our servers automatically collect non-personally identifiable log information when you access MediaSnap, including hashed IP addresses, browser types, language preferences, referring URLs, and timestamps. This information is used strictly to prevent automated abuse, defend against DDoS attacks, and enforce rate limits.
+            Like most modern web services, our servers automatically collect non-personally identifiable log information when you access YTSnap, including hashed IP addresses, browser types, language preferences, referring URLs, and timestamps. This information is used strictly to prevent automated abuse, defend against DDoS attacks, and enforce rate limits.
           </p>
         </section>
 
@@ -62,14 +62,14 @@ export default function PrivacyPolicyPage({ params }: { params: { lang: string }
         <section className="space-y-2">
           <h2 className="text-lg font-bold text-slate-900 dark:text-white">5. Third-Party Services & Links</h2>
           <p>
-            MediaSnap interacts with YouTube public image CDNs to inspect and retrieve publicly available thumbnail assets. We do not transmit any personal visitor information to third parties.
+            YTSnap interacts with YouTube public image CDNs to inspect and retrieve publicly available thumbnail assets. We do not transmit any personal visitor information to third parties.
           </p>
         </section>
 
         <section className="space-y-2">
           <h2 className="text-lg font-bold text-slate-900 dark:text-white">6. Contacting Us</h2>
           <p>
-            If you have questions regarding this Privacy Policy, please email us at <span className="font-semibold text-primary">support@mediasnap.com</span>.
+            If you have questions regarding this Privacy Policy, please email us at <span className="font-semibold text-primary">support@ytsnap.tech</span>.
           </p>
         </section>
       </div>

@@ -58,7 +58,7 @@ export async function POST(req: NextRequest) {
       complianceNotice: {
         isDirectDownloadAllowed: false,
         reason:
-          "YouTube Terms of Service explicitly prohibit unauthorized downloading of copyrighted video streams. MediaSnap does not circumvent DRM or provide unauthorized download links.",
+          "YouTube Terms of Service explicitly prohibit unauthorized downloading of copyrighted video streams. YTSnap does not circumvent DRM or provide unauthorized download links.",
         officialOption:
           "For offline viewing, use the official YouTube mobile app with a YouTube Premium subscription.",
       },

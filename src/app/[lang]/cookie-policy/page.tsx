@@ -6,8 +6,8 @@ import { Breadcrumbs } from "@/components/Breadcrumbs";
 
 export async function generateMetadata(): Promise<Metadata> {
   return {
-    title: "Cookie Policy | MediaSnap",
-    description: "Learn how MediaSnap uses cookies and client storage for language and theme settings.",
+    title: "Cookie Policy | YTSnap",
+    description: "Learn how YTSnap uses cookies and client storage for language and theme settings.",
   };
 }
 
@@ -39,11 +39,11 @@ export default function CookiePolicyPage({ params }: { params: { lang: string } 
         </section>
 
         <section className="space-y-2">
-          <h2 className="text-lg font-bold text-slate-900 dark:text-white">Cookies We Use on MediaSnap</h2>
+          <h2 className="text-lg font-bold text-slate-900 dark:text-white">Cookies We Use on YTSnap</h2>
           <div className="space-y-3 text-xs sm:text-sm">
             <div className="p-4 rounded-2xl bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700">
               <span className="font-bold text-slate-900 dark:text-white block">
-                mediasnap_lang (Functional Cookie)
+                ytsnap_lang (Functional Cookie)
               </span>
               <p className="text-slate-500 dark:text-slate-400 mt-1">
                 Stores your preferred language selection (e.g., &quot;en&quot;, &quot;hi&quot;, &quot;es&quot;, &quot;ar&quot;) so you don&apos;t have to select it on every page load.
@@ -52,7 +52,7 @@ export default function CookiePolicyPage({ params }: { params: { lang: string } 
 
             <div className="p-4 rounded-2xl bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700">
               <span className="font-bold text-slate-900 dark:text-white block">
-                mediasnap_theme (Local Storage)
+                ytsnap_theme (Local Storage)
               </span>
               <p className="text-slate-500 dark:text-slate-400 mt-1">
                 Saves whether you prefer Light Mode or Dark Mode.
@@ -61,7 +61,7 @@ export default function CookiePolicyPage({ params }: { params: { lang: string } 
 
             <div className="p-4 rounded-2xl bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700">
               <span className="font-bold text-slate-900 dark:text-white block">
-                mediasnap_admin_session (Security Cookie - Admin Only)
+                ytsnap_admin_session (Security Cookie - Admin Only)
               </span>
               <p className="text-slate-500 dark:text-slate-400 mt-1">
                 An HTTP-only secure JWT token used exclusively to authenticate administrators accessing the admin panel.

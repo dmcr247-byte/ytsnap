@@ -44,8 +44,8 @@ export function Footer({ lang, dict }: FooterProps) {
               <div className="w-9 h-9 rounded-xl bg-gradient-to-tr from-primary to-rose-500 flex items-center justify-center text-white shadow-md shadow-primary/20">
                 <Sparkles className="w-5 h-5 fill-white" />
               </div>
-              <span className="text-xl font-extrabold tracking-tight text-slate-900 dark:text-white">
-                Media<span className="text-primary">Snap</span>
+              <span className="text-xl font-extrabold tracking-tight text-slate-900 dark:text-white flex items-center gap-0.5">
+                YT<span className="text-primary">Snap</span>
               </span>
             </Link>
             <p className="text-sm text-slate-600 dark:text-slate-400 max-w-sm leading-relaxed">
@@ -187,7 +187,7 @@ export function Footer({ lang, dict }: FooterProps) {
         {/* Copyright and Bottom Meta */}
         <div className="pt-6 border-t border-slate-100 dark:border-slate-800 flex flex-col sm:flex-row items-center justify-between text-xs text-slate-500 dark:text-slate-400 gap-4">
           <p>
-            © {currentYear} MediaSnap. {dict.common.allRightsReserved}
+            © {currentYear} YTSnap. {dict.common.allRightsReserved}
           </p>
           <div className="flex items-center gap-4">
             <Link href={`/${lang}/disclaimer`} className="hover:text-primary">

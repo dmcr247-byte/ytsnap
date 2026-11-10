@@ -61,11 +61,11 @@ export function Header({ lang, dict }: HeaderProps) {
   const toggleTheme = () => {
     if (isDark) {
       document.documentElement.classList.remove("dark");
-      localStorage.setItem("mediasnap_theme", "light");
+      localStorage.setItem("ytsnap_theme", "light");
       setIsDark(false);
     } else {
       document.documentElement.classList.add("dark");
-      localStorage.setItem("mediasnap_theme", "dark");
+      localStorage.setItem("ytsnap_theme", "dark");
       setIsDark(true);
     }
   };
@@ -82,7 +82,7 @@ export function Header({ lang, dict }: HeaderProps) {
       segments.push(newLang);
     }
     const newPath = "/" + segments.join("/");
-    document.cookie = `mediasnap_lang=${newLang}; max-age=${60 * 60 * 24 * 365}; path=/`;
+    document.cookie = `ytsnap_lang=${newLang}; max-age=${60 * 60 * 24 * 365}; path=/`;
     router.push(newPath);
   };
 
@@ -159,8 +159,8 @@ export function Header({ lang, dict }: HeaderProps) {
             <Sparkles className="w-5 h-5 fill-white" />
           </div>
           <div className="flex flex-col">
-            <span className="text-xl font-extrabold tracking-tight text-slate-900 dark:text-white flex items-center gap-1">
-              Media<span className="text-primary">Snap</span>
+            <span className="text-xl font-extrabold tracking-tight text-slate-900 dark:text-white flex items-center gap-0.5">
+              YT<span className="text-primary">Snap</span>
             </span>
             <span className="text-[10px] font-semibold text-slate-500 dark:text-slate-400 -mt-1 tracking-wider uppercase">
               Creator Suite

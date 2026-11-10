@@ -20,7 +20,7 @@ export function middleware(req: NextRequest) {
 
   if (!firstSegment || !isValidLanguage(firstSegment)) {
     // Detect preferred language from cookie or Accept-Language header
-    const savedLang = req.cookies.get("mediasnap_lang")?.value;
+    const savedLang = req.cookies.get("ytsnap_lang")?.value;
     let chosenLang = DEFAULT_LANGUAGE;
 
     if (savedLang && isValidLanguage(savedLang)) {
@@ -40,13 +40,13 @@ export function middleware(req: NextRequest) {
     const url = req.nextUrl.clone();
     url.pathname = targetPath;
     const response = NextResponse.redirect(url);
-    response.cookies.set("mediasnap_lang", chosenLang, { maxAge: 60 * 60 * 24 * 365, path: "/" });
+    response.cookies.set("ytsnap_lang", chosenLang, { maxAge: 60 * 60 * 24 * 365, path: "/" });
     return response;
   }
 
   // If visiting a language-prefixed path, save the preference in a cookie
   const response = NextResponse.next();
-  response.cookies.set("mediasnap_lang", firstSegment, { maxAge: 60 * 60 * 24 * 365, path: "/" });
+  response.cookies.set("ytsnap_lang", firstSegment, { maxAge: 60 * 60 * 24 * 365, path: "/" });
   return response;
 }
 

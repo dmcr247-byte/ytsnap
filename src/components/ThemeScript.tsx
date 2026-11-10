@@ -2,7 +2,7 @@ export function ThemeScript() {
   const code = `
     (function() {
       try {
-        var saved = localStorage.getItem('mediasnap_theme');
+        var saved = localStorage.getItem('ytsnap_theme');
         var prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
         if (saved === 'dark' || (!saved && prefersDark)) {
           document.documentElement.classList.add('dark');

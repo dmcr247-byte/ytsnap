@@ -60,7 +60,7 @@ export async function GET(req: NextRequest) {
       extension = "webp";
     }
 
-    const filename = `mediasnap-${videoId}-${safeKey}.${extension}`;
+    const filename = `ytsnap-${videoId}-${safeKey}.${extension}`;
 
     return new NextResponse(new Uint8Array(outputBuffer), {
       headers: {

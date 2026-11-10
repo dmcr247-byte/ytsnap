@@ -68,7 +68,7 @@ export function ConverterTool({ lang, dict }: ConverterToolProps) {
       const downloadUrl = window.URL.createObjectURL(blob);
       const a = document.createElement("a");
       a.href = downloadUrl;
-      a.download = `mediasnap-converted.${targetFormat === "jpeg" ? "jpg" : targetFormat}`;
+      a.download = `ytsnap-converted.${targetFormat === "jpeg" ? "jpg" : targetFormat}`;
       document.body.appendChild(a);
       a.click();
       a.remove();

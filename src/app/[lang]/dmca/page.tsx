@@ -8,8 +8,8 @@ import { FileText, Mail } from "lucide-react";
 
 export async function generateMetadata(): Promise<Metadata> {
   return {
-    title: "DMCA Copyright Notice & Removal Request | MediaSnap",
-    description: "Submit a DMCA takedown request or notice of copyright infringement to MediaSnap.",
+    title: "DMCA Copyright Notice & Removal Request | YTSnap",
+    description: "Submit a DMCA takedown request or notice of copyright infringement to YTSnap.",
   };
 }
 
@@ -36,7 +36,7 @@ export default function DmcaPage({ params }: { params: { lang: string } }) {
         <section className="space-y-2">
           <h2 className="text-lg font-bold text-slate-900 dark:text-white">Notice of Non-Hosting</h2>
           <p>
-            Please note that MediaSnap does not store or host video media or thumbnail images on its private servers. When a user enters a YouTube URL, MediaSnap acts solely as an intermediary client retrieving and checking public image headers hosted directly on Google&apos;s Content Delivery Network (<code className="text-xs font-mono bg-slate-100 dark:bg-slate-800 p-1 rounded">img.youtube.com</code> / <code className="text-xs font-mono bg-slate-100 dark:bg-slate-800 p-1 rounded">i.ytimg.com</code>).
+            Please note that YTSnap does not store or host video media or thumbnail images on its private servers. When a user enters a YouTube URL, YTSnap acts solely as an intermediary client retrieving and checking public image headers hosted directly on Google&apos;s Content Delivery Network (<code className="text-xs font-mono bg-slate-100 dark:bg-slate-800 p-1 rounded">img.youtube.com</code> / <code className="text-xs font-mono bg-slate-100 dark:bg-slate-800 p-1 rounded">i.ytimg.com</code>).
           </p>
           <p>
             To have a thumbnail permanently removed from the internet, you must file a copyright takedown directly with YouTube (Google LLC), which will immediately propagate across their CDN and disable all thumbnail access everywhere.
@@ -44,13 +44,13 @@ export default function DmcaPage({ params }: { params: { lang: string } }) {
         </section>
 
         <section className="space-y-2">
-          <h2 className="text-lg font-bold text-slate-900 dark:text-white">Submitting a DMCA Notice to MediaSnap</h2>
+          <h2 className="text-lg font-bold text-slate-900 dark:text-white">Submitting a DMCA Notice to YTSnap</h2>
           <p>
             If you believe content appearing on our blog, educational guides, or pages infringes your copyright, please submit a written notification including:
           </p>
           <ul className="list-disc pl-5 space-y-1.5 text-xs sm:text-sm">
             <li>Identification of the copyrighted work claimed to have been infringed.</li>
-            <li>Specific URL on MediaSnap where the material is located.</li>
+            <li>Specific URL on YTSnap where the material is located.</li>
             <li>Your full name, address, telephone number, and email address.</li>
             <li>A statement that you have a good-faith belief that use of the material is not authorized by the copyright owner.</li>
             <li>A physical or electronic signature of the authorized copyright holder.</li>
@@ -60,7 +60,7 @@ export default function DmcaPage({ params }: { params: { lang: string } }) {
         <div className="pt-4 border-t border-slate-100 dark:border-slate-800 flex items-center gap-3">
           <Mail className="w-5 h-5 text-primary" />
           <span className="text-sm">
-            Send DMCA notices to: <strong className="text-primary">dmca@mediasnap.com</strong> or use our{" "}
+            Send DMCA notices to: <strong className="text-primary">dmca@ytsnap.tech</strong> or use our{" "}
             <Link href={`/${lang}/contact`} className="underline font-semibold">
               Contact Form
             </Link>

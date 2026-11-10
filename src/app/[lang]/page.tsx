@@ -39,17 +39,17 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
   }
 
   return {
-    title: `${dict.hero.title} | MediaSnap`,
+    title: `${dict.hero.title} | YTSnap`,
     description: dict.hero.subtitle,
     alternates: {
       canonical: `${baseUrl}/${lang}`,
       languages: alternatesLanguages,
     },
     openGraph: {
-      title: `${dict.hero.title} | MediaSnap`,
+      title: `${dict.hero.title} | YTSnap`,
       description: dict.hero.subtitle,
       url: `${baseUrl}/${lang}`,
-      siteName: "MediaSnap",
+      siteName: "YTSnap",
       locale: lang,
       type: "website",
     },
@@ -112,20 +112,20 @@ export default async function HomePage({ params, searchParams }: PageProps) {
         "@type": "WebSite",
         "@id": `${baseUrl}/#website`,
         url: baseUrl,
-        name: "MediaSnap",
+        name: "YTSnap",
         description: dict.hero.subtitle,
         inLanguage: lang,
       },
       {
         "@type": "Organization",
         "@id": `${baseUrl}/#organization`,
-        name: "MediaSnap",
+        name: "YTSnap",
         url: baseUrl,
         logo: `${baseUrl}/favicon.ico`,
       },
       {
         "@type": "WebApplication",
-        name: "MediaSnap YouTube Thumbnail & Creator Suite",
+        name: "YTSnap YouTube Thumbnail & Creator Suite",
         url: `${baseUrl}/${lang}`,
         applicationCategory: "MultimediaApplication",
         operatingSystem: "All",

@@ -3,9 +3,9 @@ import jwt from "jsonwebtoken";
 
 const JWT_SECRET =
   process.env.JWT_SECRET ||
-  "mediasnap-super-secure-jwt-secret-key-production-ready-2026";
+  "ytsnap-super-secure-jwt-secret-key-production-ready-2026";
 
-export const ADMIN_COOKIE_NAME = "mediasnap_admin_session";
+export const ADMIN_COOKIE_NAME = "ytsnap_admin_session";
 
 export interface AdminPayload {
   id: string;
@@ -26,7 +26,7 @@ export function verifyAdminToken(token: string): AdminPayload | null {
 }
 
 export function hashIp(ip: string): string {
-  return crypto.createHash("sha256").update(ip + "mediasnap-salt").digest("hex").slice(0, 16);
+  return crypto.createHash("sha256").update(ip + "ytsnap-salt").digest("hex").slice(0, 16);
 }
 
 // SSRF Protection: Checks if URL is external and not resolving to private/loopback/cloud metadata IP ranges

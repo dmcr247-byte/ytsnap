@@ -59,7 +59,7 @@ export async function generateMetadata({ params }: ToolPageProps): Promise<Metad
   const baseUrl = process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3000";
 
   let title = "Creator Tool";
-  let description = "Free YouTube Creator Utility on MediaSnap.";
+  let description = "Free YouTube Creator Utility on YTSnap.";
 
   switch (toolSlug) {
     case "youtube-video-downloader":
@@ -114,17 +114,17 @@ export async function generateMetadata({ params }: ToolPageProps): Promise<Metad
   }
 
   return {
-    title: `${title} | MediaSnap`,
+    title: `${title} | YTSnap`,
     description,
     alternates: {
       canonical: `${baseUrl}/${lang}/tools/${toolSlug}`,
       languages: alternatesLanguages,
     },
     openGraph: {
-      title: `${title} | MediaSnap`,
+      title: `${title} | YTSnap`,
       description,
       url: `${baseUrl}/${lang}/tools/${toolSlug}`,
-      siteName: "MediaSnap",
+      siteName: "YTSnap",
       type: "website",
     },
   };
@@ -154,7 +154,7 @@ export default function ToolPage({ params, searchParams }: ToolPageProps) {
         {
           question: "Can I download YouTube videos in 1080p Full HD and 720p?",
           answer:
-            "Yes! MediaSnap detects all available video stream resolutions provided by YouTube, including 1080p Full HD, 720p HD, 480p, and 360p MP4 formats.",
+            "Yes! YTSnap detects all available video stream resolutions provided by YouTube, including 1080p Full HD, 720p HD, 480p, and 360p MP4 formats.",
         },
         {
           question: "Can I extract audio / MP3 from a YouTube video?",
@@ -185,9 +185,9 @@ export default function ToolPage({ params, searchParams }: ToolPageProps) {
             "YouTube's CDN generates thumbnails up to 1280x720 (maxresdefault.jpg). While creators often refer to this as 1080p/HD, 1280x720 is the exact maximum resolution stored on Google's YouTube image servers.",
         },
         {
-          question: "Do thumbnails downloaded from MediaSnap have watermarks?",
+          question: "Do thumbnails downloaded from YTSnap have watermarks?",
           answer:
-            "No! MediaSnap retrieves the original, untouched image files directly from Google's YouTube CDN without modifying or adding any watermarks.",
+            "No! YTSnap retrieves the original, untouched image files directly from Google's YouTube CDN without modifying or adding any watermarks.",
         },
       ];
       break;
@@ -198,9 +198,9 @@ export default function ToolPage({ params, searchParams }: ToolPageProps) {
       toolComponent = <VideoInfoTool lang={lang as SupportedLanguage} dict={dict} />;
       toolFaqs = [
         {
-          question: "Why does MediaSnap not offer direct YouTube video downloading?",
+          question: "Why does YTSnap not offer direct YouTube video downloading?",
           answer:
-            "MediaSnap complies strictly with YouTube Terms of Service and international digital copyright laws. YouTube restricts unauthorized stream ripping. We provide metadata inspection and support authorized media for creators with their own content.",
+            "YTSnap complies strictly with YouTube Terms of Service and international digital copyright laws. YouTube restricts unauthorized stream ripping. We provide metadata inspection and support authorized media for creators with their own content.",
         },
       ];
       break;
@@ -313,7 +313,7 @@ export default function ToolPage({ params, searchParams }: ToolPageProps) {
   const structuredData = {
     "@context": "https://schema.org",
     "@type": "WebApplication",
-    name: `${toolTitle} - MediaSnap`,
+    name: `${toolTitle} - YTSnap`,
     url: `${baseUrl}/${lang}/tools/${toolSlug}`,
     description: toolSubtitle,
     applicationCategory: "MultimediaApplication",

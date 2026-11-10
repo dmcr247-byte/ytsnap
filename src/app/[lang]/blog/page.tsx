@@ -28,7 +28,7 @@ export async function generateMetadata({ params }: BlogPageProps): Promise<Metad
   }
 
   return {
-    title: "YouTube Creator Blog, SEO Guides & Tutorials | MediaSnap",
+    title: "YouTube Creator Blog, SEO Guides & Tutorials | YTSnap",
     description:
       "Actionable guides for video creators: mastering YouTube thumbnail design, title copywriting formulas, algorithm SEO, and platform compliance.",
     alternates: {
@@ -80,7 +80,7 @@ export default async function BlogListPage({ params, searchParams }: BlogPagePro
 
       <div className="text-center max-w-3xl mx-auto mt-6 mb-12">
         <span className="text-xs font-bold uppercase tracking-wider text-primary">
-          MediaSnap Knowledge Base
+          YTSnap Knowledge Base
         </span>
         <h1 className="text-3xl sm:text-4xl md:text-5xl font-extrabold text-slate-900 dark:text-white mt-1">
           YouTube Creator Blog & Guides

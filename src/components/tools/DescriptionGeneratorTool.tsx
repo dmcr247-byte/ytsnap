@@ -48,7 +48,7 @@ ${cta}
 ℹ️ LEGAL & AFFILIATE NOTICE:
 ${disclaimer}
 
-#YouTube #CreatorTools #MediaSnap #Tutorial`;
+#YouTube #CreatorTools #YTSnap #Tutorial`;
 
     setGeneratedDesc(formatted);
   };

@@ -7,8 +7,8 @@ import { ShieldCheck } from "lucide-react";
 
 export async function generateMetadata(): Promise<Metadata> {
   return {
-    title: "Copyright Policy & Fair Use Guidelines | MediaSnap",
-    description: "MediaSnap copyright policy, creator intellectual property rights, and fair use guidelines.",
+    title: "Copyright Policy & Fair Use Guidelines | YTSnap",
+    description: "YTSnap copyright policy, creator intellectual property rights, and fair use guidelines.",
   };
 }
 

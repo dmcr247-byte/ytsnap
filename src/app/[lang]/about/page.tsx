@@ -13,8 +13,8 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
   const { lang } = params;
   if (!isValidLanguage(lang)) return {};
   return {
-    title: "About Us | MediaSnap",
-    description: "Learn about MediaSnap, our mission, architectural principles, and creator utility suite.",
+    title: "About Us | YTSnap",
+    description: "Learn about YTSnap, our mission, architectural principles, and creator utility suite.",
   };
 }
 
@@ -38,7 +38,7 @@ export default function AboutPage({ params }: PageProps) {
           Empowering Digital Creators Worldwide
         </h1>
         <p className="text-slate-600 dark:text-slate-400 text-sm sm:text-base leading-relaxed">
-          MediaSnap was founded to deliver lightning-fast, platform-compliant media tools that save creators hours of production time every week.
+          YTSnap was founded to deliver lightning-fast, platform-compliant media tools that save creators hours of production time every week.
         </p>
       </div>
 
@@ -63,13 +63,13 @@ export default function AboutPage({ params }: PageProps) {
       <div className="bg-white dark:bg-slate-900 rounded-3xl border border-slate-200 dark:border-slate-800 p-8 shadow-sm space-y-6 text-sm sm:text-base text-slate-700 dark:text-slate-300 leading-relaxed">
         <h2 className="text-xl font-bold text-slate-900 dark:text-white">Our Architecture & Philosophy</h2>
         <p>
-          Unlike legacy utility sites cluttered with intrusive ads, broken download scripts, and security vulnerabilities, MediaSnap is engineered on a modern Next.js 14 stack with server-side CDN validation, Edge image optimization via Sharp, and strict SSRF and rate-limiting safeguards.
+          Unlike legacy utility sites cluttered with intrusive ads, broken download scripts, and security vulnerabilities, YTSnap is engineered on a modern Next.js 14 stack with server-side CDN validation, Edge image optimization via Sharp, and strict SSRF and rate-limiting safeguards.
         </p>
         <p>
           We believe in transparent creator tooling: when a high-resolution thumbnail is unavailable on YouTube's servers, we tell you immediately rather than fabricating a blurry upscale or leading you through artificial countdown gates.
         </p>
         <div className="p-4 rounded-2xl bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-xs text-slate-500 dark:text-slate-400">
-          <strong>Legal Independence:</strong> MediaSnap is an independent third-party utility and is not affiliated with, endorsed by, or sponsored by YouTube, Google LLC, or Alphabet Inc. YouTube and the YouTube logo are registered trademarks of Google LLC.
+          <strong>Legal Independence:</strong> YTSnap is an independent third-party utility and is not affiliated with, endorsed by, or sponsored by YouTube, Google LLC, or Alphabet Inc. YouTube and the YouTube logo are registered trademarks of Google LLC.
         </div>
       </div>
     </div>

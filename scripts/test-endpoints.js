@@ -222,7 +222,7 @@ async function runTests() {
     const res = await fetchUrl("http://localhost:3000/api/admin/auth/login", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ email: "admin@mediasnap.com", password: "Admin@MediaSnap2026!" }),
+      body: JSON.stringify({ email: "admin@ytsnap.tech", password: "Admin@YTSnap2026!" }),
     });
     const json = JSON.parse(res.body);
     const cookieHeader = res.headers["set-cookie"];

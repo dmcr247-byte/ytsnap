@@ -1,6 +1,6 @@
 {
   "common": {
-    "siteName": "MediaSnap",
+    "siteName": "YTSnap",
     "tagline": "Free YouTube Thumbnail & Creator Media Tools",
     "home": "Home",
     "videoDownloader": "Video Downloader",
@@ -68,7 +68,7 @@
     "downloadPng": "Convert & Download PNG",
     "openImage": "Open in Tab",
     "copyUrl": "Copy CDN URL",
-    "notice": "Thumbnail images are hosted on Google's YouTube CDN. MediaSnap checks availability directly and does not alter image data.",
+    "notice": "Thumbnail images are hosted on Google's YouTube CDN. YTSnap checks availability directly and does not alter image data.",
     "resolutionGuideTitle": "YouTube Thumbnail Resolution Breakdown",
     "resolutionGuideDesc": "Not every YouTube video has an HD (1280x720) thumbnail. YouTube only generates maxresdefault if the original video uploader submitted an HD image. We automatically detect and display all existing resolutions for your convenience."
   },
@@ -86,7 +86,7 @@
     "embedPreview": "Interactive Embed Preview",
     "directMediaNotice": "Authorized Video Media Rights & Compliance",
     "complianceTitle": "Fair Use & Platform Terms Compliance",
-    "complianceText": "MediaSnap strictly honors YouTube Terms of Service and international intellectual property laws. We do not scrape private media or bypass DRM. For user-owned or authorized videos hosted on permitted open sources, direct media inspect is provided below.",
+    "complianceText": "YTSnap strictly honors YouTube Terms of Service and international intellectual property laws. We do not scrape private media or bypass DRM. For user-owned or authorized videos hosted on permitted open sources, direct media inspect is provided below.",
     "officialYoutubeNotice": "To watch or download this video for offline viewing with YouTube's official consent, please use the YouTube app with YouTube Premium.",
     "openInYoutube": "Watch on YouTube",
     "authorizedDownloadSection": "Authorized Media / Self-Hosted Video Inspector",
@@ -204,17 +204,17 @@
     "estSize": "Estimated Video File Size"
   },
   "howItWorks": {
-    "title": "How to Use MediaSnap in 3 Easy Steps",
+    "title": "How to Use YTSnap in 3 Easy Steps",
     "subtitle": "Simple, fast, and completely free without requiring an account or software installation.",
     "step1Title": "1. Copy & Paste Video Link",
     "step1Desc": "Copy the link of any YouTube video or Short from your browser or mobile app and paste it into our search bar.",
     "step2Title": "2. Verify Resolutions",
-    "step2Desc": "MediaSnap checks Google's CDN servers in real time to show all verified thumbnail resolutions (1280x720 down to 120x90).",
+    "step2Desc": "YTSnap checks Google's CDN servers in real time to show all verified thumbnail resolutions (1280x720 down to 120x90).",
     "step3Title": "3. Preview & Download",
     "step3Desc": "Preview the crystal-clear thumbnail image, copy direct links, or download in your preferred format (JPG or PNG) with one click."
   },
   "features": {
-    "title": "Why Millions of Creators Trust MediaSnap",
+    "title": "Why Millions of Creators Trust YTSnap",
     "subtitle": "Engineered with speed, reliability, and platform compliance at its core.",
     "f1Title": "Instant CDN Verification",
     "f1Desc": "We query YouTube servers directly to ensure the thumbnail exists before presenting download links, eliminating broken 404 images.",
@@ -234,7 +234,7 @@
     "subtitle": "Everything you need to know about YouTube thumbnails, resolutions, and media rights."
   },
   "footer": {
-    "desc": "MediaSnap is an independent creator utility suite offering YouTube thumbnail retrieval, video metadata inspection, and modern content creation tools.",
-    "disclaimerNotice": "MediaSnap is an independent tool and is not affiliated with, endorsed by, or sponsored by YouTube, Google LLC, or Alphabet Inc."
+    "desc": "YTSnap is an independent creator utility suite offering YouTube thumbnail retrieval, video metadata inspection, and modern content creation tools.",
+    "disclaimerNotice": "YTSnap is an independent tool and is not affiliated with, endorsed by, or sponsored by YouTube, Google LLC, or Alphabet Inc."
   }
 }

@@ -48,8 +48,8 @@ async function runTests() {
         headers: { "Content-Type": "application/json" },
       },
       {
-        email: "admin@mediasnap.com",
-        password: "Admin@MediaSnap2026!",
+        email: "admin@ytsnap.tech",
+        password: "Admin@YTSnap2026!",
       }
     );
 

@@ -1,7 +1,7 @@
-# MediaSnap 🚀
+# YTSnap 🚀
 ### Production-Ready Multilingual YouTube Media Tools & Creator Suite
 
-**MediaSnap** is a high-performance, international SaaS platform built with **Next.js 14**, **TypeScript**, **Tailwind CSS**, **Prisma ORM**, and **Sharp**. It provides fast YouTube thumbnail retrieval with real-time CDN verification, video metadata inspection, authorized media tools, and a full suite of 10 creator utilities in **8 languages** with native RTL support.
+**YTSnap** is a high-performance, international SaaS platform built with **Next.js 14**, **TypeScript**, **Tailwind CSS**, **Prisma ORM**, and **Sharp**. It provides fast YouTube thumbnail retrieval with real-time CDN verification, video metadata inspection, authorized media tools, and a full suite of 10 creator utilities in **8 languages** with native RTL support.
 
 ---
 
@@ -52,7 +52,7 @@
 
 ### 5. Secure Admin Dashboard & CMS (`/admin`)
 - Secure session authentication with **bcrypt** password hashing and HTTP-only **JWT cookies**.
-- Pre-seeded admin account: `admin@mediasnap.com` / `Admin@MediaSnap2026!`.
+- Pre-seeded admin account: `admin@ytsnap.tech` / `Admin@YTSnap2026!`.
 - **Analytics & Metrics:** Total tool runs, daily visitors, monthly estimates, tool popularity breakdown, and language distribution.
 - **Blog CMS:** Create, edit, and delete multilingual articles with tags, reading times, and cover images.
 - **FAQ Manager:** Add and manage FAQs per language and tool category.
@@ -207,4 +207,4 @@ d:/yt-new/
 
 ## 📄 License & Compliance
 
-MediaSnap is provided as an open tool under standard commercial web guidelines. All YouTube thumbnail images and metadata belong to their respective copyright owners. MediaSnap is an independent third-party tool and is not affiliated with or endorsed by YouTube or Google LLC.
+YTSnap is provided as an open tool under standard commercial web guidelines. All YouTube thumbnail images and metadata belong to their respective copyright owners. YTSnap is an independent third-party tool and is not affiliated with or endorsed by YouTube or Google LLC.

@@ -348,7 +348,7 @@ export function VideoDownloaderTool({ lang, dict }: VideoDownloaderToolProps) {
                 Fair Use & Platform Rights Notice:
               </p>
               <p className="mt-0.5 leading-relaxed">
-                MediaSnap video downloading is provided for personal archiving, fair use commentary, and creator-owned content. Please ensure you have appropriate rights or permissions from the video creator before using media in derivative works.
+                YTSnap video downloading is provided for personal archiving, fair use commentary, and creator-owned content. Please ensure you have appropriate rights or permissions from the video creator before using media in derivative works.
               </p>
             </div>
           </div>

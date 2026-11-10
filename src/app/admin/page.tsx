@@ -49,8 +49,8 @@ export default function AdminPage() {
   >("overview");
 
   // Login form state
-  const [email, setEmail] = useState("admin@mediasnap.com");
-  const [password, setPassword] = useState("Admin@MediaSnap2026!");
+  const [email, setEmail] = useState("admin@ytsnap.tech");
+  const [password, setPassword] = useState("Admin@YTSnap2026!");
   const [loginError, setLoginError] = useState("");
   const [isLoggingIn, setIsLoggingIn] = useState(false);
 
@@ -78,7 +78,7 @@ export default function AdminPage() {
     excerpt: "",
     content: "",
     readTime: "4 min read",
-    author: "MediaSnap Team",
+    author: "YTSnap Team",
     isPublished: true,
   });
 
@@ -352,7 +352,7 @@ export default function AdminPage() {
             <div className="w-12 h-12 rounded-2xl bg-gradient-to-tr from-primary to-rose-500 flex items-center justify-center text-white mx-auto shadow-md shadow-primary/20">
               <Sparkles className="w-6 h-6 fill-white" />
             </div>
-            <h1 className="text-2xl font-black text-slate-900 dark:text-white">MediaSnap Admin</h1>
+            <h1 className="text-2xl font-black text-slate-900 dark:text-white">YTSnap Admin</h1>
             <p className="text-xs text-slate-500 dark:text-slate-400">
               Enter administrative credentials to manage Google Ads, Analytics, Code & SEO
             </p>
@@ -413,8 +413,8 @@ export default function AdminPage() {
 
           <div className="p-3.5 rounded-2xl bg-slate-50 dark:bg-slate-800/60 border border-slate-200/60 dark:border-slate-700/60 text-xs text-slate-500 dark:text-slate-400 space-y-1">
             <span className="font-bold text-slate-700 dark:text-slate-300 block">Default Seed Credentials:</span>
-            <div>Email: <code className="font-mono text-primary font-semibold">admin@mediasnap.com</code></div>
-            <div>Password: <code className="font-mono text-primary font-semibold">Admin@MediaSnap2026!</code></div>
+            <div>Email: <code className="font-mono text-primary font-semibold">admin@ytsnap.tech</code></div>
+            <div>Password: <code className="font-mono text-primary font-semibold">Admin@YTSnap2026!</code></div>
           </div>
         </div>
       </div>
@@ -448,7 +448,7 @@ export default function AdminPage() {
                 <Sparkles className="w-4 h-4 fill-white" />
               </div>
               <div>
-                <span className="text-base font-extrabold text-slate-900 dark:text-white">MediaSnap</span>
+                <span className="text-base font-extrabold text-slate-900 dark:text-white">YTSnap</span>
                 <span className="text-[10px] font-bold text-primary block leading-none">Control Panel</span>
               </div>
             </div>
@@ -628,7 +628,7 @@ export default function AdminPage() {
                 : `${activeTab} Management`}
             </h1>
             <p className="text-xs text-slate-400 mt-1">
-              MediaSnap Production Management Suite • Live Changes Reflected Instantly
+              YTSnap Production Management Suite • Live Changes Reflected Instantly
             </p>
           </div>
           <div className="flex items-center gap-2">
@@ -1067,7 +1067,7 @@ export default function AdminPage() {
                             type="url"
                             value={ad.targetUrl || ""}
                             onChange={(e) => updateAdField(ad.id, "targetUrl", e.target.value)}
-                            placeholder="https://affiliate.example.com/?ref=mediasnap"
+                            placeholder="https://affiliate.example.com/?ref=ytsnap"
                             className="w-full px-3 py-2 rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 text-slate-900 dark:text-white text-xs"
                           />
                         </div>
@@ -1118,7 +1118,7 @@ export default function AdminPage() {
                     className="w-full px-4 py-2.5 rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 text-slate-900 dark:text-white text-xs font-mono uppercase focus:outline-none focus:ring-2 focus:ring-primary"
                   />
                   <span className="text-[10px] text-slate-400 mt-1 block">
-                    Starts with <code>G-</code>. When set, MediaSnap injects the official Google tag (gtag.js) into the head of all pages automatically.
+                    Starts with <code>G-</code>. When set, YTSnap injects the official Google tag (gtag.js) into the head of all pages automatically.
                   </span>
                 </div>
 
@@ -1246,7 +1246,7 @@ export default function AdminPage() {
                     <button
                       type="button"
                       onClick={() => {
-                        const sample = `<!-- Live Chat Widget Example -->\n<script>\n  console.log("MediaSnap footer script loaded");\n</script>`;
+                        const sample = `<!-- Live Chat Widget Example -->\n<script>\n  console.log("YTSnap footer script loaded");\n</script>`;
                         setSettingValue("custom_footer_code", (getSetting("custom_footer_code") ? getSetting("custom_footer_code") + "\n" : "") + sample);
                       }}
                       className="px-2.5 py-1 rounded-lg bg-slate-100 dark:bg-slate-800 text-[10px] font-bold text-slate-600 dark:text-slate-300 hover:text-primary transition-colors"
@@ -1451,7 +1451,7 @@ export default function AdminPage() {
                     excerpt: "",
                     content: "",
                     readTime: "4 min read",
-                    author: "MediaSnap Team",
+                    author: "YTSnap Team",
                     isPublished: true,
                   });
                   setBlogModalOpen(true);

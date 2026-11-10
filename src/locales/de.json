@@ -1,6 +1,6 @@
 {
   "common": {
-    "siteName": "MediaSnap",
+    "siteName": "YTSnap",
     "tagline": "Kostenlose YouTube Thumbnail- & Creator-Medientools",
     "home": "Startseite",
     "videoDownloader": "Video Downloader",
@@ -68,7 +68,7 @@
     "downloadPng": "In PNG umwandeln & laden",
     "openImage": "In Tab öffnen",
     "copyUrl": "CDN-URL kopieren",
-    "notice": "Thumbnail-Bilder werden auf dem YouTube-CDN von Google gehostet. MediaSnap prüft die Verfügbarkeit direkt.",
+    "notice": "Thumbnail-Bilder werden auf dem YouTube-CDN von Google gehostet. YTSnap prüft die Verfügbarkeit direkt.",
     "resolutionGuideTitle": "Übersicht der Thumbnail-Auflösungen",
     "resolutionGuideDesc": "Nicht jedes YouTube-Video verfügt über ein HD-Thumbnail (1280x720). YouTube generiert maxresdefault nur, wenn der Uploader ein hochauflösendes Bild bereitgestellt hat."
   },
@@ -86,7 +86,7 @@
     "embedPreview": "Interaktive Vorschau",
     "directMediaNotice": "Medienrechte & Richtlinienkonformität",
     "complianceTitle": "Fair Use & Plattformrichtlinien",
-    "complianceText": "MediaSnap hält sich strikt an die Nutzungsbedingungen von YouTube und das Urheberrecht. Wir umgehen keine DRM-Schutzmechanismen.",
+    "complianceText": "YTSnap hält sich strikt an die Nutzungsbedingungen von YouTube und das Urheberrecht. Wir umgehen keine DRM-Schutzmechanismen.",
     "officialYoutubeNotice": "Um Videos offiziell und offline anzusehen, nutzen Sie bitte die YouTube-App mit YouTube Premium.",
     "openInYoutube": "Auf YouTube ansehen",
     "authorizedDownloadSection": "Inspektor für autorisierte / selbst gehostete Medien",
@@ -204,17 +204,17 @@
     "estSize": "Geschätzte Dateigröße"
   },
   "howItWorks": {
-    "title": "So funktioniert MediaSnap in 3 Schritten",
+    "title": "So funktioniert YTSnap in 3 Schritten",
     "subtitle": "Einfach, schnell und komplett kostenlos – ohne Registrierung oder Installation.",
     "step1Title": "1. Link kopieren & einfügen",
     "step1Desc": "Kopieren Sie den Link eines beliebigen YouTube-Videos oder Shorts und fügen Sie ihn ein.",
     "step2Title": "2. Auflösungen prüfen",
-    "step2Desc": "MediaSnap fragt direkt die Google-CDN-Server ab, um die vorhandenen Auflösungen festzustellen.",
+    "step2Desc": "YTSnap fragt direkt die Google-CDN-Server ab, um die vorhandenen Auflösungen festzustellen.",
     "step3Title": "3. Vorschau & Download",
     "step3Desc": "Prüfen Sie das gestochen scharfe Bild und laden Sie es als JPG oder PNG mit einem Klick herunter."
   },
   "features": {
-    "title": "Warum Creator auf MediaSnap vertrauen",
+    "title": "Warum Creator auf YTSnap vertrauen",
     "subtitle": "Entwickelt für höchste Geschwindigkeit, Verlässlichkeit und Richtlinienkonformität.",
     "f1Title": "Direkte CDN-Verifizierung",
     "f1Desc": "Wir prüfen direkt auf YouTube-Servern, um fehlerhafte 404-Links und Platzhalter auszuschließen.",
@@ -234,7 +234,7 @@
     "subtitle": "Wissenswertes rund um YouTube Thumbnails, Formate und Nutzungsrechte."
   },
   "footer": {
-    "desc": "MediaSnap ist eine unabhängige Plattform für YouTube-Thumbnail-Tools und Medien-Hilfsmittel.",
-    "disclaimerNotice": "MediaSnap ist ein unabhängiges Tool und steht in keiner Verbindung zu YouTube, Google LLC oder Alphabet Inc."
+    "desc": "YTSnap ist eine unabhängige Plattform für YouTube-Thumbnail-Tools und Medien-Hilfsmittel.",
+    "disclaimerNotice": "YTSnap ist ein unabhängiges Tool und steht in keiner Verbindung zu YouTube, Google LLC oder Alphabet Inc."
   }
 }

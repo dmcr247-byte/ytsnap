@@ -35,7 +35,7 @@ export async function POST(req: NextRequest) {
       content,
       category = "Guides",
       coverImage,
-      author = "MediaSnap Team",
+      author = "YTSnap Team",
       readTime = "4 min read",
       tags,
       isPublished = true,

@@ -4,11 +4,11 @@ const bcrypt = require("bcryptjs");
 const prisma = new PrismaClient();
 
 async function main() {
-  console.log("Seeding MediaSnap database...");
+  console.log("Seeding YTSnap database...");
 
   // 1. Create or update Default Admin
-  const adminEmail = process.env.ADMIN_EMAIL || "admin@mediasnap.com";
-  const adminPassword = process.env.ADMIN_PASSWORD || "Admin@MediaSnap2026!";
+  const adminEmail = process.env.ADMIN_EMAIL || "admin@ytsnap.tech";
+  const adminPassword = process.env.ADMIN_PASSWORD || "Admin@YTSnap2026!";
   const passwordHash = await bcrypt.hash(adminPassword, 10);
 
   const admin = await prisma.adminUser.upsert({
@@ -19,7 +19,7 @@ async function main() {
     },
     create: {
       email: adminEmail,
-      name: "MediaSnap Administrator",
+      name: "YTSnap Administrator",
       passwordHash,
       role: "ADMIN",
     },
@@ -28,9 +28,9 @@ async function main() {
 
   // 2. Default Website Settings
   const settings = [
-    { key: "site_name", value: "MediaSnap", group: "general", description: "Official website title" },
+    { key: "site_name", value: "YTSnap", group: "general", description: "Official website title" },
     { key: "site_tagline", value: "Free YouTube Thumbnail & Creator Media Tools", group: "general", description: "Main tagline" },
-    { key: "support_email", value: "support@mediasnap.com", group: "general", description: "Official support email" },
+    { key: "support_email", value: "support@ytsnap.tech", group: "general", description: "Official support email" },
     { key: "primary_color", value: "#E62117", group: "general", description: "Primary brand theme color" },
     { key: "default_language", value: "en", group: "general", description: "Default interface language" },
     { key: "youtube_api_key", value: process.env.YOUTUBE_API_KEY || "", group: "api", description: "Optional YouTube Data API v3 key" },
@@ -40,7 +40,7 @@ async function main() {
     { key: "custom_header_code", value: "", group: "code", description: "Custom HTML, CSS <style>, or JS <script> injected into <head>" },
     { key: "custom_footer_code", value: "", group: "code", description: "Custom JS scripts or widgets injected before </body>" },
     { key: "robots_txt_content", value: "User-agent: *\nAllow: /\nDisallow: /api/\nDisallow: /admin/\nDisallow: /*/admin/\n\nSitemap: http://localhost:3000/sitemap.xml", group: "seo", description: "Directives served at /robots.txt" },
-    { key: "ads_txt_content", value: "# MediaSnap Ads.txt\n# Example: google.com, pub-XXXXXXXXXXXXXXXX, DIRECT, f08c47fec0942fa0", group: "ads", description: "Publisher lines served at /ads.txt" },
+    { key: "ads_txt_content", value: "# YTSnap Ads.txt\n# Example: google.com, pub-XXXXXXXXXXXXXXXX, DIRECT, f08c47fec0942fa0", group: "ads", description: "Publisher lines served at /ads.txt" },
     { key: "sitemap_base_url", value: "http://localhost:3000", group: "seo", description: "Base domain URL for sitemap.xml" },
     { key: "enable_ads", value: "false", group: "ads", description: "Master switch to display banner ads" },
   ];
@@ -79,7 +79,7 @@ async function main() {
       language: "en",
       title: "How to Design Click-Worthy YouTube Thumbnails in 2026",
       excerpt: "Master the visual psychology, color contrast rules, and resolution standards that drive high CTR on YouTube.",
-      content: `## Why YouTube Thumbnails Determine 90% of Your Video Success\n\nYour thumbnail is your video's billboard on the digital highway. Even the best produced video will fail to gain traction if prospective viewers scroll right past it.\n\n### 1. The Rule of the High-Contrast Focal Point\nViewers browse YouTube primarily on mobile devices with relatively small screen footprints. Your main subject (whether an expressive human face or high-contrast element) must pop against a decluttered background.\n\n### 2. Standard Resolutions: 1280x720 (16:9)\nAlways export your YouTube thumbnail in **1280 x 720 pixels** with a minimum width of 640 pixels. Maintain a 16:9 aspect ratio and keep the file size under 2MB in JPG, GIF, or PNG format.\n\n### 3. Keep Text Under 4 Words\nNever repeat the exact title inside the thumbnail. Instead, use 2 to 4 impactful words in bold, easily legible sans-serif fonts (such as Impact, Montserrat, or Bebas Neue) with heavy dropshadows or contrast pill badges.\n\n### 4. Beware the Bottom-Right Timestamp\nYouTube overlays the duration timestamp on the bottom-right corner of the thumbnail preview. Never place critical faces, text, or logos in the bottom right 20% of your canvas.\n\n### Use MediaSnap Tools to Test\nInspect your existing thumbnails with our free **YouTube Thumbnail Downloader & Inspector** to see how your maxres, sd, and mq previews render across screen sizes!`,
+      content: `## Why YouTube Thumbnails Determine 90% of Your Video Success\n\nYour thumbnail is your video's billboard on the digital highway. Even the best produced video will fail to gain traction if prospective viewers scroll right past it.\n\n### 1. The Rule of the High-Contrast Focal Point\nViewers browse YouTube primarily on mobile devices with relatively small screen footprints. Your main subject (whether an expressive human face or high-contrast element) must pop against a decluttered background.\n\n### 2. Standard Resolutions: 1280x720 (16:9)\nAlways export your YouTube thumbnail in **1280 x 720 pixels** with a minimum width of 640 pixels. Maintain a 16:9 aspect ratio and keep the file size under 2MB in JPG, GIF, or PNG format.\n\n### 3. Keep Text Under 4 Words\nNever repeat the exact title inside the thumbnail. Instead, use 2 to 4 impactful words in bold, easily legible sans-serif fonts (such as Impact, Montserrat, or Bebas Neue) with heavy dropshadows or contrast pill badges.\n\n### 4. Beware the Bottom-Right Timestamp\nYouTube overlays the duration timestamp on the bottom-right corner of the thumbnail preview. Never place critical faces, text, or logos in the bottom right 20% of your canvas.\n\n### Use YTSnap Tools to Test\nInspect your existing thumbnails with our free **YouTube Thumbnail Downloader & Inspector** to see how your maxres, sd, and mq previews render across screen sizes!`,
       category: "Thumbnail Design",
       coverImage: "https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?auto=format&fit=crop&w=1200&q=80",
       author: "Alex Rivera",
@@ -92,7 +92,7 @@ async function main() {
       language: "en",
       title: "The Ultimate Guide to YouTube Thumbnail Sizes & Resolutions",
       excerpt: "Everything you need to know about maxresdefault, sddefault, hqdefault, mqdefault and when they are available.",
-      content: `## The 5 Thumbnail Resolutions YouTube Stores\n\nWhen a creator uploads a custom thumbnail to YouTube, Google's media pipeline generates several resized assets on their CDN (img.youtube.com / i.ytimg.com):\n\n1. **maxresdefault.jpg (1280 x 720)** - Full High Definition (HD). Only present if the original source upload met HD resolution criteria.\n2. **sddefault.jpg (640 x 480)** - Standard Definition thumbnail.\n3. **hqdefault.jpg (480 x 360)** - High Quality 4:3 preview.\n4. **mqdefault.jpg (320 x 180)** - Medium Quality widescreen preview.\n5. **default.jpg (120 x 90)** - Smallest fallback thumbnail.\n\n### Why does maxresdefault sometimes return 404?\nOlder YouTube videos or videos uploaded at 480p or lower often do not have a 1280x720 thumbnail generated. MediaSnap dynamically verifies HTTP availability so you never download a broken or missing image placeholder!`,
+      content: `## The 5 Thumbnail Resolutions YouTube Stores\n\nWhen a creator uploads a custom thumbnail to YouTube, Google's media pipeline generates several resized assets on their CDN (img.youtube.com / i.ytimg.com):\n\n1. **maxresdefault.jpg (1280 x 720)** - Full High Definition (HD). Only present if the original source upload met HD resolution criteria.\n2. **sddefault.jpg (640 x 480)** - Standard Definition thumbnail.\n3. **hqdefault.jpg (480 x 360)** - High Quality 4:3 preview.\n4. **mqdefault.jpg (320 x 180)** - Medium Quality widescreen preview.\n5. **default.jpg (120 x 90)** - Smallest fallback thumbnail.\n\n### Why does maxresdefault sometimes return 404?\nOlder YouTube videos or videos uploaded at 480p or lower often do not have a 1280x720 thumbnail generated. YTSnap dynamically verifies HTTP availability so you never download a broken or missing image placeholder!`,
       category: "Creator Guides",
       coverImage: "https://images.unsplash.com/photo-1611162617474-5b21e879e113?auto=format&fit=crop&w=1200&q=80",
       author: "Sarah Chen",
@@ -123,7 +123,7 @@ async function main() {
 ### Quick Answer (as of November 2026)
 - **The only route YouTube officially endorses** for other people's videos is its own **Download button**, which needs YouTube Premium and keeps the video inside YouTube.
 - **Your own uploads** can be downloaded as an MP4 directly from **YouTube Studio**, at zero cost.
-- **Authorized media inspection & direct downloads:** You can inspect video formats and resolutions safely with our free [MediaSnap YouTube Video Tool](/en/tools/youtube-video-downloader).
+- **Authorized media inspection & direct downloads:** You can inspect video formats and resolutions safely with our free [YTSnap YouTube Video Tool](/en/tools/youtube-video-downloader).
 - **Third-party tools** such as 4K Video Downloader+ and yt-dlp can save files, but using them on content you don't own or have permission for conflicts with YouTube's Terms of Service.
 - **Free online downloader sites** carry the highest risk of fake buttons, aggressive ads and unwanted installers.
 
@@ -157,8 +157,8 @@ The trade-offs are real. Downloads are stored encrypted and can only be watched 
 ### 2. YouTube Studio (Your Own Uploads)
 **Best for:** creators who want a backup of videos they uploaded. Open a video's menu in YouTube Studio and choose Download to get an MP4 of it.
 
-### 3. MediaSnap YouTube Video Downloader (Free Web Utility)
-**Best for:** creators looking for authorized resolution inspection, video info retrieval, and permitted media saving directly in their browser without installing suspicious software. Check out the [MediaSnap YouTube Video Downloader](/en/tools/youtube-video-downloader).
+### 3. YTSnap YouTube Video Downloader (Free Web Utility)
+**Best for:** creators looking for authorized resolution inspection, video info retrieval, and permitted media saving directly in their browser without installing suspicious software. Check out the [YTSnap YouTube Video Downloader](/en/tools/youtube-video-downloader).
 
 ### 4. 4K Video Downloader+ (Desktop Software)
 **Best for:** people who are permitted to save a video and want a straightforward app on desktop.
@@ -174,7 +174,7 @@ The trade-offs are real. Downloads are stored encrypted and can only be watched 
 | --- | --- | --- | --- | --- | --- | --- |
 | [YouTube Premium](https://support.google.com/youtube/answer/11977233) | Mobile apps; desktop via Chrome, Edge, Firefox, Opera | Paid: $15.99/mo; Lite $8.99/mo | No, playable only in YouTube | Not verified | App or browser | Official and permitted; downloads are encrypted and tied to your account |
 | YouTube Studio ([guide](https://www.howtogeek.com/693705/how-to-download-your-own-youtube-videos/)) | Web, mobile app | Free | Yes, your own uploads only | Not verified | None | Official; no third party involved |
-| [MediaSnap Video Tool](/en/tools/youtube-video-downloader) | Web (All devices) | 100% Free | Yes, accessible streams | HD, 1080p, 720p | None | Free web tool; transparent stream inspection without malware or fake ads |
+| [YTSnap Video Tool](/en/tools/youtube-video-downloader) | Web (All devices) | 100% Free | Yes, accessible streams | HD, 1080p, 720p | None | Free web tool; transparent stream inspection without malware or fake ads |
 | [4K Video Downloader+](https://www.techspot.com/news/111489-download-youtube-videos-offline-full-playlists.html) | Windows, macOS, Ubuntu, Android | Free tier with limits; paid from $15/yr or $25 lifetime | Yes | Up to 8K where available; inconsistent | Yes | Install only from official site; ToS issue remains |
 | [yt-dlp](https://github.com/yt-dlp/yt-dlp) | Windows, macOS, Linux | Free, open source | Yes (ffmpeg recommended) | Depends on formats offered | Yes (command line) | Signed releases; use only official repository; ToS issue remains |
 | SaveFrom.net ([scan](https://tools.malwaretips.com/url-scan/savefrom.net)) | Web, extension | Free | Yes | One review says 4K comes without sound | No (extension optional) | Rated "suspicious" (55/100) by MalwareTips; reports of adware and redirects; ToS issue |
@@ -192,7 +192,7 @@ The trade-offs are real. Downloads are stored encrypted and can only be watched 
 
 ## Is a YouTube Video Downloader Safe?
 
-The main risk is not the video stream itself, but malicious ads, fake download buttons, notification prompts, and Trojan installers disguised as setup files on shady online sites. Always use verified tools like YouTube Premium, YouTube Studio, or clean web utilities like [MediaSnap](/en/tools/youtube-video-downloader).
+The main risk is not the video stream itself, but malicious ads, fake download buttons, notification prompts, and Trojan installers disguised as setup files on shady online sites. Always use verified tools like YouTube Premium, YouTube Studio, or clean web utilities like [YTSnap](/en/tools/youtube-video-downloader).
 
 ---
 
@@ -205,7 +205,7 @@ For other people's videos, the best option is YouTube Premium's built-in Downloa
 Yes. YouTube Studio is free for your own videos. 4K Video Downloader+ has a free tier with daily limits, and yt-dlp is free open-source software. Free online downloader sites also exist, but they carry the most risk from ads, redirects and unwanted installers.
 
 ### Can I download YouTube videos online without installing software?
-Technically, yes, through online downloader sites or online web inspectors like MediaSnap. We don't recommend shady third-party sites since many carry warning signs. If you use one, only for content you may save, and leave any page that offers an installer or shows several identical Download buttons.
+Technically, yes, through online downloader sites or online web inspectors like YTSnap. We don't recommend shady third-party sites since many carry warning signs. If you use one, only for content you may save, and leave any page that offers an installer or shows several identical Download buttons.
 
 ### Which YouTube video downloader works on iPhone?
 The YouTube app with Premium is the reliable choice, and downloads stay inside the app. Third-party downloaders for iPhone often route you through extra installs or settings changes, which is a reason to avoid them.
@@ -268,15 +268,15 @@ YouTube says it is not possible to download audio, music or MP3 files from the Y
       order: 2,
     },
     {
-      question: "Can I download full YouTube videos with MediaSnap?",
-      answer: "MediaSnap strictly adheres to platform terms and copyright laws. We do not facilitate unauthorized downloads of YouTube videos or bypass DRM restrictions. We provide video metadata and authorized media tools for content creators working with permitted sources and their own original assets.",
+      question: "Can I download full YouTube videos with YTSnap?",
+      answer: "YTSnap strictly adheres to platform terms and copyright laws. We do not facilitate unauthorized downloads of YouTube videos or bypass DRM restrictions. We provide video metadata and authorized media tools for content creators working with permitted sources and their own original assets.",
       category: "general",
       language: "en",
       order: 3,
     },
     {
       question: "How do I extract a thumbnail from a YouTube Short?",
-      answer: "Simply paste the YouTube Short URL (e.g., youtube.com/shorts/VIDEO_ID or youtu.be/VIDEO_ID) into MediaSnap. Our system automatically parses the Short ID and fetches all available high-resolution thumbnails instantly.",
+      answer: "Simply paste the YouTube Short URL (e.g., youtube.com/shorts/VIDEO_ID or youtu.be/VIDEO_ID) into YTSnap. Our system automatically parses the Short ID and fetches all available high-resolution thumbnails instantly.",
       category: "thumbnail",
       language: "en",
       order: 4,
@@ -289,8 +289,8 @@ YouTube says it is not possible to download audio, music or MP3 files from the Y
       order: 5,
     },
     {
-      question: "Are MediaSnap creator tools completely free to use?",
-      answer: "Yes! All MediaSnap tools—including the Thumbnail Downloader, Video Info Finder, Image Resizer, Compressor, Title Generator, and Tags Generator—are 100% free with no registration required.",
+      question: "Are YTSnap creator tools completely free to use?",
+      answer: "Yes! All YTSnap tools—including the Thumbnail Downloader, Video Info Finder, Image Resizer, Compressor, Title Generator, and Tags Generator—are 100% free with no registration required.",
       category: "general",
       language: "en",
       order: 6,

@@ -4,7 +4,7 @@ import { getSetting } from "@/lib/settings";
 export const dynamic = "force-dynamic";
 
 export async function GET() {
-  const defaultAdsTxt = `# MediaSnap Ads.txt
+  const defaultAdsTxt = `# YTSnap Ads.txt
 # Add your Google AdSense publisher line here from Admin Dashboard:
 # Example: google.com, pub-XXXXXXXXXXXXXXXX, DIRECT, f08c47fec0942fa0`;
 

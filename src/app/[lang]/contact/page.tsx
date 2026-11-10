@@ -80,7 +80,7 @@ export default function ContactPage({ params }: ContactPageProps) {
               <div>
                 <span className="text-xs text-slate-400 block">Support Email</span>
                 <span className="text-sm font-bold text-slate-900 dark:text-white">
-                  support@mediasnap.com
+                  support@ytsnap.tech
                 </span>
               </div>
             </div>

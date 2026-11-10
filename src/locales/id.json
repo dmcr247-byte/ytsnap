@@ -1,6 +1,6 @@
 {
   "common": {
-    "siteName": "MediaSnap",
+    "siteName": "YTSnap",
     "tagline": "Alat Thumbnail & Media YouTube Gratis",
     "home": "Beranda",
     "videoDownloader": "Pengunduh Video",
@@ -68,7 +68,7 @@
     "downloadPng": "Konversi & Unduh PNG",
     "openImage": "Buka di Tab",
     "copyUrl": "Salin URL CDN",
-    "notice": "Gambar dihosting langsung di CDN YouTube resmi Google. MediaSnap memeriksa ketersediaan langsung tanpa mengubah file.",
+    "notice": "Gambar dihosting langsung di CDN YouTube resmi Google. YTSnap memeriksa ketersediaan langsung tanpa mengubah file.",
     "resolutionGuideTitle": "Panduan Resolusi Thumbnail YouTube",
     "resolutionGuideDesc": "Tidak semua video memiliki thumbnail HD (1280x720). YouTube hanya membuat maxresdefault jika pengunggah asli menyertakan gambar berkualitas tinggi."
   },
@@ -86,7 +86,7 @@
     "embedPreview": "Pratinjau Pemutar",
     "directMediaNotice": "Hak Media & Kepatuhan Platform",
     "complianceTitle": "Penggunaan Wajar & Kepatuhan Aturan",
-    "complianceText": "MediaSnap mematuhi Persyaratan Layanan YouTube dan hukum hak cipta. Kami tidak mengunduh video berhak cipta atau menerobos DRM tanpa izin.",
+    "complianceText": "YTSnap mematuhi Persyaratan Layanan YouTube dan hukum hak cipta. Kami tidak mengunduh video berhak cipta atau menerobos DRM tanpa izin.",
     "officialYoutubeNotice": "Untuk mengunduh video resmi dan menontonnya secara offline, gunakan aplikasi resmi YouTube dengan langganan YouTube Premium.",
     "openInYoutube": "Tonton di YouTube",
     "authorizedDownloadSection": "Pemeriksa Media Resmi / Video Mandiri",
@@ -204,17 +204,17 @@
     "estSize": "Estimasi Ukuran File"
   },
   "howItWorks": {
-    "title": "Cara Menggunakan MediaSnap dalam 3 Langkah",
+    "title": "Cara Menggunakan YTSnap dalam 3 Langkah",
     "subtitle": "Cepat, praktis, dan 100% gratis tanpa perlu mendaftar atau mengunduh aplikasi.",
     "step1Title": "1. Salin & Tempel Tautan Video",
     "step1Desc": "Salin tautan video atau Shorts YouTube dari browser atau aplikasi Anda, lalu tempel di kolom pencarian.",
     "step2Title": "2. Verifikasi Resolusi",
-    "step2Desc": "MediaSnap memeriksa server CDN secara langsung untuk menampilkan resolusi yang benar-benar tersedia.",
+    "step2Desc": "YTSnap memeriksa server CDN secara langsung untuk menampilkan resolusi yang benar-benar tersedia.",
     "step3Title": "3. Pratinjau & Unduh",
     "step3Desc": "Lihat gambar resolusi tinggi yang jernih dan unduh dalam format JPG atau PNG dengan satu klik."
   },
   "features": {
-    "title": "Alasan Kreator Memilih MediaSnap",
+    "title": "Alasan Kreator Memilih YTSnap",
     "subtitle": "Dibangun dengan kecepatan, keandalan, dan kepatuhan penuh terhadap aturan platform.",
     "f1Title": "Verifikasi Langsung ke CDN",
     "f1Desc": "Kami mengecek langsung server YouTube untuk memastikan tidak ada tautan gambar rusak 404.",
@@ -234,7 +234,7 @@
     "subtitle": "Semua yang perlu Anda ketahui tentang thumbnail YouTube, resolusi, dan hak media."
   },
   "footer": {
-    "desc": "MediaSnap adalah platform utilitas independen untuk pengambilan thumbnail YouTube dan alat kreatif.",
-    "disclaimerNotice": "MediaSnap adalah situs independen dan tidak berafiliasi, didukung, atau disponsori oleh YouTube, Google LLC, atau Alphabet Inc."
+    "desc": "YTSnap adalah platform utilitas independen untuk pengambilan thumbnail YouTube dan alat kreatif.",
+    "disclaimerNotice": "YTSnap adalah situs independen dan tidak berafiliasi, didukung, atau disponsori oleh YouTube, Google LLC, atau Alphabet Inc."
   }
 }

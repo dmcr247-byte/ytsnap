@@ -151,6 +151,26 @@ async function runTests() {
     failed++;
   }
 
+  // 6b. Test Video Formats API (New Feature: YouTube Video Downloader)
+  try {
+    const res = await fetchUrl("http://localhost:3000/api/video-formats", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ url: "https://www.youtube.com/watch?v=dQw4w9WgXcQ", lang: "en" }),
+    });
+    const json = JSON.parse(res.body);
+    if (res.status === 200 && json.success && json.data.videoFormats.length > 0) {
+      console.log(`✓ [API /api/video-formats] Extracted ${json.data.videoFormats.length} video streams and ${json.data.audioFormats.length} audio streams for "${json.data.title}"`);
+      passed++;
+    } else {
+      console.error(`✗ [API /api/video-formats] Failed:`, json);
+      failed++;
+    }
+  } catch (e) {
+    console.error(`✗ [API /api/video-formats] Error:`, e.message);
+    failed++;
+  }
+
   // 7. Test Authorized Download Inspector: YouTube Stream Prohibited Notice
   try {
     const res = await fetchUrl("http://localhost:3000/api/authorized-download", {
@@ -255,6 +275,7 @@ async function runTests() {
 
   // 12. Test Creator Tools Pages
   const tools = [
+    "youtube-video-downloader",
     "youtube-thumbnail-downloader",
     "youtube-video-information",
     "thumbnail-resizer",

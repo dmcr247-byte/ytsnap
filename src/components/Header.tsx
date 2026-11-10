@@ -91,6 +91,11 @@ export function Header({ lang, dict }: HeaderProps) {
 
   const toolsList = [
     {
+      name: (dict.common as any).videoDownloader || "Video Downloader",
+      href: `/${lang}/tools/youtube-video-downloader`,
+      desc: "Download YouTube videos and Shorts in 1080p, 720p HD and MP3 format",
+    },
+    {
       name: dict.tools.t1Name,
       href: `/${lang}/tools/youtube-thumbnail-downloader`,
       desc: dict.tools.t1Desc,
@@ -170,6 +175,12 @@ export function Header({ lang, dict }: HeaderProps) {
             className="px-3 py-2 rounded-lg hover:text-primary hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors"
           >
             {dict.common.home}
+          </Link>
+          <Link
+            href={`/${lang}/tools/youtube-video-downloader`}
+            className="px-3 py-2 rounded-lg font-bold text-primary hover:bg-primary/10 transition-colors"
+          >
+            {(dict.common as any).videoDownloader || "Video Downloader"}
           </Link>
           <Link
             href={`/${lang}/tools/youtube-thumbnail-downloader`}
@@ -315,6 +326,13 @@ export function Header({ lang, dict }: HeaderProps) {
             className="block px-3 py-2 rounded-xl text-base font-semibold text-slate-800 dark:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-800"
           >
             {dict.common.home}
+          </Link>
+          <Link
+            href={`/${lang}/tools/youtube-video-downloader`}
+            onClick={() => setMobileMenuOpen(false)}
+            className="block px-3 py-2 rounded-xl text-base font-bold text-primary hover:bg-primary/10"
+          >
+            {(dict.common as any).videoDownloader || "Video Downloader"}
           </Link>
           <Link
             href={`/${lang}/tools/youtube-thumbnail-downloader`}

@@ -262,6 +262,12 @@ export function CreatorToolsGrid({
   const tools = [
     {
       icon: <Download className="w-6 h-6 text-primary" />,
+      title: (dict.common as any).videoDownloader || "YouTube Video Downloader",
+      desc: "Fast, high-speed YouTube video & Shorts downloader supporting 1080p, 720p HD, and MP3 audio.",
+      href: `/${lang}/tools/youtube-video-downloader`,
+    },
+    {
+      icon: <Download className="w-6 h-6 text-rose-500" />,
       title: dict.tools.t1Name,
       desc: dict.tools.t1Desc,
       href: `/${lang}/tools/youtube-thumbnail-downloader`,

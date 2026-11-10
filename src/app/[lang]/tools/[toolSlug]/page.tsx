@@ -10,6 +10,7 @@ import {
 import { Breadcrumbs } from "@/components/Breadcrumbs";
 import { JsonLd } from "@/components/JsonLd";
 import { ThumbnailHero } from "@/components/ThumbnailHero";
+import { VideoDownloaderTool } from "@/components/tools/VideoDownloaderTool";
 import { VideoInfoTool } from "@/components/tools/VideoInfoTool";
 import { ResizerTool } from "@/components/tools/ResizerTool";
 import { CompressorTool } from "@/components/tools/CompressorTool";
@@ -27,6 +28,7 @@ interface ToolPageProps {
 }
 
 const VALID_TOOLS = [
+  "youtube-video-downloader",
   "youtube-thumbnail-downloader",
   "youtube-video-information",
   "thumbnail-resizer",
@@ -60,6 +62,10 @@ export async function generateMetadata({ params }: ToolPageProps): Promise<Metad
   let description = "Free YouTube Creator Utility on MediaSnap.";
 
   switch (toolSlug) {
+    case "youtube-video-downloader":
+      title = (dict.common as any).videoDownloader || "YouTube Video Downloader";
+      description = "Download YouTube videos and Shorts in MP4 1080p, 720p HD, 480p, and MP3 audio with instant high-speed server streaming.";
+      break;
     case "youtube-thumbnail-downloader":
       title = dict.thumbnail.title;
       description = dict.thumbnail.subtitle;
@@ -140,6 +146,28 @@ export default function ToolPage({ params, searchParams }: ToolPageProps) {
   let toolFaqs: Array<{ question: string; answer: string }> = [];
 
   switch (toolSlug) {
+    case "youtube-video-downloader":
+      toolTitle = (dict.common as any).videoDownloader || "YouTube Video Downloader";
+      toolSubtitle = "Download YouTube videos and Shorts in MP4 1080p, 720p HD, 480p, and MP3 audio with instant high-speed server streaming.";
+      toolComponent = <VideoDownloaderTool lang={lang as SupportedLanguage} dict={dict} />;
+      toolFaqs = [
+        {
+          question: "Can I download YouTube videos in 1080p Full HD and 720p?",
+          answer:
+            "Yes! MediaSnap detects all available video stream resolutions provided by YouTube, including 1080p Full HD, 720p HD, 480p, and 360p MP4 formats.",
+        },
+        {
+          question: "Can I extract audio / MP3 from a YouTube video?",
+          answer:
+            "Yes, you can easily switch to the Audio tab and download high-bitrate audio tracks (128kbps, 160kbps, 256kbps) in MP3 / M4A format.",
+        },
+        {
+          question: "Does this tool work for YouTube Shorts?",
+          answer:
+            "Yes! You can paste any standard YouTube video URL, short link (youtu.be), or YouTube Shorts URL.",
+        },
+      ];
+      break;
     case "youtube-thumbnail-downloader":
       toolTitle = dict.thumbnail.title;
       toolSubtitle = dict.thumbnail.subtitle;

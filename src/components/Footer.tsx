@@ -12,6 +12,7 @@ export function Footer({ lang, dict }: FooterProps) {
   const currentYear = new Date().getFullYear();
 
   const toolLinks = [
+    { name: (dict.common as any).videoDownloader || "YouTube Video Downloader", href: `/${lang}/tools/youtube-video-downloader` },
     { name: dict.tools.t1Name, href: `/${lang}/tools/youtube-thumbnail-downloader` },
     { name: dict.tools.t2Name, href: `/${lang}/tools/youtube-video-information` },
     { name: dict.tools.t3Name, href: `/${lang}/tools/thumbnail-resizer` },
@@ -68,6 +69,14 @@ export function Footer({ lang, dict }: FooterProps) {
                   className="text-slate-600 dark:text-slate-400 hover:text-primary transition-colors"
                 >
                   {dict.common.home}
+                </Link>
+              </li>
+              <li>
+                <Link
+                  href={`/${lang}/tools/youtube-video-downloader`}
+                  className="font-bold text-primary hover:underline transition-colors"
+                >
+                  {(dict.common as any).videoDownloader || "Video Downloader"}
                 </Link>
               </li>
               <li>

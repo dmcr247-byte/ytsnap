@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
+import { Ytdl } from "@distube/ytdl-core";
 import { extractYouTubeVideoId } from "@/lib/youtube";
 import { checkRateLimit, hashIp } from "@/lib/security";
 import prisma from "@/lib/prisma";
@@ -36,11 +37,18 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    // Load Ytdl dynamically from @distube/ytdl-core
-    const { Ytdl } = require("@distube/ytdl-core");
-    const ytdl = new Ytdl();
+    // Load Ytdl using VisionOS and TV clients
+    // (Bypasses player signature decipher worker requirements and avoids bot-check blocks)
+    let ytdl = new Ytdl({ clients: ["visionos", "tv", "mweb"] });
 
-    const info = await ytdl.getInfo(`https://www.youtube.com/watch?v=${videoId}`);
+    let info: any;
+    try {
+      info = await ytdl.getInfo(`https://www.youtube.com/watch?v=${videoId}`);
+    } catch {
+      // Fallback directly to VisionOS client alone
+      const fallbackYtdl = new Ytdl({ clients: ["visionos"] });
+      info = await fallbackYtdl.getInfo(`https://www.youtube.com/watch?v=${videoId}`);
+    }
     const details = info.videoDetails;
 
     // Filter and normalize formats
@@ -53,6 +61,7 @@ export async function POST(req: NextRequest) {
       sizeMb?: string;
       hasAudio: boolean;
       hasVideo: boolean;
+      url?: string;
     }> = [];
 
     const audioFormats: Array<{
@@ -60,6 +69,7 @@ export async function POST(req: NextRequest) {
       audioBitrate?: number;
       container: string;
       sizeMb?: string;
+      url?: string;
     }> = [];
 
     const seenLabels = new Set<string>();
@@ -82,6 +92,7 @@ export async function POST(req: NextRequest) {
             sizeMb,
             hasAudio: Boolean(f.hasAudio),
             hasVideo: true,
+            url: f.url,
           });
         }
       } else if (!f.hasVideo && f.hasAudio && f.audioBitrate) {
@@ -90,6 +101,7 @@ export async function POST(req: NextRequest) {
           audioBitrate: f.audioBitrate,
           container: f.container === "m4a" ? "m4a" : "mp3",
           sizeMb,
+          url: f.url,
         });
       }
     }

@@ -83,17 +83,21 @@ export function VideoDownloaderTool({ lang, dict }: VideoDownloaderToolProps) {
     }
   };
 
-  const handleDownload = (itag: number, title: string) => {
+  const handleDownload = (format: any, title: string) => {
     if (!videoData) return;
-    setDownloadingItag(itag);
+    setDownloadingItag(format.itag);
 
-    const downloadUrl = `/api/video-download?id=${videoData.id}&itag=${itag}&title=${encodeURIComponent(
-      title
-    )}`;
+    // If format already has direct high-speed CDN URL returned by /api/video-formats,
+    // open it directly with 0ms latency without making a second serverless call!
+    const targetUrl =
+      format.url ||
+      `/api/video-download?id=${videoData.id}&itag=${format.itag}&title=${encodeURIComponent(
+        title
+      )}`;
 
     // Open direct Google CDN stream in a new tab for instant high-speed download
     const a = document.createElement("a");
-    a.href = downloadUrl;
+    a.href = targetUrl;
     a.target = "_blank";
     a.rel = "noopener noreferrer";
     document.body.appendChild(a);
@@ -289,7 +293,7 @@ export function VideoDownloaderTool({ lang, dict }: VideoDownloaderToolProps) {
                     </div>
 
                     <button
-                      onClick={() => handleDownload(f.itag, videoData.title)}
+                      onClick={() => handleDownload(f, videoData.title)}
                       disabled={downloadingItag === f.itag}
                       className="px-4 py-2 bg-primary hover:bg-primary-hover text-white rounded-xl text-xs font-bold shadow-md flex items-center gap-1.5 transition-all disabled:opacity-60"
                     >
@@ -344,7 +348,7 @@ export function VideoDownloaderTool({ lang, dict }: VideoDownloaderToolProps) {
                     </div>
 
                     <button
-                      onClick={() => handleDownload(f.itag, videoData.title)}
+                      onClick={() => handleDownload(f, videoData.title)}
                       disabled={downloadingItag === f.itag}
                       className="px-4 py-2 bg-secondary hover:bg-secondary-hover text-white rounded-xl text-xs font-bold shadow-md flex items-center gap-1.5 transition-all disabled:opacity-60"
                     >

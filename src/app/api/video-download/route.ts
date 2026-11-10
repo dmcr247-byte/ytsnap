@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { extractYouTubeVideoId } from "@/lib/youtube";
+import { Ytdl } from "@distube/ytdl-core";
 
 export const dynamic = "force-dynamic";
 
@@ -14,10 +14,15 @@ export async function GET(req: NextRequest) {
       return new NextResponse("Invalid video ID", { status: 400 });
     }
 
-    const { Ytdl } = require("@distube/ytdl-core");
-    const ytdl = new Ytdl();
+    let ytdl = new Ytdl({ clients: ["visionos", "tv", "mweb"] });
 
-    const info = await ytdl.getInfo(`https://www.youtube.com/watch?v=${id}`);
+    let info: any;
+    try {
+      info = await ytdl.getInfo(`https://www.youtube.com/watch?v=${id}`);
+    } catch {
+      const fallbackYtdl = new Ytdl({ clients: ["visionos"] });
+      info = await fallbackYtdl.getInfo(`https://www.youtube.com/watch?v=${id}`);
+    }
     const itag = itagParam ? parseInt(itagParam, 10) : null;
 
     let targetFormat = null;

@@ -37,9 +37,9 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    // Load Ytdl prioritizing clients that provide combined Video + Audio streams (mweb, tv, web_embedded)
-    // with visionos fallback to prevent cipher issues while ensuring formats with sound are included.
-    let ytdl = new Ytdl({ clients: ["mweb", "tv", "web_embedded", "visionos"] });
+    // Load Ytdl prioritizing TV client which provides combined Video + Audio streams (itag 18)
+    // without triggering bot-check blocks on datacenter/cloud IPs, with VisionOS as fallback.
+    let ytdl = new Ytdl({ clients: ["tv", "visionos"] });
 
     let info: any;
     try {

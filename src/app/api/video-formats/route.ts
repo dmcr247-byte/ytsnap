@@ -14,17 +14,16 @@ export async function POST(req: NextRequest) {
     const rateCheck = checkRateLimit(`video-formats-${ipH}`, 60, 60000);
     if (!rateCheck.success) {
       return NextResponse.json(
-        { error: "Too many requests. Please wait a moment before trying again." },
+        { error: "Too many requests. Please wait a minute before analyzing more videos." },
         { status: 429 }
       );
     }
 
-    const body = await req.json().catch(() => ({}));
-    const { url, lang = "en" } = body;
+    const { url, lang = "en" } = await req.json();
 
-    if (!url || typeof url !== "string") {
+    if (!url) {
       return NextResponse.json(
-        { error: "A valid YouTube video URL or ID is required." },
+        { error: "Please enter a valid YouTube video URL." },
         { status: 400 }
       );
     }
@@ -32,26 +31,21 @@ export async function POST(req: NextRequest) {
     const videoId = extractYouTubeVideoId(url);
     if (!videoId) {
       return NextResponse.json(
-        { error: "Invalid YouTube URL format. Please provide a valid watch, short, or youtu.be link." },
+        { error: "Invalid YouTube URL. Please provide a standard watch link or short URL." },
         { status: 400 }
       );
     }
 
-    // Load Ytdl prioritizing TV client which provides combined Video + Audio streams (itag 18)
-    // without triggering bot-check blocks on datacenter/cloud IPs, with VisionOS as fallback.
-    let ytdl = new Ytdl({ clients: ["tv", "visionos"] });
+    const ytdl = new Ytdl({
+      clients: ["tv", "visionos"],
+    });
 
-    let info: any;
-    try {
-      info = await ytdl.getInfo(`https://www.youtube.com/watch?v=${videoId}`);
-    } catch {
-      // Fallback directly to VisionOS client alone
-      const fallbackYtdl = new Ytdl({ clients: ["visionos"] });
-      info = await fallbackYtdl.getInfo(`https://www.youtube.com/watch?v=${videoId}`);
-    }
+    const info = await ytdl.getInfo(videoId);
+
     const details = info.videoDetails;
+    const durationSeconds = details.lengthSeconds ? parseInt(String(details.lengthSeconds), 10) : 0;
 
-    // Filter and normalize formats
+    // Filter & categorize formats
     const videoFormats: Array<{
       itag: number;
       qualityLabel: string;
@@ -63,32 +57,38 @@ export async function POST(req: NextRequest) {
       hasVideo: boolean;
       isRecommended?: boolean;
       url?: string;
+      label: string;
     }> = [];
 
     const audioFormats: Array<{
       itag: number;
-      audioBitrate?: number;
+      audioBitrate: number;
       container: string;
+      codecLabel: string;
+      language: string;
       sizeMb?: string;
       url?: string;
+      label: string;
     }> = [];
 
-    const seenLabels = new Set<string>();
+    const seenVideoKeys = new Set<string>();
 
     for (const f of info.formats || []) {
-      const lengthBytes = f.contentLength ? parseInt(f.contentLength, 10) : 0;
-      const sizeMb = lengthBytes > 0 ? (lengthBytes / (1024 * 1024)).toFixed(1) + " MB" : undefined;
+      const lengthBytes = f.contentLength ? parseInt(String(f.contentLength), 10) : 0;
+      const sizeMb =
+        lengthBytes > 0 ? (lengthBytes / (1024 * 1024)).toFixed(2) + " MB" : undefined;
+      const containerUpper = (f.container || "mp4").toUpperCase();
 
       if (f.hasVideo && f.qualityLabel) {
-        // Distinguish formats with audio from video-only DASH streams
         const audioKey = f.hasAudio ? "withaudio" : "videoonly";
-        const key = `${f.qualityLabel}-${f.container}-${audioKey}`;
-        if (!seenLabels.has(key)) {
-          seenLabels.add(key);
+        const key = `${f.qualityLabel}-${containerUpper}-${audioKey}`;
+
+        if (!seenVideoKeys.has(key)) {
+          seenVideoKeys.add(key);
           videoFormats.push({
             itag: f.itag,
             qualityLabel: f.qualityLabel,
-            container: f.container || "mp4",
+            container: containerUpper,
             resolution: f.qualityLabel,
             fps: f.fps,
             sizeMb,
@@ -96,32 +96,80 @@ export async function POST(req: NextRequest) {
             hasVideo: true,
             isRecommended: Boolean(f.hasAudio),
             url: f.url,
+            label: `${f.qualityLabel} ${containerUpper}${sizeMb ? ` · ${sizeMb}` : ""}${
+              f.hasAudio ? " — Recommended" : ""
+            }`,
           });
         }
-      } else if (!f.hasVideo && f.hasAudio && f.audioBitrate) {
+      } else if (!f.hasVideo && f.hasAudio) {
+        const audioBitrate = f.audioBitrate || Math.round((f.bitrate || 0) / 1000) || 128;
+        const codecName = (f.audioCodec || "").toLowerCase().includes("opus")
+          ? "Opus Audio"
+          : (f.container?.toLowerCase() === "m4a" || (f.audioCodec || "").includes("mp4a")
+          ? "M4A Audio"
+          : "Audio");
+
+        const language =
+          f.audioTrack?.displayName ||
+          (f.audioTrack?.audioIsDefault ? "Hindi (original)" : "Original Audio");
+
         audioFormats.push({
           itag: f.itag,
-          audioBitrate: f.audioBitrate,
-          container: f.container === "m4a" ? "m4a" : "mp3",
+          audioBitrate,
+          container: f.container || "mp3",
+          codecLabel: codecName,
+          language,
           sizeMb,
           url: f.url,
+          label: `${codecName} · ${audioBitrate} kbps${sizeMb ? ` · ${sizeMb}` : ""}`,
         });
       }
     }
 
     // Sort video formats:
-    // 1. Formats with audio first (so users immediately get playable video with sound)
-    // 2. Then highest resolution to lowest
+    // 1. Video + Audio progressive formats first (e.g. 360p)
+    // 2. Video-only DASH formats by resolution descending (1080p -> 720p -> 480p -> 360p -> 240p -> 144p)
+    // 3. For identical resolution: WEBM first then MP4 (matching SnapYT)
     videoFormats.sort((a, b) => {
       if (a.hasAudio && !b.hasAudio) return -1;
       if (!a.hasAudio && b.hasAudio) return 1;
+
       const aRes = parseInt(a.qualityLabel, 10) || 0;
       const bRes = parseInt(b.qualityLabel, 10) || 0;
-      return bRes - aRes;
+      if (bRes !== aRes) return bRes - aRes;
+
+      if (a.container === "WEBM" && b.container !== "WEBM") return -1;
+      if (a.container !== "WEBM" && b.container === "WEBM") return 1;
+      return 0;
     });
 
-    // Sort audio formats from highest bitrate to lowest
-    audioFormats.sort((a, b) => (b.audioBitrate || 0) - (a.audioBitrate || 0));
+    // Sort audio formats:
+    // Group by language, then bitrate descending
+    audioFormats.sort((a, b) => {
+      if (a.language !== b.language) {
+        if (a.language.includes("Hindi") || a.language.includes("original")) return -1;
+        if (b.language.includes("Hindi") || b.language.includes("original")) return 1;
+        return a.language.localeCompare(b.language);
+      }
+      return b.audioBitrate - a.audioBitrate;
+    });
+
+    // Generate MP3 presets matching SnapYT calculations
+    const mp3Presets = [320, 192, 128, 64];
+    const mp3Formats = mp3Presets.map((kbps) => {
+      const approxBytes = durationSeconds > 0 ? (kbps * 1000 * durationSeconds) / 8 : 0;
+      const approxMb =
+        approxBytes > 0 ? (approxBytes / (1024 * 1024)).toFixed(2) + " MB" : undefined;
+      return {
+        itag: -kbps,
+        qualityLabel: `MP3 · ${kbps} kbps`,
+        bitrate: kbps,
+        container: "mp3",
+        sizeMb: approxMb ? `≈ ${approxMb}` : undefined,
+        label: `MP3 · ${kbps} kbps${approxMb ? ` ≈ ${approxMb}` : ""}`,
+        isAudioOnly: true,
+      };
+    });
 
     // Asynchronously log tool usage
     try {
@@ -145,19 +193,33 @@ export async function POST(req: NextRequest) {
         id: videoId,
         title: details.title,
         author: details.author?.name || "YouTube Creator",
-        channelUrl: details.author?.channel_url,
-        duration: details.lengthSeconds ? `${Math.floor(parseInt(details.lengthSeconds, 10) / 60)}:${(parseInt(details.lengthSeconds, 10) % 60).toString().padStart(2, "0")}` : "Unknown",
-        views: details.viewCount ? parseInt(details.viewCount, 10).toLocaleString() : "Unknown",
+        channelUrl: (details.author as any)?.channel_url || (details.author as any)?.user_url,
+        duration: durationSeconds
+          ? `${Math.floor(durationSeconds / 60)}:${(durationSeconds % 60)
+              .toString()
+              .padStart(2, "0")}`
+          : "Unknown",
+        durationSeconds,
+        views: details.viewCount
+          ? parseInt(String(details.viewCount), 10).toLocaleString()
+          : "Unknown",
         publishDate: details.publishDate,
-        thumbnail: details.thumbnails?.[details.thumbnails.length - 1]?.url || `https://img.youtube.com/vi/${videoId}/maxresdefault.jpg`,
-        videoFormats: videoFormats.slice(0, 8),
-        audioFormats: audioFormats.slice(0, 3),
+        thumbnail:
+          details.thumbnails?.[details.thumbnails.length - 1]?.url ||
+          `https://img.youtube.com/vi/${videoId}/maxresdefault.jpg`,
+        videoFormats,
+        audioFormats,
+        mp3Formats,
       },
     });
   } catch (error: any) {
     console.error("Video formats fetch error:", error);
     return NextResponse.json(
-      { error: error?.message || "Failed to retrieve video stream formats. Please verify the link." },
+      {
+        error:
+          error?.message ||
+          "Failed to retrieve video stream formats. Please verify the link.",
+      },
       { status: 500 }
     );
   }

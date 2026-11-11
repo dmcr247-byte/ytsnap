@@ -38,7 +38,9 @@
     "quickLinks": "Liens Rapides",
     "legal": "Légal & Conformité",
     "shortsDownloader": "Téléchargeur YouTube Shorts",
-    "shortsDownloaderDesc": "Téléchargez les Shorts YouTube en MP4 1080p, 720p HD et audio MP3 sans filigrane."
+    "shortsDownloaderDesc": "Téléchargez les Shorts YouTube en MP4 1080p, 720p HD et audio MP3 sans filigrane.",
+    "bannerDownloader": "Téléchargeur de Bannières YouTube",
+    "bannerDownloaderDesc": "Téléchargez les bannières et avatars de chaînes YouTube en HD 2560x1440."
   },
   "hero": {
     "badge": "100% Gratuit • Haute Définition • Rapide et Sécurisé",

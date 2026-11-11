@@ -38,7 +38,9 @@
     "quickLinks": "Tautan Cepat",
     "legal": "Hukum & Kepatuhan",
     "shortsDownloader": "Pengunduh YouTube Shorts",
-    "shortsDownloaderDesc": "Unduh YouTube Shorts dalam MP4 1080p, 720p HD, dan audio MP3 tanpa watermark."
+    "shortsDownloaderDesc": "Unduh YouTube Shorts dalam MP4 1080p, 720p HD, dan audio MP3 tanpa watermark.",
+    "bannerDownloader": "Pengunduh Banner YouTube",
+    "bannerDownloaderDesc": "Unduh banner saluran dan avatar YouTube dalam 2560x1440 HD."
   },
   "hero": {
     "badge": "100% Gratis • Resolusi Tinggi • Cepat & Aman",

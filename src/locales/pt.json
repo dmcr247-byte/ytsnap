@@ -38,7 +38,9 @@
     "quickLinks": "Links Rápidos",
     "legal": "Legal e Conformidade",
     "shortsDownloader": "Baixar YouTube Shorts",
-    "shortsDownloaderDesc": "Baixe YouTube Shorts em MP4 1080p, 720p HD e áudio MP3 sem marca d'água."
+    "shortsDownloaderDesc": "Baixe YouTube Shorts em MP4 1080p, 720p HD e áudio MP3 sem marca d'água.",
+    "bannerDownloader": "Baixar Banners do YouTube",
+    "bannerDownloaderDesc": "Baixe banners de canais e avatares do YouTube em 2560x1440 HD."
   },
   "hero": {
     "badge": "100% Gratuito • Alta Resolução • Rápido e Seguro",

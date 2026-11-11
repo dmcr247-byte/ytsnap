@@ -13,6 +13,7 @@ export function Footer({ lang, dict }: FooterProps) {
 
   const toolLinks = [
     { name: (dict.common as any).shortsDownloader || "YouTube Shorts Downloader", href: `/${lang}/tools/youtube-shorts-downloader` },
+    { name: (dict.common as any).bannerDownloader || "YouTube Banner Downloader", href: `/${lang}/tools/youtube-banner-downloader` },
     { name: (dict.common as any).videoDownloader || "YouTube Video Downloader", href: `/${lang}/tools/youtube-video-downloader` },
     { name: dict.tools.t1Name, href: `/${lang}/tools/youtube-thumbnail-downloader` },
     { name: dict.tools.t2Name, href: `/${lang}/tools/youtube-video-information` },

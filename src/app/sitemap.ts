@@ -13,6 +13,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     "",
     "/tools/youtube-video-downloader",
     "/tools/youtube-shorts-downloader",
+    "/tools/youtube-banner-downloader",
     "/tools/youtube-thumbnail-downloader",
     "/tools/youtube-video-information",
     "/tools/thumbnail-resizer",

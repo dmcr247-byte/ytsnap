@@ -12,6 +12,7 @@ import { JsonLd } from "@/components/JsonLd";
 import { ThumbnailHero } from "@/components/ThumbnailHero";
 import { VideoDownloaderTool } from "@/components/tools/VideoDownloaderTool";
 import { ShortsDownloaderTool } from "@/components/tools/ShortsDownloaderTool";
+import { BannerDownloaderTool } from "@/components/tools/BannerDownloaderTool";
 import { VideoInfoTool } from "@/components/tools/VideoInfoTool";
 import { ResizerTool } from "@/components/tools/ResizerTool";
 import { CompressorTool } from "@/components/tools/CompressorTool";
@@ -31,6 +32,7 @@ interface ToolPageProps {
 const VALID_TOOLS = [
   "youtube-video-downloader",
   "youtube-shorts-downloader",
+  "youtube-banner-downloader",
   "youtube-thumbnail-downloader",
   "youtube-video-information",
   "thumbnail-resizer",
@@ -71,6 +73,10 @@ export async function generateMetadata({ params }: ToolPageProps): Promise<Metad
     case "youtube-shorts-downloader":
       title = (dict.common as any).shortsDownloader || "YouTube Shorts Downloader";
       description = (dict.common as any).shortsDownloaderDesc || "Download YouTube Shorts in MP4 1080p, 720p HD and MP3 audio instantly without any app or watermark.";
+      break;
+    case "youtube-banner-downloader":
+      title = (dict.common as any).bannerDownloader || "YouTube Banner Downloader";
+      description = (dict.common as any).bannerDownloaderDesc || "Download YouTube channel banners, channel art, and avatars in 2560x1440 HD.";
       break;
     case "youtube-thumbnail-downloader":
       title = dict.thumbnail.title;
@@ -202,6 +208,37 @@ export default function ToolPage({ params, searchParams }: ToolPageProps) {
         {
           question: "Is there any limit on how many Shorts I can download?",
           answer: "No! YTSnap is completely free with no usage caps, registration, or download limits. You can download as many Shorts as you need.",
+        },
+      ];
+      break;
+    case "youtube-banner-downloader":
+      toolTitle = (dict.common as any).bannerDownloader || "YouTube Banner Downloader";
+      toolSubtitle = (dict.common as any).bannerDownloaderDesc || "Download YouTube channel banners, channel art, and avatars in 2560x1440 HD.";
+      toolComponent = <BannerDownloaderTool lang={lang as SupportedLanguage} dict={dict} />;
+      toolFaqs = [
+        {
+          question: "What is the recommended YouTube banner size in 2026?",
+          answer: "According to YouTube's official design guidelines, the ideal channel banner dimension is 2560 x 1440 pixels (16:9 ratio). The minimum upload dimension is 2048 x 1152 pixels with a mobile safe area of 1546 x 423 pixels.",
+        },
+        {
+          question: "Does this tool download the original 2560x1440 high-resolution banner?",
+          answer: "Yes! YTSnap retrieves the original, uncropped 2560x1440 canvas directly from Google CDN servers without downscaling or compression.",
+        },
+        {
+          question: "Can I also download the YouTube channel profile photo (avatar)?",
+          answer: "Yes! Simply click the 'Channel Avatar (900x900)' tab to preview and download the creator's full 900x900 high-definition profile avatar.",
+        },
+        {
+          question: "Can I enter a channel handle (@name) or video link instead of the channel URL?",
+          answer: "Yes! You can enter any channel handle (e.g. @MrBeast), channel link (youtube.com/@channel), or any video link uploaded by that channel.",
+        },
+        {
+          question: "Is there any watermark added to the downloaded banner image?",
+          answer: "No! All downloaded images are the pristine original creator files with zero watermarks, branding, or overlays added.",
+        },
+        {
+          question: "Is downloading YouTube channel banners legal?",
+          answer: "Yes, downloading public channel art for personal design inspiration, color palettes, safe-area reference, or backing up your own channel is completely safe and legal under fair use.",
         },
       ];
       break;

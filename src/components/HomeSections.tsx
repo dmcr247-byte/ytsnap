@@ -23,6 +23,7 @@ import {
   ArrowRight,
   BookOpen,
   PlaySquare,
+  Image as ImageIcon,
 } from "lucide-react";
 
 interface HomeSectionsProps {
@@ -266,6 +267,12 @@ export function CreatorToolsGrid({
       title: (dict.common as any).shortsDownloader || "YouTube Shorts Downloader",
       desc: (dict.common as any).shortsDownloaderDesc || "Download YouTube Shorts in MP4 1080p, 720p HD and MP3 with no watermarks.",
       href: `/${lang}/tools/youtube-shorts-downloader`,
+    },
+    {
+      icon: <ImageIcon className="w-6 h-6 text-blue-500" />,
+      title: (dict.common as any).bannerDownloader || "YouTube Banner Downloader",
+      desc: (dict.common as any).bannerDownloaderDesc || "Download YouTube channel banners, channel art, and avatars in 2560x1440 HD.",
+      href: `/${lang}/tools/youtube-banner-downloader`,
     },
     {
       icon: <Download className="w-6 h-6 text-primary" />,

@@ -38,7 +38,9 @@
     "quickLinks": "Quick Links",
     "legal": "Legal & Compliance",
     "shortsDownloader": "YouTube Shorts Downloader",
-    "shortsDownloaderDesc": "Download YouTube Shorts in MP4 1080p, 720p HD and MP3 audio with no watermarks."
+    "shortsDownloaderDesc": "Download YouTube Shorts in MP4 1080p, 720p HD and MP3 audio with no watermarks.",
+    "bannerDownloader": "YouTube Banner Downloader",
+    "bannerDownloaderDesc": "Download YouTube channel banners, channel art, and avatars in 2560x1440 HD."
   },
   "hero": {
     "badge": "100% Free • High Resolution • Fast & Secure",

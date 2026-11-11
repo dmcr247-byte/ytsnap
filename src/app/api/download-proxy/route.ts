@@ -9,24 +9,50 @@ export async function GET(req: NextRequest) {
     const videoId = searchParams.get("id");
     const resKey = searchParams.get("res") || "maxresdefault";
     const format = (searchParams.get("format") || "jpg").toLowerCase();
+    const customUrl = searchParams.get("url");
+    const customName = searchParams.get("name") || "media";
 
-    if (!videoId || !/^[a-zA-Z0-9_-]{11}$/.test(videoId)) {
-      return new NextResponse("Invalid YouTube video ID", { status: 400 });
+    let cdnUrl = "";
+    let baseFilename = "ytsnap";
+
+    // 1. Direct safe image URL (e.g. YouTube banner from yt3.googleusercontent.com)
+    if (customUrl) {
+      try {
+        const parsed = new URL(customUrl);
+        const host = parsed.hostname.toLowerCase();
+        const allowedHosts = [
+          "yt3.googleusercontent.com",
+          "yt3.ggpht.com",
+          "i.ytimg.com",
+          "img.youtube.com",
+        ];
+        if (!allowedHosts.some((h) => host === h || host.endsWith("." + h))) {
+          return new NextResponse("Unauthorized media host", { status: 400 });
+        }
+        cdnUrl = customUrl;
+        baseFilename = `ytsnap-${customName.replace(/[^a-zA-Z0-9_-]/g, "_")}`;
+      } catch {
+        return new NextResponse("Invalid URL", { status: 400 });
+      }
+    }
+    // 2. Standard video thumbnail by ID
+    else if (videoId && /^[a-zA-Z0-9_-]{11}$/.test(videoId)) {
+      const validKeys = [
+        "maxresdefault",
+        "sddefault",
+        "hqdefault",
+        "mqdefault",
+        "default",
+      ];
+      const safeKey = validKeys.includes(resKey) ? resKey : "hqdefault";
+      cdnUrl = `https://img.youtube.com/vi/${videoId}/${safeKey}.jpg`;
+      baseFilename = `ytsnap-${videoId}-${safeKey}`;
+    } else {
+      return new NextResponse("Invalid request parameters", { status: 400 });
     }
 
-    const validKeys = [
-      "maxresdefault",
-      "sddefault",
-      "hqdefault",
-      "mqdefault",
-      "default",
-    ];
-    const safeKey = validKeys.includes(resKey) ? resKey : "hqdefault";
-
-    const cdnUrl = `https://img.youtube.com/vi/${videoId}/${safeKey}.jpg`;
-
     const controller = new AbortController();
-    const timeout = setTimeout(() => controller.abort(), 6000);
+    const timeout = setTimeout(() => controller.abort(), 8000);
 
     const cdnRes = await fetch(cdnUrl, {
       signal: controller.signal,
@@ -38,7 +64,7 @@ export async function GET(req: NextRequest) {
     clearTimeout(timeout);
 
     if (!cdnRes.ok) {
-      return new NextResponse("Thumbnail image not available on YouTube CDN", {
+      return new NextResponse("Image not available on YouTube CDN", {
         status: 404,
       });
     }
@@ -60,7 +86,7 @@ export async function GET(req: NextRequest) {
       extension = "webp";
     }
 
-    const filename = `ytsnap-${videoId}-${safeKey}.${extension}`;
+    const filename = `${baseFilename}.${extension}`;
 
     return new NextResponse(new Uint8Array(outputBuffer), {
       headers: {
@@ -72,7 +98,7 @@ export async function GET(req: NextRequest) {
     });
   } catch (err) {
     console.error("Download proxy error:", err);
-    return new NextResponse("Failed to download requested thumbnail", {
+    return new NextResponse("Failed to download requested image", {
       status: 500,
     });
   }

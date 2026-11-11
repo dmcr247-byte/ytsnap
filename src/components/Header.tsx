@@ -96,6 +96,11 @@ export function Header({ lang, dict }: HeaderProps) {
       desc: "Download YouTube Shorts in 1080p, 720p HD and MP3 with no watermark",
     },
     {
+      name: (dict.common as any).bannerDownloader || "Banner Downloader",
+      href: `/${lang}/tools/youtube-banner-downloader`,
+      desc: "Download YouTube channel banners and avatars in 2560x1440 HD",
+    },
+    {
       name: (dict.common as any).videoDownloader || "Video Downloader",
       href: `/${lang}/tools/youtube-video-downloader`,
       desc: "Download YouTube videos and Shorts in 1080p, 720p HD and MP3 format",
@@ -187,6 +192,12 @@ export function Header({ lang, dict }: HeaderProps) {
           >
             <span className="w-2 h-2 rounded-full bg-rose-500 animate-pulse" />
             <span>{(dict.common as any).shortsDownloader || "Shorts Downloader"}</span>
+          </Link>
+          <Link
+            href={`/${lang}/tools/youtube-banner-downloader`}
+            className="px-3 py-2 rounded-lg font-bold text-blue-600 dark:text-blue-400 hover:bg-blue-500/10 transition-colors"
+          >
+            {(dict.common as any).bannerDownloader || "Banner Downloader"}
           </Link>
           <Link
             href={`/${lang}/tools/youtube-video-downloader`}
@@ -346,6 +357,13 @@ export function Header({ lang, dict }: HeaderProps) {
           >
             <span className="w-2 h-2 rounded-full bg-rose-500 animate-pulse" />
             <span>{(dict.common as any).shortsDownloader || "Shorts Downloader"}</span>
+          </Link>
+          <Link
+            href={`/${lang}/tools/youtube-banner-downloader`}
+            onClick={() => setMobileMenuOpen(false)}
+            className="block px-3 py-2 rounded-xl text-base font-bold text-blue-600 dark:text-blue-400 hover:bg-blue-500/10"
+          >
+            {(dict.common as any).bannerDownloader || "Banner Downloader"}
           </Link>
           <Link
             href={`/${lang}/tools/youtube-video-downloader`}

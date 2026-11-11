@@ -22,6 +22,7 @@ import {
   Maximize2,
   ArrowRight,
   BookOpen,
+  PlaySquare,
 } from "lucide-react";
 
 interface HomeSectionsProps {
@@ -260,6 +261,12 @@ export function CreatorToolsGrid({
   dict: TranslationDictionary;
 }) {
   const tools = [
+    {
+      icon: <PlaySquare className="w-6 h-6 text-rose-500" />,
+      title: (dict.common as any).shortsDownloader || "YouTube Shorts Downloader",
+      desc: (dict.common as any).shortsDownloaderDesc || "Download YouTube Shorts in MP4 1080p, 720p HD and MP3 with no watermarks.",
+      href: `/${lang}/tools/youtube-shorts-downloader`,
+    },
     {
       icon: <Download className="w-6 h-6 text-primary" />,
       title: (dict.common as any).videoDownloader || "YouTube Video Downloader",

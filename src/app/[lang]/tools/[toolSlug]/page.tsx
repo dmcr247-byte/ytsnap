@@ -11,6 +11,7 @@ import { Breadcrumbs } from "@/components/Breadcrumbs";
 import { JsonLd } from "@/components/JsonLd";
 import { ThumbnailHero } from "@/components/ThumbnailHero";
 import { VideoDownloaderTool } from "@/components/tools/VideoDownloaderTool";
+import { ShortsDownloaderTool } from "@/components/tools/ShortsDownloaderTool";
 import { VideoInfoTool } from "@/components/tools/VideoInfoTool";
 import { ResizerTool } from "@/components/tools/ResizerTool";
 import { CompressorTool } from "@/components/tools/CompressorTool";
@@ -29,6 +30,7 @@ interface ToolPageProps {
 
 const VALID_TOOLS = [
   "youtube-video-downloader",
+  "youtube-shorts-downloader",
   "youtube-thumbnail-downloader",
   "youtube-video-information",
   "thumbnail-resizer",
@@ -65,6 +67,10 @@ export async function generateMetadata({ params }: ToolPageProps): Promise<Metad
     case "youtube-video-downloader":
       title = (dict.common as any).videoDownloader || "YouTube Video Downloader";
       description = "Download YouTube videos and Shorts in MP4 1080p, 720p HD, 480p, and MP3 audio with instant high-speed server streaming.";
+      break;
+    case "youtube-shorts-downloader":
+      title = (dict.common as any).shortsDownloader || "YouTube Shorts Downloader";
+      description = (dict.common as any).shortsDownloaderDesc || "Download YouTube Shorts in MP4 1080p, 720p HD and MP3 audio instantly without any app or watermark.";
       break;
     case "youtube-thumbnail-downloader":
       title = dict.thumbnail.title;
@@ -165,6 +171,37 @@ export default function ToolPage({ params, searchParams }: ToolPageProps) {
           question: "Does this tool work for YouTube Shorts?",
           answer:
             "Yes! You can paste any standard YouTube video URL, short link (youtu.be), or YouTube Shorts URL.",
+        },
+      ];
+      break;
+    case "youtube-shorts-downloader":
+      toolTitle = (dict.common as any).shortsDownloader || "YouTube Shorts Downloader";
+      toolSubtitle = (dict.common as any).shortsDownloaderDesc || "Download YouTube Shorts in MP4 1080p, 720p HD and MP3 audio instantly without any app or watermark.";
+      toolComponent = <ShortsDownloaderTool lang={lang as SupportedLanguage} dict={dict} />;
+      toolFaqs = [
+        {
+          question: "Does this tool work with YouTube Shorts links?",
+          answer: "Yes! Simply paste any Shorts URL (e.g. youtube.com/shorts/VIDEO_ID or mobile share links) and our engine will instantly process and retrieve the highest quality available streams.",
+        },
+        {
+          question: "Will the downloaded YouTube Short have a watermark?",
+          answer: "No! The downloaded file is the clean, original creator video with zero added watermarks, stamps, or promotional overlays.",
+        },
+        {
+          question: "Can I download Shorts on iPhone, iPad, or Android?",
+          answer: "Yes! YTSnap is 100% web-based and runs on any mobile browser. Tap 'Share' in the YouTube mobile app, copy the link, and paste it here.",
+        },
+        {
+          question: "What formats and resolutions are available for Shorts?",
+          answer: "You can download in 1080p Full HD (1080x1920 vertical), 720p HD, 480p MP4, as well as high-bitrate MP3/M4A audio tracks.",
+        },
+        {
+          question: "Can I extract audio or music from a YouTube Short?",
+          answer: "Yes! Switch to the 'Audio Only (MP3)' tab after analyzing the link to save trending background music, sound effects, or speech in MP3 format.",
+        },
+        {
+          question: "Is there any limit on how many Shorts I can download?",
+          answer: "No! YTSnap is completely free with no usage caps, registration, or download limits. You can download as many Shorts as you need.",
         },
       ];
       break;

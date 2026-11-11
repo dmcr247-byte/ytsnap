@@ -91,6 +91,11 @@ export function Header({ lang, dict }: HeaderProps) {
 
   const toolsList = [
     {
+      name: (dict.common as any).shortsDownloader || "Shorts Downloader",
+      href: `/${lang}/tools/youtube-shorts-downloader`,
+      desc: "Download YouTube Shorts in 1080p, 720p HD and MP3 with no watermark",
+    },
+    {
       name: (dict.common as any).videoDownloader || "Video Downloader",
       href: `/${lang}/tools/youtube-video-downloader`,
       desc: "Download YouTube videos and Shorts in 1080p, 720p HD and MP3 format",
@@ -175,6 +180,13 @@ export function Header({ lang, dict }: HeaderProps) {
             className="px-3 py-2 rounded-lg hover:text-primary hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors"
           >
             {dict.common.home}
+          </Link>
+          <Link
+            href={`/${lang}/tools/youtube-shorts-downloader`}
+            className="px-3 py-2 rounded-lg font-bold text-rose-500 hover:bg-rose-500/10 transition-colors flex items-center gap-1.5"
+          >
+            <span className="w-2 h-2 rounded-full bg-rose-500 animate-pulse" />
+            <span>{(dict.common as any).shortsDownloader || "Shorts Downloader"}</span>
           </Link>
           <Link
             href={`/${lang}/tools/youtube-video-downloader`}
@@ -326,6 +338,14 @@ export function Header({ lang, dict }: HeaderProps) {
             className="block px-3 py-2 rounded-xl text-base font-semibold text-slate-800 dark:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-800"
           >
             {dict.common.home}
+          </Link>
+          <Link
+            href={`/${lang}/tools/youtube-shorts-downloader`}
+            onClick={() => setMobileMenuOpen(false)}
+            className="block px-3 py-2 rounded-xl text-base font-bold text-rose-500 hover:bg-rose-500/10 flex items-center gap-2"
+          >
+            <span className="w-2 h-2 rounded-full bg-rose-500 animate-pulse" />
+            <span>{(dict.common as any).shortsDownloader || "Shorts Downloader"}</span>
           </Link>
           <Link
             href={`/${lang}/tools/youtube-video-downloader`}

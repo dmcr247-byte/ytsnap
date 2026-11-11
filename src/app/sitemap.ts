@@ -12,6 +12,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   const staticRoutes = [
     "",
     "/tools/youtube-video-downloader",
+    "/tools/youtube-shorts-downloader",
     "/tools/youtube-thumbnail-downloader",
     "/tools/youtube-video-information",
     "/tools/thumbnail-resizer",

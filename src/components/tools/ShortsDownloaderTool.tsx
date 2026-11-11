@@ -57,9 +57,12 @@ export function ShortsDownloaderTool({ lang, dict }: ShortsDownloaderToolProps) 
   const [selectedAudioItag, setSelectedAudioItag] = useState<number | null>(null);
 
   // HD Mux / Combine states
-  const [isPreparingHd, setIsPreparingHd] = useState(false);
-  const [hdProgress, setHdProgress] = useState(0);
-  const [hdReady, setHdReady] = useState(false);
+  const [isMerging, setIsMerging] = useState(false);
+  const [mergeProgress, setMergeProgress] = useState(0);
+  const [mergeStatusText, setMergeStatusText] = useState("");
+  const [mergeSuccess, setMergeSuccess] = useState(false);
+  const [mergeError, setMergeError] = useState<string | null>(null);
+  const [showManualFallback, setShowManualFallback] = useState(false);
   const [copiedLink, setCopiedLink] = useState(false);
 
   useEffect(() => {
@@ -80,9 +83,12 @@ export function ShortsDownloaderTool({ lang, dict }: ShortsDownloaderToolProps) 
       if (audios.length > 0) {
         setSelectedAudioItag(audios[0].itag);
       }
-      setHdReady(false);
-      setHdProgress(0);
-      setIsPreparingHd(false);
+      setIsMerging(false);
+      setMergeProgress(0);
+      setMergeStatusText("");
+      setMergeSuccess(false);
+      setMergeError(null);
+      setShowManualFallback(false);
     }
   }, [videoData]);
 
@@ -102,6 +108,8 @@ export function ShortsDownloaderTool({ lang, dict }: ShortsDownloaderToolProps) 
     setUrlInput("");
     setVideoData(null);
     setErrorMessage(null);
+    setShowManualFallback(false);
+    setMergeSuccess(false);
   };
 
   const handleFetch = async (e?: React.FormEvent) => {
@@ -170,18 +178,75 @@ export function ShortsDownloaderTool({ lang, dict }: ShortsDownloaderToolProps) 
     });
   };
 
-  const handlePrepareHd = () => {
-    setIsPreparingHd(true);
-    setHdProgress(15);
-    setHdReady(false);
+  const progressiveFormats = videoData?.videoFormats?.filter((f: any) => f.hasAudio) || [];
+  const hdVideoOnlyFormats = videoData?.videoFormats?.filter((f: any) => !f.hasAudio) || [];
+  const audioFormats = videoData?.audioFormats || [];
 
-    setTimeout(() => setHdProgress(55), 450);
-    setTimeout(() => setHdProgress(88), 950);
-    setTimeout(() => {
-      setHdProgress(100);
-      setIsPreparingHd(false);
-      setHdReady(true);
-    }, 1450);
+  const selectedProgressiveFormat =
+    videoData?.videoFormats?.find((f: any) => f.itag === selectedProgressiveItag) ||
+    progressiveFormats[0] ||
+    videoData?.videoFormats?.[0];
+
+  const selectedHdVideoFormat =
+    hdVideoOnlyFormats.find((f: any) => f.itag === selectedHdVideoItag) ||
+    hdVideoOnlyFormats[0];
+
+  const selectedAudioFormat =
+    audioFormats.find((f: any) => f.itag === selectedAudioItag) ||
+    audioFormats[0];
+
+  const handleMergeAndDownload = async () => {
+    if (!videoData || !selectedHdVideoFormat || !selectedAudioFormat) return;
+
+    if (!selectedHdVideoFormat.url || !selectedAudioFormat.url) {
+      setMergeError(
+        lang === "hi"
+          ? "इस स्ट्रीम के लिए डायरेक्ट URL उपलब्ध नहीं है। कृपया नीचे दिए गए अलग-अलग बटन से सेव करें।"
+          : "Direct stream URL not available for automated muxing. Please download separate tracks below."
+      );
+      setShowManualFallback(true);
+      return;
+    }
+
+    setIsMerging(true);
+    setMergeError(null);
+    setMergeSuccess(false);
+    setMergeProgress(5);
+    setMergeStatusText(
+      lang === "hi"
+        ? `HD शॉर्ट्स (${selectedHdVideoFormat.qualityLabel}) और ऑडियो डाउनलोड हो रहा है...`
+        : `Downloading HD Shorts (${selectedHdVideoFormat.qualityLabel}) & Audio...`
+    );
+
+    try {
+      const { mergeVideoAndAudioInBrowser } = await import("@/lib/client-muxer");
+      await mergeVideoAndAudioInBrowser(
+        selectedHdVideoFormat.url,
+        selectedAudioFormat.url,
+        videoData.title,
+        selectedHdVideoFormat.qualityLabel,
+        (status, pct) => {
+          setMergeStatusText(status);
+          setMergeProgress(pct);
+        }
+      );
+      setMergeSuccess(true);
+      setMergeStatusText(
+        lang === "hi"
+          ? "✅ HD शॉर्ट्स और ऑडियो 1 फाइल में जुड़कर डाउनलोड हो गया!"
+          : "✅ HD Shorts and audio merged successfully into 1 MP4 file!"
+      );
+    } catch (err: any) {
+      console.error("Browser merge failed:", err);
+      setMergeError(
+        lang === "hi"
+          ? `मर्जिंग में समस्या: ${err.message || "Unknown error"}। आप नीचे दिए गए बटनों से दोनों फ़ाइलें अलग-अलग डाउनलोड कर सकते हैं।`
+          : `Merging notice: ${err.message || "Unknown error"}. You can save both streams separately below.`
+      );
+      setShowManualFallback(true);
+    } finally {
+      setIsMerging(false);
+    }
   };
 
   const faqs = [
@@ -328,26 +393,8 @@ export function ShortsDownloaderTool({ lang, dict }: ShortsDownloaderToolProps) 
       </div>
 
       {/* SnapYT-Style 2-Card Results Section */}
-      {videoData && (() => {
-        const progressiveFormats = videoData.videoFormats?.filter((f: any) => f.hasAudio) || [];
-        const hdVideoOnlyFormats = videoData.videoFormats?.filter((f: any) => !f.hasAudio) || [];
-        const audioFormats = videoData.audioFormats || [];
-
-        const selectedProgressiveFormat =
-          videoData.videoFormats?.find((f: any) => f.itag === selectedProgressiveItag) ||
-          progressiveFormats[0] ||
-          videoData.videoFormats[0];
-
-        const selectedHdVideoFormat =
-          hdVideoOnlyFormats.find((f: any) => f.itag === selectedHdVideoItag) ||
-          hdVideoOnlyFormats[0];
-
-        const selectedAudioFormat =
-          audioFormats.find((f: any) => f.itag === selectedAudioItag) ||
-          audioFormats[0];
-
-        return (
-          <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 animate-in fade-in duration-300">
+      {videoData && (
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 animate-in fade-in duration-300">
             {/* Left Card: Video Details & Vertical Shorts Thumbnail */}
             <div className="lg:col-span-5 bg-white dark:bg-slate-900 rounded-3xl border border-slate-200 dark:border-slate-800 p-6 shadow-sm flex flex-col justify-between space-y-4">
               <div className="space-y-4">
@@ -558,7 +605,7 @@ export function ShortsDownloaderTool({ lang, dict }: ShortsDownloaderToolProps) 
                       value={selectedHdVideoItag || ""}
                       onChange={(e) => {
                         setSelectedHdVideoItag(Number(e.target.value));
-                        setHdReady(false);
+                        setMergeSuccess(false);
                       }}
                       className="w-full px-3 py-2.5 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-900 dark:text-white text-xs font-semibold focus:outline-none focus:ring-2 focus:ring-emerald-500"
                     >
@@ -582,7 +629,7 @@ export function ShortsDownloaderTool({ lang, dict }: ShortsDownloaderToolProps) 
                       value={selectedAudioItag || ""}
                       onChange={(e) => {
                         setSelectedAudioItag(Number(e.target.value));
-                        setHdReady(false);
+                        setMergeSuccess(false);
                       }}
                       className="w-full px-3 py-2.5 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-900 dark:text-white text-xs font-semibold focus:outline-none focus:ring-2 focus:ring-emerald-500"
                     >
@@ -595,62 +642,94 @@ export function ShortsDownloaderTool({ lang, dict }: ShortsDownloaderToolProps) 
                   </div>
                 </div>
 
-                {/* Progress Bar (when preparing) */}
-                {isPreparingHd && (
-                  <div className="space-y-1.5 pt-1">
-                    <div className="flex justify-between text-xs font-bold text-emerald-600 dark:text-emerald-400">
-                      <span>{lang === "hi" ? "HD स्ट्रीम्स तैयार हो रही हैं..." : "Preparing HD streams..."}</span>
-                      <span>{hdProgress}%</span>
+                {/* Merge Progress Bar */}
+                {isMerging && (
+                  <div className="space-y-2 p-3.5 rounded-xl bg-emerald-500/10 border border-emerald-500/20">
+                    <div className="flex justify-between text-xs font-bold text-emerald-700 dark:text-emerald-300">
+                      <span className="flex items-center gap-1.5">
+                        <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                        {mergeStatusText || (lang === "hi" ? "HD शॉर्ट्स और ऑडियो जुड़ रहे हैं..." : "Combining HD Shorts & audio...")}
+                      </span>
+                      <span>{mergeProgress}%</span>
                     </div>
                     <div className="w-full h-2 rounded-full bg-slate-200 dark:bg-slate-700 overflow-hidden">
                       <div
                         className="h-full bg-emerald-500 transition-all duration-300"
-                        style={{ width: `${hdProgress}%` }}
+                        style={{ width: `${mergeProgress}%` }}
                       />
                     </div>
                   </div>
                 )}
 
-                {/* Prepare HD Button */}
-                {!hdReady && (
-                  <button
-                    type="button"
-                    onClick={handlePrepareHd}
-                    disabled={isPreparingHd || !selectedHdVideoFormat}
-                    className="w-full py-3 bg-emerald-500 hover:bg-emerald-600 text-white font-extrabold text-xs sm:text-sm rounded-xl shadow-md shadow-emerald-500/20 flex items-center justify-center gap-2 transition-all disabled:opacity-60"
-                  >
-                    {isPreparingHd ? (
-                      <>
-                        <Loader2 className="w-4 h-4 animate-spin" />
-                        <span>{lang === "hi" ? "तैयार हो रहा है..." : "Preparing…"}</span>
-                      </>
-                    ) : (
-                      <>
-                        <Layers className="w-4 h-4" />
-                        <span>{lang === "hi" ? "Prepare HD Download" : "Prepare HD Download"}</span>
-                      </>
-                    )}
-                  </button>
+                {/* Merge Success Notice */}
+                {mergeSuccess && (
+                  <div className="p-3 rounded-xl bg-emerald-500/15 border border-emerald-500/30 text-emerald-700 dark:text-emerald-300 text-xs font-bold flex items-center gap-2 animate-in fade-in">
+                    <CheckCircle2 className="w-4 h-4 shrink-0 text-emerald-500" />
+                    <span>
+                      {lang === "hi"
+                        ? "✅ HD शॉर्ट्स और ऑडियो सफलता से 1 MP4 फाइल में डाउनलोड हो गया!"
+                        : "✅ HD Shorts & audio successfully combined and downloaded as 1 MP4 file!"}
+                    </span>
+                  </div>
                 )}
 
-                {/* HD Download Output Ready Drawer */}
-                {hdReady && (
-                  <div className="p-4 rounded-xl bg-white dark:bg-slate-800 border border-emerald-500/30 space-y-3 animate-in fade-in duration-300">
-                    <div className="flex items-center gap-2 text-emerald-600 dark:text-emerald-400 font-bold text-xs">
-                      <CheckCircle2 className="w-4 h-4 shrink-0" />
+                {/* Merge Error Notice */}
+                {mergeError && (
+                  <div className="p-3 rounded-xl bg-amber-500/15 border border-amber-500/30 text-amber-800 dark:text-amber-200 text-xs flex items-start gap-2">
+                    <AlertCircle className="w-4 h-4 shrink-0 mt-0.5 text-amber-500" />
+                    <span>{mergeError}</span>
+                  </div>
+                )}
+
+                {/* Primary HD 1-Click Merge & Download Button */}
+                <button
+                  type="button"
+                  onClick={handleMergeAndDownload}
+                  disabled={isMerging || !selectedHdVideoFormat || !selectedAudioFormat}
+                  className="w-full py-3.5 bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-700 hover:to-teal-700 text-white font-extrabold text-sm rounded-xl shadow-lg shadow-emerald-600/25 flex items-center justify-center gap-2 transition-all disabled:opacity-60"
+                >
+                  {isMerging ? (
+                    <>
+                      <Loader2 className="w-4 h-4 animate-spin" />
+                      <span>{lang === "hi" ? "वीडियो व ऑडियो जुड़ रहे हैं..." : "Combining Shorts & Audio..."}</span>
+                    </>
+                  ) : (
+                    <>
+                      <Sparkles className="w-4 h-4 text-amber-300 animate-pulse" />
                       <span>
                         {lang === "hi"
-                          ? "आपकी HD फाइलें डाउनलोड के लिए तैयार हैं!"
-                          : "Your HD files are ready for download!"}
+                          ? `⚡ दोनों को जोड़कर 1 फाइल में डाउनलोड करें (${selectedHdVideoFormat?.qualityLabel || "HD"} + Audio)`
+                          : `⚡ Merge & Download HD (${selectedHdVideoFormat?.qualityLabel || "HD"} + Audio in 1 File)`}
                       </span>
-                    </div>
+                    </>
+                  )}
+                </button>
+
+                {/* Toggle Manual Separate Downloads */}
+                <div className="text-center pt-1">
+                  <button
+                    type="button"
+                    onClick={() => setShowManualFallback(!showManualFallback)}
+                    className="text-[11px] text-slate-500 hover:text-slate-700 dark:hover:text-slate-300 underline font-medium"
+                  >
+                    {showManualFallback
+                      ? (lang === "hi" ? "▲ अलग-अलग ट्रैक छुपाएं" : "▲ Hide separate track downloads")
+                      : (lang === "hi" ? "▼ अलग-अलग वीडियो और ऑडियो फाइल सेव करना चाहते हैं?" : "▼ Prefer saving separate video & audio files?")}
+                  </button>
+                </div>
+
+                {/* Manual Separate Fallback Drawer */}
+                {showManualFallback && (
+                  <div className="p-4 rounded-xl bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 space-y-3 animate-in fade-in duration-300">
+                    <p className="text-xs font-bold text-slate-700 dark:text-slate-300">
+                      {lang === "hi" ? "अलग-अलग फाइलें डाउनलोड करें:" : "Download separate streams:"}
+                    </p>
 
                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
-                      {/* Video Track Button */}
                       {selectedHdVideoFormat && (
                         <button
                           onClick={() =>
-                            handleDownload(selectedHdVideoFormat, `${videoData.title}-HD-Video`)
+                            handleDownload(selectedHdVideoFormat, `${videoData.title}-HD-Shorts`)
                           }
                           className="py-2.5 px-3 bg-slate-900 hover:bg-slate-800 text-white rounded-lg text-xs font-bold flex items-center justify-center gap-1.5 transition-colors"
                         >
@@ -659,7 +738,6 @@ export function ShortsDownloaderTool({ lang, dict }: ShortsDownloaderToolProps) 
                         </button>
                       )}
 
-                      {/* Audio Track Button */}
                       {selectedAudioFormat && (
                         <button
                           onClick={() =>
@@ -675,16 +753,15 @@ export function ShortsDownloaderTool({ lang, dict }: ShortsDownloaderToolProps) 
 
                     <p className="text-[11px] text-slate-500 dark:text-slate-400 leading-relaxed">
                       {lang === "hi"
-                        ? "💡 टिप: दोनों फाइलें सेव करने के बाद VLC Player, CapCut या Premiere Pro में ऑटोमैटिक सिंक होकर चलेंगी।"
-                        : "💡 Tip: Save both files to play or edit together in VLC Media Player, CapCut, Premiere Pro, or InShot."}
+                        ? "💡 टिप: दोनों फाइलें VLC Player, CapCut या InShot में एक साथ चलेंगी।"
+                        : "💡 Tip: Both files play together in VLC Media Player, CapCut, Premiere Pro, or InShot."}
                     </p>
                   </div>
                 )}
               </div>
             </div>
           </div>
-        );
-      })()}
+        )}
 
       {/* 3-Step Walkthrough: From URL to Download in Seconds */}
       <section className="bg-white dark:bg-slate-900 rounded-3xl border border-slate-200 dark:border-slate-800 p-8 sm:p-10 shadow-sm space-y-8">

@@ -5,15 +5,27 @@ import "./globals.css";
 
 export const dynamic = "force-dynamic";
 
-export const metadata: Metadata = {
-  metadataBase: new URL(process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3000"),
-  title: {
-    template: "%s | YTSnap",
-    default: "YTSnap - Free YouTube Thumbnail & Creator Media Tools",
-  },
-  description:
-    "Preview and download full HD YouTube thumbnails (1280x720), inspect video metadata, and access 10 free creator utilities in 8 languages.",
-};
+export async function generateMetadata(): Promise<Metadata> {
+  const settings = await getAllSettings();
+  const siteName = settings.site_name || "YTSnap";
+  const siteTagline = settings.site_tagline || "Free YouTube Thumbnail & Creator Media Tools";
+  const googleVerification = settings.google_site_verification;
+
+  return {
+    metadataBase: new URL(process.env.NEXT_PUBLIC_APP_URL || "https://ytsnap.tech"),
+    title: {
+      template: `%s | ${siteName}`,
+      default: `${siteName} - ${siteTagline}`,
+    },
+    description:
+      "Preview and download full HD YouTube thumbnails (1280x720), inspect video metadata, and access 10 free creator utilities in 8 languages.",
+    verification: googleVerification
+      ? {
+          google: googleVerification,
+        }
+      : undefined,
+  };
+}
 
 export default async function RootLayout({
   children,
@@ -24,6 +36,7 @@ export default async function RootLayout({
   const gaId = settings.google_analytics_id;
   const adsenseId = settings.google_adsense_client_id;
   const adsenseEnabled = settings.google_adsense_enabled === "true";
+  const googleVerification = settings.google_site_verification;
   const customHeader = settings.custom_header_code;
   const customFooter = settings.custom_footer_code;
 
@@ -31,6 +44,11 @@ export default async function RootLayout({
     <html lang="en" suppressHydrationWarning>
       <head>
         <ThemeScript />
+
+        {/* Google Site Verification Meta Tag */}
+        {googleVerification && (
+          <meta name="google-site-verification" content={googleVerification} />
+        )}
 
         {/* Google AdSense Script (Injected dynamically from Admin) */}
         {adsenseEnabled && adsenseId && (
@@ -60,7 +78,8 @@ export default async function RootLayout({
             />
           </>
         )}
-
+      </head>
+      <body className="min-h-screen flex flex-col font-sans antialiased">
         {/* Custom Header Code (HTML, CSS <style>, JS <script> injected from Admin) */}
         {customHeader && (
           <div
@@ -68,8 +87,7 @@ export default async function RootLayout({
             dangerouslySetInnerHTML={{ __html: customHeader }}
           />
         )}
-      </head>
-      <body className="min-h-screen flex flex-col font-sans antialiased">
+
         {children}
 
         {/* Custom Footer Code (Chat widgets, Pixels, Analytics injected from Admin) */}

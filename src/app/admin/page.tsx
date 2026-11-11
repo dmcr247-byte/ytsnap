@@ -1366,6 +1366,50 @@ export default function AdminPage() {
         {/* ========================================================= */}
         {activeTab === "seo_files" && (
           <div className="space-y-8">
+            {/* Google Search Console Verification Card */}
+            <div className="p-6 sm:p-8 rounded-3xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 shadow-sm space-y-4">
+              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-3 border-b border-slate-100 dark:border-slate-800">
+                <div>
+                  <h3 className="text-base font-bold text-slate-900 dark:text-white flex items-center gap-2">
+                    <ShieldCheck className="w-5 h-5 text-primary" />
+                    <span>Google Search Console Verification</span>
+                  </h3>
+                  <p className="text-xs text-slate-400">
+                    Verify site ownership in Google Search Console to index your site on Google Search.
+                  </p>
+                </div>
+
+                <button
+                  onClick={() => saveAllSettings("Google Search Console verification saved!")}
+                  className="px-4 py-1.5 bg-primary hover:bg-primary-hover text-white text-xs font-bold rounded-xl shadow-sm transition-colors flex items-center gap-1.5"
+                >
+                  <Save className="w-3.5 h-3.5" />
+                  <span>Save Verification</span>
+                </button>
+              </div>
+
+              <div className="max-w-xl space-y-1">
+                <label className="text-xs font-bold text-slate-700 dark:text-slate-300 block">
+                  Google Verification HTML Tag / Token
+                </label>
+                <input
+                  type="text"
+                  value={getSetting("google_site_verification")}
+                  onChange={(e) => {
+                    let val = e.target.value.trim();
+                    const match = val.match(/content=["']([^"']+)["']/);
+                    if (match) val = match[1];
+                    setSettingValue("google_site_verification", val);
+                  }}
+                  placeholder="e.g. AbCdEfGhIjKlMnOpQrStUvWxYz123456789"
+                  className="w-full px-4 py-2 rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 text-slate-900 dark:text-white text-xs font-mono"
+                />
+                <span className="text-[10px] text-slate-400 block">
+                  Paste either your verification token or the full <code>&lt;meta name=&quot;google-site-verification&quot; content=&quot;...&quot;&gt;</code> tag provided by Google Search Console.
+                </span>
+              </div>
+            </div>
+
             {/* Sitemap.xml Configuration Card */}
             <div className="p-6 sm:p-8 rounded-3xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 shadow-sm space-y-4">
               <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-3 border-b border-slate-100 dark:border-slate-800">

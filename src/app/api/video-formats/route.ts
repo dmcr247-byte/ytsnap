@@ -37,9 +37,9 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    // Load Ytdl using VisionOS and TV clients
-    // (Bypasses player signature decipher worker requirements and avoids bot-check blocks)
-    let ytdl = new Ytdl({ clients: ["visionos", "tv", "mweb"] });
+    // Load Ytdl prioritizing clients that provide combined Video + Audio streams (mweb, tv, web_embedded)
+    // with visionos fallback to prevent cipher issues while ensuring formats with sound are included.
+    let ytdl = new Ytdl({ clients: ["mweb", "tv", "web_embedded", "visionos"] });
 
     let info: any;
     try {
@@ -61,6 +61,7 @@ export async function POST(req: NextRequest) {
       sizeMb?: string;
       hasAudio: boolean;
       hasVideo: boolean;
+      isRecommended?: boolean;
       url?: string;
     }> = [];
 
@@ -79,8 +80,9 @@ export async function POST(req: NextRequest) {
       const sizeMb = lengthBytes > 0 ? (lengthBytes / (1024 * 1024)).toFixed(1) + " MB" : undefined;
 
       if (f.hasVideo && f.qualityLabel) {
-        // Prioritize mp4 or keep unique quality labels
-        const key = `${f.qualityLabel}-${f.container}`;
+        // Distinguish formats with audio from video-only DASH streams
+        const audioKey = f.hasAudio ? "withaudio" : "videoonly";
+        const key = `${f.qualityLabel}-${f.container}-${audioKey}`;
         if (!seenLabels.has(key)) {
           seenLabels.add(key);
           videoFormats.push({
@@ -92,6 +94,7 @@ export async function POST(req: NextRequest) {
             sizeMb,
             hasAudio: Boolean(f.hasAudio),
             hasVideo: true,
+            isRecommended: Boolean(f.hasAudio),
             url: f.url,
           });
         }
@@ -106,8 +109,12 @@ export async function POST(req: NextRequest) {
       }
     }
 
-    // Sort video formats from highest quality to lowest
+    // Sort video formats:
+    // 1. Formats with audio first (so users immediately get playable video with sound)
+    // 2. Then highest resolution to lowest
     videoFormats.sort((a, b) => {
+      if (a.hasAudio && !b.hasAudio) return -1;
+      if (!a.hasAudio && b.hasAudio) return 1;
       const aRes = parseInt(a.qualityLabel, 10) || 0;
       const bRes = parseInt(b.qualityLabel, 10) || 0;
       return bRes - aRes;

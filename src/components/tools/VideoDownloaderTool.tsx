@@ -19,6 +19,8 @@ import {
   ShieldCheck,
   FileVideo,
   Info,
+  Volume2,
+  VolumeX,
 } from "lucide-react";
 
 interface VideoDownloaderToolProps {
@@ -252,68 +254,167 @@ export function VideoDownloaderTool({ lang, dict }: VideoDownloaderToolProps) {
           </div>
 
           {/* Video Formats Table */}
-          {activeTab === "video" && (
-            <div className="space-y-3">
-              <span className="text-xs font-bold uppercase tracking-wider text-slate-400 block">
-                Available Video Resolutions:
-              </span>
+          {activeTab === "video" && (() => {
+            const withAudioFormats = videoData.videoFormats.filter((f: any) => f.hasAudio);
+            const videoOnlyFormats = videoData.videoFormats.filter((f: any) => !f.hasAudio);
 
-              <div className="divide-y divide-slate-100 dark:divide-slate-800 border border-slate-200 dark:border-slate-800 rounded-2xl overflow-hidden">
-                {videoData.videoFormats.map((f: any) => (
-                  <div
-                    key={f.itag}
-                    className="p-4 flex items-center justify-between gap-4 hover:bg-slate-50 dark:hover:bg-slate-800/50 transition-colors"
-                  >
-                    <div className="flex items-center gap-3">
-                      <div className="p-2.5 rounded-xl bg-primary/10 text-primary">
-                        <FileVideo className="w-5 h-5" />
-                      </div>
-                      <div>
-                        <div className="flex items-center gap-2 flex-wrap">
-                          <span className="font-bold text-slate-900 dark:text-white text-sm">
-                            {f.qualityLabel} MP4
-                          </span>
-                          <span className="px-2 py-0.5 rounded text-[10px] font-bold bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 uppercase">
-                            {f.container}
-                          </span>
-                          {f.hasAudio ? (
-                            <span className="px-2 py-0.5 rounded text-[10px] font-bold bg-emerald-50 dark:bg-emerald-950/50 text-emerald-600 dark:text-emerald-400">
-                              ✓ Video + Audio
-                            </span>
-                          ) : (
-                            <span className="px-2 py-0.5 rounded text-[10px] font-bold bg-amber-50 dark:bg-amber-950/50 text-amber-600 dark:text-amber-400">
-                              Video Only
-                            </span>
-                          )}
-                        </div>
-                        <span className="text-xs text-slate-400">
-                          {f.sizeMb ? `Est. Size: ${f.sizeMb}` : "Direct Stream"} • {f.fps || 30} FPS
+            return (
+              <div className="space-y-6">
+                {/* Audio Guidance Alert */}
+                <div className="p-4 rounded-2xl bg-amber-50/90 dark:bg-amber-950/40 border border-amber-200/80 dark:border-amber-900/60 text-amber-900 dark:text-amber-200 text-xs sm:text-sm flex items-start gap-3">
+                  <Volume2 className="w-5 h-5 shrink-0 text-amber-600 dark:text-amber-400 mt-0.5" />
+                  <div className="space-y-1">
+                    <p className="font-bold">
+                      {lang === "hi"
+                        ? "आवाज़ (Sound) के साथ वीडियो कैसे डाउनलोड करें:"
+                        : "How to download video with audio (sound):"}
+                    </p>
+                    <p className="text-amber-800 dark:text-amber-300 leading-relaxed text-xs">
+                      {lang === "hi"
+                        ? "यदि आपको फोन या कंप्यूटर में आवाज़ के साथ वीडियो देखना है, तो नीचे दिए गए '🔊 Video + Audio (Sound Included)' हरे बॉक्स वाले विकल्प को डाउनलोड करें। YouTube के 1080p और 4K वीडियो केवल वीडियो ट्रैक (Video Only / म्यूट) होते हैं — यदि आप 1080p लेते हैं तो Audio टैब से MP3 भी साथ में डाउनलोड कर सकते हैं।"
+                        : "For a complete, ready-to-watch video with synchronized sound on all devices, choose the green '🔊 Video + Audio (Sound Included)' option below. YouTube serves 1080p and 4K as separate video-only tracks (silent) — ideal for video editors or pairing with MP3 audio from the Audio tab."}
+                    </p>
+                  </div>
+                </div>
+
+                {/* Section 1: Video With Audio (Recommended) */}
+                {withAudioFormats.length > 0 && (
+                  <div className="space-y-3">
+                    <div className="flex items-center justify-between">
+                      <span className="text-xs font-bold uppercase tracking-wider text-emerald-600 dark:text-emerald-400 flex items-center gap-1.5">
+                        <Volume2 className="w-4 h-4" />
+                        <span>
+                          {lang === "hi"
+                            ? "पूरा वीडियो (आवाज़ सहित) - सर्वश्रेष्ठ विकल्प"
+                            : "Complete Video + Audio (Sound Included) - Recommended"}
                         </span>
-                      </div>
+                      </span>
+                      <span className="text-[11px] px-2.5 py-0.5 bg-emerald-100 dark:bg-emerald-950/70 text-emerald-700 dark:text-emerald-300 font-bold rounded-full">
+                        {lang === "hi" ? "✓ आवाज़ शामिल है" : "✓ Sound Included"}
+                      </span>
                     </div>
 
-                    <button
-                      onClick={() => handleDownload(f, videoData.title)}
-                      disabled={downloadingItag === f.itag}
-                      className="px-4 py-2 bg-primary hover:bg-primary-hover text-white rounded-xl text-xs font-bold shadow-md flex items-center gap-1.5 transition-all disabled:opacity-60"
-                    >
-                      {downloadingItag === f.itag ? (
-                        <>
-                          <Loader2 className="w-3.5 h-3.5 animate-spin" />
-                          <span>Downloading...</span>
-                        </>
-                      ) : (
-                        <>
-                          <Download className="w-3.5 h-3.5" />
-                          <span>Download {f.qualityLabel}</span>
-                        </>
-                      )}
-                    </button>
+                    <div className="border-2 border-emerald-500/40 dark:border-emerald-500/30 bg-emerald-50/20 dark:bg-emerald-950/15 rounded-2xl overflow-hidden divide-y divide-emerald-100 dark:divide-emerald-900/40">
+                      {withAudioFormats.map((f: any) => (
+                        <div
+                          key={f.itag}
+                          className="p-4 flex items-center justify-between gap-4 hover:bg-emerald-100/30 dark:hover:bg-emerald-950/30 transition-colors"
+                        >
+                          <div className="flex items-center gap-3">
+                            <div className="p-2.5 rounded-xl bg-emerald-600 text-white shadow-sm">
+                              <Volume2 className="w-5 h-5" />
+                            </div>
+                            <div>
+                              <div className="flex items-center gap-2 flex-wrap">
+                                <span className="font-bold text-slate-900 dark:text-white text-sm">
+                                  {f.qualityLabel} MP4
+                                </span>
+                                <span className="px-2 py-0.5 rounded text-[10px] font-bold bg-emerald-100 dark:bg-emerald-900/60 text-emerald-700 dark:text-emerald-300 uppercase">
+                                  {f.container}
+                                </span>
+                                <span className="px-2.5 py-0.5 rounded text-[10px] font-extrabold bg-emerald-500 text-white shadow-xs">
+                                  {lang === "hi" ? "✓ वीडियो + आवाज़" : "✓ Video + Audio"}
+                                </span>
+                              </div>
+                              <span className="text-xs text-slate-500 dark:text-slate-400">
+                                {f.sizeMb ? `Est. Size: ${f.sizeMb}` : "Direct Stream"} • {f.fps || 30} FPS • {lang === "hi" ? "सभी फोन और कंप्यूटर में चलेगा" : "Plays everywhere with audio"}
+                              </span>
+                            </div>
+                          </div>
+
+                          <button
+                            onClick={() => handleDownload(f, videoData.title)}
+                            disabled={downloadingItag === f.itag}
+                            className="px-4 py-2 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl text-xs font-bold shadow-md shadow-emerald-600/20 flex items-center gap-1.5 transition-all disabled:opacity-60 shrink-0"
+                          >
+                            {downloadingItag === f.itag ? (
+                              <>
+                                <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                                <span>Downloading...</span>
+                              </>
+                            ) : (
+                              <>
+                                <Download className="w-3.5 h-3.5" />
+                                <span>{lang === "hi" ? `डाउनलोड ${f.qualityLabel} (आवाज़ सहित)` : `Download ${f.qualityLabel} (with Audio)`}</span>
+                              </>
+                            )}
+                          </button>
+                        </div>
+                      ))}
+                    </div>
                   </div>
-                ))}
+                )}
+
+                {/* Section 2: High-Definition DASH Streams (Video Only) */}
+                {videoOnlyFormats.length > 0 && (
+                  <div className="space-y-3 pt-2">
+                    <div className="flex items-center justify-between">
+                      <span className="text-xs font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400 flex items-center gap-1.5">
+                        <VolumeX className="w-4 h-4 text-amber-500" />
+                        <span>
+                          {lang === "hi"
+                            ? "HD & 4K वीडियो केवल (बिना आवाज़ / DASH स्ट्रीम)"
+                            : "High-Definition DASH Streams (Video Only / Silent)"}
+                        </span>
+                      </span>
+                      <span className="text-[11px] px-2 py-0.5 bg-amber-100 dark:bg-amber-950/70 text-amber-700 dark:text-amber-300 font-bold rounded-full">
+                        {lang === "hi" ? "केवल वीडियो" : "Video Only"}
+                      </span>
+                    </div>
+
+                    <div className="divide-y divide-slate-100 dark:divide-slate-800 border border-slate-200 dark:border-slate-800 rounded-2xl overflow-hidden">
+                      {videoOnlyFormats.map((f: any) => (
+                        <div
+                          key={f.itag}
+                          className="p-4 flex items-center justify-between gap-4 hover:bg-slate-50 dark:hover:bg-slate-800/50 transition-colors"
+                        >
+                          <div className="flex items-center gap-3">
+                            <div className="p-2.5 rounded-xl bg-slate-100 dark:bg-slate-800 text-slate-500 dark:text-slate-400">
+                              <FileVideo className="w-5 h-5" />
+                            </div>
+                            <div>
+                              <div className="flex items-center gap-2 flex-wrap">
+                                <span className="font-bold text-slate-900 dark:text-white text-sm">
+                                  {f.qualityLabel} MP4
+                                </span>
+                                <span className="px-2 py-0.5 rounded text-[10px] font-bold bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 uppercase">
+                                  {f.container}
+                                </span>
+                                <span className="px-2 py-0.5 rounded text-[10px] font-bold bg-amber-50 dark:bg-amber-950/50 text-amber-600 dark:text-amber-400">
+                                  {lang === "hi" ? "बिना आवाज़ (Video Only)" : "Silent (Video Only)"}
+                                </span>
+                              </div>
+                              <span className="text-xs text-slate-400">
+                                {f.sizeMb ? `Est. Size: ${f.sizeMb}` : "Direct Stream"} • {f.fps || 30} FPS • {lang === "hi" ? "वीडियो एडिटिंग या MP3 के साथ" : "For video editing / pairing with audio"}
+                              </span>
+                            </div>
+                          </div>
+
+                          <button
+                            onClick={() => handleDownload(f, videoData.title)}
+                            disabled={downloadingItag === f.itag}
+                            className="px-4 py-2 bg-slate-800 hover:bg-slate-900 text-white rounded-xl text-xs font-bold shadow-sm flex items-center gap-1.5 transition-all disabled:opacity-60 shrink-0"
+                          >
+                            {downloadingItag === f.itag ? (
+                              <>
+                                <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                                <span>Downloading...</span>
+                              </>
+                            ) : (
+                              <>
+                                <Download className="w-3.5 h-3.5" />
+                                <span>Download {f.qualityLabel}</span>
+                              </>
+                            )}
+                          </button>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                )}
               </div>
-            </div>
-          )}
+            );
+          })()}
 
           {/* Audio Formats Table */}
           {activeTab === "audio" && (

@@ -346,6 +346,7 @@ export async function POST(req: NextRequest) {
         error:
           cleanMsg ||
           "Failed to retrieve video stream formats. Please verify the link.",
+        debugDetails: rawMsg,
       },
       { status: 500 }
     );

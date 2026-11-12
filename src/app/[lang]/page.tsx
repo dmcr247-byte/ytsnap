@@ -18,6 +18,7 @@ import {
 } from "@/components/HomeSections";
 import { JsonLd } from "@/components/JsonLd";
 import { AdBanner } from "@/components/AdBanner";
+import { ToolContentSection } from "@/components/ToolContentSection";
 import prisma from "@/lib/prisma";
 import { ArrowRight, BookOpen, Calendar, Clock } from "lucide-react";
 
@@ -184,6 +185,11 @@ export default async function HomePage({ params, searchParams }: PageProps) {
 
       {/* Features & Benefits */}
       <FeaturesSection dict={dict} />
+
+      {/* In-depth E-E-A-T Guide & Specifications */}
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 mb-12">
+        <ToolContentSection toolSlug="youtube-video-downloader" lang={lang as SupportedLanguage} />
+      </div>
 
       {/* Popular Creator Tools Grid */}
       <CreatorToolsGrid lang={lang as SupportedLanguage} dict={dict} />

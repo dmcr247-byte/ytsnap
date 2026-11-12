@@ -23,6 +23,8 @@ import { TagsGeneratorTool } from "@/components/tools/TagsGeneratorTool";
 import { HashtagGeneratorTool } from "@/components/tools/HashtagGeneratorTool";
 import { AspectRatioTool } from "@/components/tools/AspectRatioTool";
 import { FaqSection } from "@/components/HomeSections";
+import { ToolContentSection } from "@/components/ToolContentSection";
+import { getToolArticle } from "@/lib/tool-content";
 
 interface ToolPageProps {
   params: { lang: string; toolSlug: string };
@@ -384,18 +386,50 @@ export default function ToolPage({ params, searchParams }: ToolPageProps) {
       break;
   }
 
+  const article = getToolArticle(toolSlug, lang as SupportedLanguage);
+
   const structuredData = {
     "@context": "https://schema.org",
-    "@type": "WebApplication",
-    name: `${toolTitle} - YTSnap`,
-    url: `${baseUrl}/${lang}/tools/${toolSlug}`,
-    description: toolSubtitle,
-    applicationCategory: "MultimediaApplication",
-    offers: {
-      "@type": "Offer",
-      price: "0",
-      priceCurrency: "USD",
-    },
+    "@graph": [
+      {
+        "@type": "WebApplication",
+        name: `${toolTitle} - YTSnap`,
+        url: `${baseUrl}/${lang}/tools/${toolSlug}`,
+        description: toolSubtitle,
+        applicationCategory: "MultimediaApplication",
+        offers: {
+          "@type": "Offer",
+          price: "0",
+          priceCurrency: "USD",
+        },
+      },
+      {
+        "@type": "HowTo",
+        name: article.howToTitle,
+        description: article.overview,
+        step: article.steps.map((s) => ({
+          "@type": "HowToStep",
+          position: s.step,
+          name: s.title,
+          text: s.desc,
+        })),
+      },
+      ...(toolFaqs.length > 0
+        ? [
+            {
+              "@type": "FAQPage",
+              mainEntity: toolFaqs.map((f) => ({
+                "@type": "Question",
+                name: f.question,
+                acceptedAnswer: {
+                  "@type": "Answer",
+                  text: f.answer,
+                },
+              })),
+            },
+          ]
+        : []),
+    ],
   };
 
   return (
@@ -424,6 +458,9 @@ export default function ToolPage({ params, searchParams }: ToolPageProps) {
 
         {/* Render Interactive Tool */}
         <div className="mt-6">{toolComponent}</div>
+
+        {/* E-E-A-T Multilingual Editorial Article & Specifications */}
+        <ToolContentSection toolSlug={toolSlug} lang={lang as SupportedLanguage} />
       </div>
 
       {/* Tool-specific FAQs */}

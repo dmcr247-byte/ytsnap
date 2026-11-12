@@ -1,5 +1,88 @@
 import { NextRequest, NextResponse } from "next/server";
-import { isValidLanguage, DEFAULT_LANGUAGE, SUPPORTED_LANGUAGES } from "./lib/i18n";
+import { isValidLanguage, DEFAULT_LANGUAGE, SUPPORTED_LANGUAGES, SupportedLanguage } from "./lib/i18n";
+
+// Country-to-Language mapping for geo-targeted language delivery
+const COUNTRY_TO_LANG: Record<string, SupportedLanguage> = {
+  // Hindi (India)
+  IN: "hi",
+
+  // Spanish (Spain & Latin America)
+  ES: "es",
+  MX: "es",
+  AR: "es",
+  CO: "es",
+  CL: "es",
+  PE: "es",
+  VE: "es",
+  EC: "es",
+  GT: "es",
+  CU: "es",
+  BO: "es",
+  DO: "es",
+  HN: "es",
+  PY: "es",
+  SV: "es",
+  NI: "es",
+  CR: "es",
+  PA: "es",
+  UY: "es",
+  PR: "es",
+
+  // Portuguese (Brazil, Portugal, etc.)
+  BR: "pt",
+  PT: "pt",
+  AO: "pt",
+  MZ: "pt",
+  CV: "pt",
+  GW: "pt",
+  ST: "pt",
+
+  // French (France, Belgium, parts of Africa/Canada)
+  FR: "fr",
+  BE: "fr",
+  SN: "fr",
+  CI: "fr",
+  CM: "fr",
+  MG: "fr",
+  CD: "fr",
+  CG: "fr",
+  ML: "fr",
+  NE: "fr",
+  BF: "fr",
+  TG: "fr",
+  BJ: "fr",
+  GA: "fr",
+
+  // German (Germany, Austria, Switzerland, etc.)
+  DE: "de",
+  AT: "de",
+  CH: "de",
+  LI: "de",
+  LU: "de",
+
+  // Arabic (Middle East & North Africa)
+  SA: "ar",
+  AE: "ar",
+  EG: "ar",
+  DZ: "ar",
+  MA: "ar",
+  IQ: "ar",
+  SD: "ar",
+  YE: "ar",
+  SY: "ar",
+  TN: "ar",
+  JO: "ar",
+  LY: "ar",
+  LB: "ar",
+  OM: "ar",
+  KW: "ar",
+  MR: "ar",
+  QA: "ar",
+  BH: "ar",
+
+  // Indonesian (Indonesia)
+  ID: "id",
+};
 
 export function middleware(req: NextRequest) {
   const { pathname } = req.nextUrl;
@@ -19,18 +102,31 @@ export function middleware(req: NextRequest) {
   const firstSegment = segments[0];
 
   if (!firstSegment || !isValidLanguage(firstSegment)) {
-    // Detect preferred language from cookie or Accept-Language header
+    // 1. Check if user already explicitly selected a language in cookie
     const savedLang = req.cookies.get("ytsnap_lang")?.value;
-    let chosenLang = DEFAULT_LANGUAGE;
+    let chosenLang: SupportedLanguage = DEFAULT_LANGUAGE;
 
     if (savedLang && isValidLanguage(savedLang)) {
       chosenLang = savedLang;
     } else {
-      const acceptLang = req.headers.get("accept-language") || "";
-      for (const lang of SUPPORTED_LANGUAGES) {
-        if (acceptLang.toLowerCase().includes(lang.code)) {
-          chosenLang = lang.code;
-          break;
+      // 2. Country / Geo-detection: Check Vercel/Cloudflare Geo Headers
+      const countryCode = (
+        req.headers.get("x-vercel-ip-country") ||
+        (req as any).geo?.country ||
+        req.headers.get("cf-ipcountry") ||
+        ""
+      ).toUpperCase();
+
+      if (countryCode && COUNTRY_TO_LANG[countryCode]) {
+        chosenLang = COUNTRY_TO_LANG[countryCode];
+      } else {
+        // 3. Fallback to Accept-Language header from browser
+        const acceptLang = req.headers.get("accept-language") || "";
+        for (const lang of SUPPORTED_LANGUAGES) {
+          if (acceptLang.toLowerCase().includes(lang.code)) {
+            chosenLang = lang.code;
+            break;
+          }
         }
       }
     }

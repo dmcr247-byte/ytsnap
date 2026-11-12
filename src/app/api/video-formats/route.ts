@@ -36,11 +36,41 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    const ytdl = new Ytdl({
-      clients: ["tv", "visionos"],
-    });
+    let info: any = null;
+    let lastError: any = null;
 
-    const info = await ytdl.getInfo(videoId);
+    // Strategic fallback client candidates:
+    // 1. web_embedded: Third-party embedded player (lowest bot detection)
+    // 2. mweb: Mobile web player
+    // 3. tv: Samsung Tizen TV client
+    // 4. visionos: Apple Vision client
+    const clientCandidates = [
+      ["web_embedded"],
+      ["mweb"],
+      ["tv"],
+      ["visionos"],
+    ];
+
+    for (const clients of clientCandidates) {
+      try {
+        const ytdl = new Ytdl({
+          clients: clients as any,
+          cookie: process.env.YOUTUBE_COOKIE || undefined,
+        });
+        const candidateInfo = await ytdl.getInfo(videoId);
+        if (candidateInfo && candidateInfo.formats && candidateInfo.formats.length > 0) {
+          info = candidateInfo;
+          break;
+        }
+      } catch (err: any) {
+        lastError = err;
+        console.warn(`Client candidate [${clients.join(",")}] error:`, err?.message || err);
+      }
+    }
+
+    if (!info) {
+      throw lastError || new Error("Failed to retrieve formats from video servers.");
+    }
 
     const details = info.videoDetails;
     const durationSeconds = details.lengthSeconds ? parseInt(String(details.lengthSeconds), 10) : 0;
@@ -214,10 +244,15 @@ export async function POST(req: NextRequest) {
     });
   } catch (error: any) {
     console.error("Video formats fetch error:", error);
+    const rawMsg = error?.message || "";
+    let cleanMsg = rawMsg;
+    if (rawMsg.includes("Sign in to confirm you’re not a bot") || rawMsg.includes("bot")) {
+      cleanMsg = "YouTube security rate-check triggered. Please wait a few seconds and try again.";
+    }
     return NextResponse.json(
       {
         error:
-          error?.message ||
+          cleanMsg ||
           "Failed to retrieve video stream formats. Please verify the link.",
       },
       { status: 500 }

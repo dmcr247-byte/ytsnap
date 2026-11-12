@@ -122,15 +122,34 @@ export function VideoDownloaderTool({ lang, dict }: VideoDownloaderToolProps) {
         body: JSON.stringify({ url: urlInput.trim(), lang }),
       });
 
-      const json = await res.json();
+      let json: any = null;
+      try {
+        json = await res.json();
+      } catch {
+        // response was not JSON
+      }
+
       if (!res.ok) {
-        setErrorMessage(json.error || "Failed to fetch video streams.");
+        setErrorMessage(
+          json?.error ||
+          (res.status === 429
+            ? "Too many requests. Please wait a moment."
+            : `Server returned error (${res.status}). Please try again.`)
+        );
+        setVideoData(null);
+      } else if (!json?.data) {
+        setErrorMessage("Invalid response from video server.");
         setVideoData(null);
       } else {
         setVideoData(json.data);
       }
-    } catch {
-      setErrorMessage("Network error while communicating with video server.");
+    } catch (err: any) {
+      console.error("Fetch error:", err);
+      setErrorMessage(
+        err?.message?.includes("Failed to fetch")
+          ? "Network connection error. Please verify your connection or try again."
+          : (err?.message || "Error while communicating with video server.")
+      );
     } finally {
       setIsLoading(false);
     }

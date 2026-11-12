@@ -37,8 +37,10 @@ export function Header({ lang, dict }: HeaderProps) {
   const [isDark, setIsDark] = useState(false);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [langDropdownOpen, setLangDropdownOpen] = useState(false);
+  const [videoDropdownOpen, setVideoDropdownOpen] = useState(false);
   const [toolsDropdownOpen, setToolsDropdownOpen] = useState(false);
   const langRef = useRef<HTMLDivElement>(null);
+  const videoRef = useRef<HTMLDivElement>(null);
   const toolsRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -48,6 +50,9 @@ export function Header({ lang, dict }: HeaderProps) {
     const handleClickOutside = (event: MouseEvent) => {
       if (langRef.current && !langRef.current.contains(event.target as Node)) {
         setLangDropdownOpen(false);
+      }
+      if (videoRef.current && !videoRef.current.contains(event.target as Node)) {
+        setVideoDropdownOpen(false);
       }
       if (toolsRef.current && !toolsRef.current.contains(event.target as Node)) {
         setToolsDropdownOpen(false);
@@ -89,27 +94,38 @@ export function Header({ lang, dict }: HeaderProps) {
   const currentLangInfo =
     SUPPORTED_LANGUAGES.find((l) => l.code === lang) || SUPPORTED_LANGUAGES[0];
 
-  const toolsList = [
+  const downloadersList = [
     {
-      name: (dict.common as any).shortsDownloader || "Shorts Downloader",
-      href: `/${lang}/tools/youtube-shorts-downloader`,
-      desc: "Download YouTube Shorts in 1080p, 720p HD and MP3 with no watermark",
-    },
-    {
-      name: (dict.common as any).bannerDownloader || "Banner Downloader",
-      href: `/${lang}/tools/youtube-banner-downloader`,
-      desc: "Download YouTube channel banners and avatars in 2560x1440 HD",
-    },
-    {
-      name: (dict.common as any).videoDownloader || "Video Downloader",
+      name: (dict.common as any).videoDownloader || "YouTube Video Downloader",
       href: `/${lang}/tools/youtube-video-downloader`,
-      desc: "Download YouTube videos and Shorts in 1080p, 720p HD and MP3 format",
+      desc: lang === "hi" ? "1080p, 720p HD वीडियो और MP3 डाउनलोड करें" : "Download 1080p, 720p HD videos & MP3 audio",
+      badge: "HD",
+      icon: <Video className="w-4 h-4 text-primary" />,
     },
     {
-      name: dict.tools.t1Name,
-      href: `/${lang}/tools/youtube-thumbnail-downloader`,
-      desc: dict.tools.t1Desc,
+      name: (dict.common as any).shortsDownloader || "YouTube Shorts Downloader",
+      href: `/${lang}/tools/youtube-shorts-downloader`,
+      desc: lang === "hi" ? "बिना वॉटरमार्क के 1080p फुल एचडी शॉर्ट्स" : "Download YouTube Shorts with no watermark",
+      badge: "HOT",
+      icon: <Sparkles className="w-4 h-4 text-rose-500" />,
     },
+    {
+      name: (dict.common as any).bannerDownloader || "YouTube Banner Downloader",
+      href: `/${lang}/tools/youtube-banner-downloader`,
+      desc: lang === "hi" ? "2560x1440 HD चैनल बैनर और आर्ट डाउनलोड करें" : "Channel banners & avatars in 2560x1440 HD",
+      badge: "NEW",
+      icon: <Download className="w-4 h-4 text-blue-500" />,
+    },
+    {
+      name: dict.common.thumbnailDownloader || "Thumbnail Downloader",
+      href: `/${lang}/tools/youtube-thumbnail-downloader`,
+      desc: lang === "hi" ? "फुल एचडी (1280x720) थंबनेल डाउनलोड करें" : "Download HD YouTube video thumbnails",
+      badge: null,
+      icon: <ShieldCheck className="w-4 h-4 text-amber-500" />,
+    },
+  ];
+
+  const creatorToolsList = [
     {
       name: dict.tools.t2Name,
       href: `/${lang}/tools/youtube-video-information`,
@@ -186,37 +202,74 @@ export function Header({ lang, dict }: HeaderProps) {
           >
             {dict.common.home}
           </Link>
-          <Link
-            href={`/${lang}/tools/youtube-shorts-downloader`}
-            className="px-3 py-2 rounded-lg font-bold text-rose-500 hover:bg-rose-500/10 transition-colors flex items-center gap-1.5"
+
+          {/* YouTube Video Downloader Menu with Dropdown containing Shorts & Banner */}
+          <div
+            className="relative"
+            ref={videoRef}
+            onMouseEnter={() => setVideoDropdownOpen(true)}
+            onMouseLeave={() => setVideoDropdownOpen(false)}
           >
-            <span className="w-2 h-2 rounded-full bg-rose-500 animate-pulse" />
-            <span>{(dict.common as any).shortsDownloader || "Shorts Downloader"}</span>
-          </Link>
-          <Link
-            href={`/${lang}/tools/youtube-banner-downloader`}
-            className="px-3 py-2 rounded-lg font-bold text-blue-600 dark:text-blue-400 hover:bg-blue-500/10 transition-colors"
-          >
-            {(dict.common as any).bannerDownloader || "Banner Downloader"}
-          </Link>
-          <Link
-            href={`/${lang}/tools/youtube-video-downloader`}
-            className="px-3 py-2 rounded-lg font-bold text-primary hover:bg-primary/10 transition-colors"
-          >
-            {(dict.common as any).videoDownloader || "Video Downloader"}
-          </Link>
-          <Link
-            href={`/${lang}/tools/youtube-thumbnail-downloader`}
-            className="px-3 py-2 rounded-lg hover:text-primary hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors"
-          >
-            {dict.common.thumbnailDownloader}
-          </Link>
-          <Link
-            href={`/${lang}/tools/youtube-video-information`}
-            className="px-3 py-2 rounded-lg hover:text-primary hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors"
-          >
-            {dict.common.videoTools}
-          </Link>
+            <div className="flex items-center">
+              <Link
+                href={`/${lang}/tools/youtube-video-downloader`}
+                onClick={() => setVideoDropdownOpen(false)}
+                className="flex items-center gap-1.5 px-3 py-2 rounded-lg font-bold text-primary hover:bg-primary/10 transition-colors"
+              >
+                <Video className="w-4 h-4" />
+                <span>{(dict.common as any).videoDownloader || "Video Downloader"}</span>
+                <ChevronDown
+                  className={`w-3.5 h-3.5 opacity-70 transition-transform duration-200 ${
+                    videoDropdownOpen ? "rotate-180" : ""
+                  }`}
+                />
+              </Link>
+            </div>
+
+            {videoDropdownOpen && (
+              <div className="absolute top-full left-0 mt-1 w-84 bg-white dark:bg-slate-900 rounded-2xl shadow-2xl border border-slate-200 dark:border-slate-800 p-2 z-50 animate-in fade-in slide-in-from-top-2 duration-150">
+                <div className="px-3 py-1.5 border-b border-slate-100 dark:border-slate-800 text-[11px] font-bold text-slate-400 uppercase tracking-wider flex items-center justify-between">
+                  <span>{(dict.common as any).videoDownloader || "YouTube Downloader"}</span>
+                  <span className="text-[10px] text-primary font-semibold">HD Suite</span>
+                </div>
+                <div className="space-y-0.5 mt-1">
+                  {downloadersList.map((tool, idx) => (
+                    <Link
+                      key={idx}
+                      href={tool.href}
+                      onClick={() => setVideoDropdownOpen(false)}
+                      className="flex items-start gap-3 p-2.5 rounded-xl hover:bg-slate-50 dark:hover:bg-slate-800/70 transition-colors group"
+                    >
+                      <div className="p-2 rounded-lg bg-slate-100 dark:bg-slate-800 shrink-0 group-hover:scale-105 transition-transform">
+                        {tool.icon}
+                      </div>
+                      <div className="flex-1 min-w-0">
+                        <div className="text-sm font-bold text-slate-900 dark:text-white group-hover:text-primary transition-colors flex items-center gap-1.5">
+                          <span className="truncate">{tool.name}</span>
+                          {tool.badge && (
+                            <span
+                              className={`text-[9px] font-extrabold px-1.5 py-0.5 rounded leading-none ${
+                                tool.badge === "HOT"
+                                  ? "bg-rose-500 text-white"
+                                  : tool.badge === "NEW"
+                                  ? "bg-blue-600 text-white"
+                                  : "bg-primary/15 text-primary dark:text-rose-400"
+                              }`}
+                            >
+                              {tool.badge}
+                            </span>
+                          )}
+                        </div>
+                        <div className="text-xs text-slate-500 dark:text-slate-400 line-clamp-1 mt-0.5">
+                          {tool.desc}
+                        </div>
+                      </div>
+                    </Link>
+                  ))}
+                </div>
+              </div>
+            )}
+          </div>
 
           {/* Creator Tools Dropdown */}
           <div className="relative" ref={toolsRef}>
@@ -234,7 +287,7 @@ export function Header({ lang, dict }: HeaderProps) {
                   {dict.tools.sectionTitle}
                 </div>
                 <div className="max-h-96 overflow-y-auto space-y-0.5">
-                  {toolsList.map((tool, idx) => (
+                  {creatorToolsList.map((tool, idx) => (
                     <Link
                       key={idx}
                       href={tool.href}
@@ -350,49 +403,47 @@ export function Header({ lang, dict }: HeaderProps) {
           >
             {dict.common.home}
           </Link>
-          <Link
-            href={`/${lang}/tools/youtube-shorts-downloader`}
-            onClick={() => setMobileMenuOpen(false)}
-            className="block px-3 py-2 rounded-xl text-base font-bold text-rose-500 hover:bg-rose-500/10 flex items-center gap-2"
-          >
-            <span className="w-2 h-2 rounded-full bg-rose-500 animate-pulse" />
-            <span>{(dict.common as any).shortsDownloader || "Shorts Downloader"}</span>
-          </Link>
-          <Link
-            href={`/${lang}/tools/youtube-banner-downloader`}
-            onClick={() => setMobileMenuOpen(false)}
-            className="block px-3 py-2 rounded-xl text-base font-bold text-blue-600 dark:text-blue-400 hover:bg-blue-500/10"
-          >
-            {(dict.common as any).bannerDownloader || "Banner Downloader"}
-          </Link>
-          <Link
-            href={`/${lang}/tools/youtube-video-downloader`}
-            onClick={() => setMobileMenuOpen(false)}
-            className="block px-3 py-2 rounded-xl text-base font-bold text-primary hover:bg-primary/10"
-          >
-            {(dict.common as any).videoDownloader || "Video Downloader"}
-          </Link>
-          <Link
-            href={`/${lang}/tools/youtube-thumbnail-downloader`}
-            onClick={() => setMobileMenuOpen(false)}
-            className="block px-3 py-2 rounded-xl text-base font-semibold text-slate-800 dark:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-800"
-          >
-            {dict.common.thumbnailDownloader}
-          </Link>
-          <Link
-            href={`/${lang}/tools/youtube-video-information`}
-            onClick={() => setMobileMenuOpen(false)}
-            className="block px-3 py-2 rounded-xl text-base font-semibold text-slate-800 dark:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-800"
-          >
-            {dict.common.videoTools}
-          </Link>
+
+          {/* YouTube Video Downloader Menu with Shorts & Banner links right below it */}
+          <div className="p-2.5 rounded-2xl bg-slate-50 dark:bg-slate-800/60 border border-slate-200/80 dark:border-slate-700/80 space-y-1">
+            <div className="px-2.5 py-1 text-xs font-bold text-primary uppercase tracking-wider flex items-center gap-1.5">
+              <Video className="w-3.5 h-3.5" />
+              <span>{(dict.common as any).videoDownloader || "YouTube Downloader"}</span>
+            </div>
+            {downloadersList.map((tool, idx) => (
+              <Link
+                key={idx}
+                href={tool.href}
+                onClick={() => setMobileMenuOpen(false)}
+                className="flex items-center justify-between px-2.5 py-2 rounded-xl text-sm font-semibold text-slate-800 dark:text-slate-200 hover:bg-white dark:hover:bg-slate-700/60 transition-colors"
+              >
+                <span className="flex items-center gap-2">
+                  <span>{tool.icon}</span>
+                  <span>{tool.name}</span>
+                </span>
+                {tool.badge && (
+                  <span
+                    className={`text-[9px] font-extrabold px-1.5 py-0.5 rounded leading-none ${
+                      tool.badge === "HOT"
+                        ? "bg-rose-500 text-white"
+                        : tool.badge === "NEW"
+                        ? "bg-blue-600 text-white"
+                        : "bg-primary/15 text-primary"
+                    }`}
+                  >
+                    {tool.badge}
+                  </span>
+                )}
+              </Link>
+            ))}
+          </div>
 
           <div className="pt-2 border-t border-slate-100 dark:border-slate-800">
             <div className="px-3 py-1 text-xs font-semibold text-slate-400 uppercase tracking-wider">
               {dict.common.creatorTools}
             </div>
             <div className="grid grid-cols-1 gap-1 max-h-60 overflow-y-auto">
-              {toolsList.map((t, idx) => (
+              {creatorToolsList.map((t, idx) => (
                 <Link
                   key={idx}
                   href={t.href}

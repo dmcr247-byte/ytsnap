@@ -8,7 +8,7 @@ import {
   SupportedLanguage,
 } from "@/lib/i18n";
 import { notFound } from "next/navigation";
-import { ThumbnailHero } from "@/components/ThumbnailHero";
+import { VideoDownloaderHero } from "@/components/VideoDownloaderHero";
 import {
   HowItWorksSection,
   ResolutionGuideSection,
@@ -38,16 +38,24 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
     alternatesLanguages[l.code] = `${baseUrl}/${l.code}`;
   }
 
+  const isHi = lang === "hi";
+  const title = isHi
+    ? "यूट्यूब वीडियो और शॉर्ट्स डाउनलोडर - 1080p HD और MP3 | YTSnap"
+    : "YouTube Video Downloader - Download 1080p Full HD, Shorts & MP3 | YTSnap";
+  const description = isHi
+    ? "यूट्यूब वीडियो और शॉर्ट्स को 1080p, 720p HD MP4 और MP3 ऑडियो में तेज़ स्पीड से डाउनलोड करें। ऑडियो और वीडियो एक साथ बिना वॉटरमार्क।"
+    : "Download YouTube videos, Shorts and MP3 audio in 1080p, 720p HD with combined audio tracks at high speed without watermarks.";
+
   return {
-    title: `${dict.hero.title} | YTSnap`,
-    description: dict.hero.subtitle,
+    title,
+    description,
     alternates: {
       canonical: `${baseUrl}/${lang}`,
       languages: alternatesLanguages,
     },
     openGraph: {
-      title: `${dict.hero.title} | YTSnap`,
-      description: dict.hero.subtitle,
+      title,
+      description,
       url: `${baseUrl}/${lang}`,
       siteName: "YTSnap",
       locale: lang,
@@ -55,8 +63,8 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
     },
     twitter: {
       card: "summary_large_image",
-      title: dict.hero.title,
-      description: dict.hero.subtitle,
+      title,
+      description,
     },
   };
 }
@@ -158,11 +166,10 @@ export default async function HomePage({ params, searchParams }: PageProps) {
     <>
       <JsonLd data={structuredData} />
 
-      {/* Main Hero & Thumbnail Downloader */}
-      <ThumbnailHero
+      {/* Main Hero & YouTube Video Downloader */}
+      <VideoDownloaderHero
         lang={lang as SupportedLanguage}
         dict={dict}
-        initialVideoId={searchParams?.v}
       />
 
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">

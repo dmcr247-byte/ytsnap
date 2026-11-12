@@ -69,20 +69,44 @@ export async function generateMetadata({ params }: ToolPageProps): Promise<Metad
 
   switch (toolSlug) {
     case "youtube-video-downloader":
-      title = (dict.common as any).videoDownloader || "YouTube Video Downloader";
-      description = "Download YouTube videos and Shorts in MP4 1080p, 720p HD, 480p, and MP3 audio with instant high-speed server streaming.";
+      title =
+        lang === "hi"
+          ? "यूट्यूब वीडियो डाउनलोडर (1080p Full HD & MP3)"
+          : "YouTube Video Downloader (1080p Full HD & MP3)";
+      description =
+        lang === "hi"
+          ? "यूट्यूब वीडियो और शॉर्ट्स को 1080p, 720p HD MP4 और 320kbps MP3 ऑडियो में तेज़ स्पीड से डाउनलोड करें। ऑडियो और वीडियो एक साथ।"
+          : "Download YouTube videos and Shorts in MP4 1080p, 720p HD, 480p, and MP3 audio with instant high-speed streaming.";
       break;
     case "youtube-shorts-downloader":
-      title = (dict.common as any).shortsDownloader || "YouTube Shorts Downloader";
-      description = (dict.common as any).shortsDownloaderDesc || "Download YouTube Shorts in MP4 1080p, 720p HD and MP3 audio instantly without any app or watermark.";
+      title =
+        lang === "hi"
+          ? "यूट्यूब शॉर्ट्स डाउनलोडर बिना वॉटरमार्क (1080p HD)"
+          : "YouTube Shorts Downloader (No Watermark 1080p HD)";
+      description =
+        lang === "hi"
+          ? "बिना वॉटरमार्क के 1080p, 720p HD MP4 और MP3 ऑडियो में यूट्यूब शॉर्ट्स तुरंत डाउनलोड करें।"
+          : "Download YouTube Shorts in MP4 1080p, 720p HD and MP3 audio instantly without any app or watermark.";
       break;
     case "youtube-banner-downloader":
-      title = (dict.common as any).bannerDownloader || "YouTube Banner Downloader";
-      description = (dict.common as any).bannerDownloaderDesc || "Download YouTube channel banners, channel art, and avatars in 2560x1440 HD.";
+      title =
+        lang === "hi"
+          ? "यूट्यूब चैनल बैनर डाउनलोडर (2560x1440 4K HD)"
+          : "YouTube Channel Banner Downloader (2560x1440 HD)";
+      description =
+        lang === "hi"
+          ? "2560x1440 HD में यूट्यूब चैनल बैनर, चैनल आर्ट और अवतार डाउनलोड करें।"
+          : "Download YouTube channel banners, channel art, and avatars in 2560x1440 HD.";
       break;
     case "youtube-thumbnail-downloader":
-      title = dict.thumbnail.title;
-      description = dict.thumbnail.subtitle;
+      title =
+        lang === "hi"
+          ? "यूट्यूब थंबनेल डाउनलोडर (Full HD 1280x720)"
+          : "YouTube Thumbnail Downloader (Full HD 1280x720)";
+      description =
+        lang === "hi"
+          ? "सभी उपलब्ध रेजोल्यूशन (1280x720, 640x480) में यूट्यूब थंबनेल देखें और बिना वॉटरमार्क डाउनलोड करें।"
+          : "Inspect and download YouTube thumbnails in full HD (1280x720 maxresdefault) without watermarks.";
       break;
     case "youtube-video-information":
       title = dict.videoInfo.title;

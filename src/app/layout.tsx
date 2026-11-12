@@ -14,7 +14,7 @@ export async function generateMetadata(): Promise<Metadata> {
   return {
     metadataBase: new URL(process.env.NEXT_PUBLIC_APP_URL || "https://ytsnap.tech"),
     title: {
-      template: `%s | ${siteName}`,
+      template: "%s",
       default: `${siteName} - ${siteTagline}`,
     },
     description:

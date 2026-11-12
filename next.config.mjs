@@ -1,6 +1,11 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
   experimental: {
+    outputFileTracingIncludes: {
+      "/api/**/*": [
+        "./node_modules/@distube/ytdl-core/**/*",
+      ],
+    },
     serverComponentsExternalPackages: [
       "@distube/ytdl-core",
       "sharp",

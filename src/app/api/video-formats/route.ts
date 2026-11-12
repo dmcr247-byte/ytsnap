@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { Ytdl } from "@distube/ytdl-core";
+import { Ytdl, createPoTokenProvider } from "@distube/ytdl-core";
 import { extractYouTubeVideoId } from "@/lib/youtube";
 import { checkRateLimit, hashIp } from "@/lib/security";
 import prisma from "@/lib/prisma";
@@ -8,6 +8,26 @@ import fs from "fs";
 import path from "path";
 
 export const dynamic = "force-dynamic";
+
+let cachedPoTokenProvider: any = null;
+let poTokenProviderPromise: Promise<any> | null = null;
+
+async function getPoTokenProvider() {
+  if (cachedPoTokenProvider) return cachedPoTokenProvider;
+  if (!poTokenProviderPromise) {
+    poTokenProviderPromise = createPoTokenProvider({ timeoutMs: 15000 })
+      .then((provider) => {
+        cachedPoTokenProvider = provider;
+        return provider;
+      })
+      .catch((err) => {
+        console.warn("PO token provider initialization note:", err?.message || err);
+        poTokenProviderPromise = null;
+        return null;
+      });
+  }
+  return poTokenProviderPromise;
+}
 
 function getProxyDispatcher(): ProxyAgent | undefined {
   let proxyUrl =
@@ -79,30 +99,39 @@ export async function POST(req: NextRequest) {
     let info: any = null;
     let lastError: any = null;
 
+    const poTokenProvider = await getPoTokenProvider();
     const dispatcher = getProxyDispatcher();
     const customFetch = dispatcher
       ? ((url: any, init: any) => fetch(url, { ...init, dispatcher }))
       : undefined;
 
     // Strategic fallback client candidates:
-    // 1. web_embedded: Third-party embedded player (lowest bot detection)
-    // 2. mweb: Mobile web player
+    // 1. undefined: all default clients with PO Token
+    // 2. web_embedded: Third-party embedded player (lowest bot detection)
     // 3. tv: Samsung Tizen TV client
     // 4. visionos: Apple Vision client
-    const clientCandidates = [
+    // 5. mweb: Mobile web player
+    const clientCandidates: (string[] | undefined)[] = [
+      undefined,
       ["web_embedded"],
-      ["mweb"],
       ["tv"],
       ["visionos"],
+      ["mweb"],
     ];
 
     for (const clients of clientCandidates) {
       try {
-        const ytdl = new Ytdl({
-          clients: clients as any,
+        const ytdlOptions: any = {
           cookie: process.env.YOUTUBE_COOKIE || undefined,
           fetch: customFetch as any,
-        });
+        };
+        if (clients) {
+          ytdlOptions.clients = clients;
+        }
+        if (poTokenProvider) {
+          ytdlOptions.getPoToken = poTokenProvider;
+        }
+        const ytdl = new Ytdl(ytdlOptions);
         const candidateInfo = await ytdl.getInfo(videoId);
         if (candidateInfo && candidateInfo.formats && candidateInfo.formats.length > 0) {
           info = candidateInfo;
@@ -110,7 +139,24 @@ export async function POST(req: NextRequest) {
         }
       } catch (err: any) {
         lastError = err;
-        console.warn(`Client candidate [${clients.join(",")}] error:`, err?.message || err);
+        console.warn(`Client candidate [${clients ? clients.join(",") : "default"}] error:`, err?.message || err);
+      }
+    }
+
+    if (!info) {
+      // Fallback attempt without poTokenProvider
+      try {
+        const fallbackYtdl = new Ytdl({
+          clients: ["web_embedded", "tv"] as any,
+          cookie: process.env.YOUTUBE_COOKIE || undefined,
+          fetch: customFetch as any,
+        });
+        const fallbackInfo = await fallbackYtdl.getInfo(videoId);
+        if (fallbackInfo && fallbackInfo.formats && fallbackInfo.formats.length > 0) {
+          info = fallbackInfo;
+        }
+      } catch (fbErr: any) {
+        lastError = fbErr;
       }
     }
 

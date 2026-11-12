@@ -3,8 +3,48 @@ import { Ytdl } from "@distube/ytdl-core";
 import { extractYouTubeVideoId } from "@/lib/youtube";
 import { checkRateLimit, hashIp } from "@/lib/security";
 import prisma from "@/lib/prisma";
+import { ProxyAgent } from "undici";
+import fs from "fs";
+import path from "path";
 
 export const dynamic = "force-dynamic";
+
+function getProxyDispatcher(): ProxyAgent | undefined {
+  let proxyUrl =
+    process.env.YOUTUBE_PROXY ||
+    process.env.HTTP_PROXY ||
+    process.env.HTTPS_PROXY;
+
+  if (!proxyUrl) {
+    try {
+      const pPath = path.join(process.cwd(), "proxies.txt");
+      if (fs.existsSync(pPath)) {
+        const lines = fs
+          .readFileSync(pPath, "utf8")
+          .split("\n")
+          .map((l) => l.trim())
+          .filter(Boolean);
+        if (lines.length > 0) {
+          const randomLine = lines[Math.floor(Math.random() * lines.length)];
+          proxyUrl = randomLine.startsWith("http")
+            ? randomLine
+            : `http://${randomLine}`;
+        }
+      }
+    } catch {
+      // ignore
+    }
+  }
+
+  if (proxyUrl) {
+    try {
+      return new ProxyAgent(proxyUrl);
+    } catch (e) {
+      console.warn("Invalid proxy configuration:", e);
+    }
+  }
+  return undefined;
+}
 
 export async function POST(req: NextRequest) {
   try {
@@ -39,6 +79,11 @@ export async function POST(req: NextRequest) {
     let info: any = null;
     let lastError: any = null;
 
+    const dispatcher = getProxyDispatcher();
+    const customFetch = dispatcher
+      ? ((url: any, init: any) => fetch(url, { ...init, dispatcher }))
+      : undefined;
+
     // Strategic fallback client candidates:
     // 1. web_embedded: Third-party embedded player (lowest bot detection)
     // 2. mweb: Mobile web player
@@ -56,6 +101,7 @@ export async function POST(req: NextRequest) {
         const ytdl = new Ytdl({
           clients: clients as any,
           cookie: process.env.YOUTUBE_COOKIE || undefined,
+          fetch: customFetch as any,
         });
         const candidateInfo = await ytdl.getInfo(videoId);
         if (candidateInfo && candidateInfo.formats && candidateInfo.formats.length > 0) {

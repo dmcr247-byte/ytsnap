@@ -70,38 +70,7 @@ YTSnap natively supports 8 languages with automatic Geo-IP detection:
 
 ---
 
-## 🚀 Local Development Setup
 
-### 1. Clone the repository
-```bash
-git clone https://github.com/dmcr247-byte/ytsnap.git
-cd ytsnap
-```
-
-### 2. Install dependencies
-```bash
-npm install
-```
-
-### 3. Environment Variables
-Copy `.env.example` to `.env` and configure your local settings:
-```bash
-cp .env.example .env
-```
-
-> **Note on Security:** Administrative dashboard credentials and secret keys must be configured exclusively in your private `.env` file or hosting environment variables. Never commit secret credentials to public version control.
-
-### 4. Run the Development Server
-```bash
-npm run dev
-```
-Open [http://localhost:3000](http://localhost:3000) in your browser.
-
-### 5. Production Build
-```bash
-npm run build
-npm start
-```
 
 ---
 

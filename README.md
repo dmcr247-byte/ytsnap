@@ -1,210 +1,118 @@
 # YTSnap 🚀
-### Production-Ready Multilingual YouTube Media Tools & Creator Suite
+### Production-Ready YouTube Video, Shorts & Creator Media Suite
 
-**YTSnap** is a high-performance, international SaaS platform built with **Next.js 14**, **TypeScript**, **Tailwind CSS**, **Prisma ORM**, and **Sharp**. It provides fast YouTube thumbnail retrieval with real-time CDN verification, video metadata inspection, authorized media tools, and a full suite of 10 creator utilities in **8 languages** with native RTL support.
+[![Live Website](https://img.shields.io/badge/Live%20Website-ytsnap.tech-red?style=for-the-badge&logo=youtube)](https://www.ytsnap.tech/)
+[![Next.js 14](https://img.shields.io/badge/Next.js-14.2-black?style=for-the-badge&logo=next.js)](https://nextjs.org/)
+[![TypeScript](https://img.shields.io/badge/TypeScript-5.0-blue?style=for-the-badge&logo=typescript)](https://www.typescriptlang.org/)
+[![Tailwind CSS](https://img.shields.io/badge/Tailwind-CSS-38B2AC?style=for-the-badge&logo=tailwind-css)](https://tailwindcss.com/)
+[![License](https://img.shields.io/badge/License-MIT-green?style=for-the-badge)](LICENSE)
+
+> 🌐 **Official Live Application:** [**https://www.ytsnap.tech**](https://www.ytsnap.tech/)  
+> 🇮🇳 **हिन्दी संस्करण (Hindi Portal):** [**https://www.ytsnap.tech/hi**](https://www.ytsnap.tech/hi)
+
+**YTSnap** is an open-source, high-performance web utility suite engineered for YouTube content creators, video editors, and digital archivists. Built on **Next.js 14 App Router**, **TypeScript**, **Tailwind CSS**, and modern **WebAssembly/Client-side Muxing**, YTSnap delivers 1080p Full HD video downloading with sound, watermark-free Shorts, 4K channel banners, and raw CDN thumbnail extraction across **8 global languages**.
 
 ---
 
-## 🌟 Key Highlights & Features
+## 🔗 Official Tools & Quick Access Links
 
-### 1. YouTube Thumbnail Downloader & Inspector
-- Real-time HTTP HEAD checks against Google's YouTube CDN (`img.youtube.com` / `i.ytimg.com`).
-- Eliminates broken 404 placeholders by dynamically detecting whether High Definition (`maxresdefault.jpg` at 1280x720) was uploaded.
-- Supports all available resolutions:
-  - **MaxRes HD:** 1280 × 720
-  - **Standard Definition (SD):** 640 × 480
-  - **High Quality (HQ):** 480 × 360
-  - **Medium Quality (MQ):** 320 × 180
-  - **Default Thumbnail:** 120 × 90
-- One-click downloads as original **JPG** or converted **PNG** via high-speed server streaming proxy (`/api/download-proxy`).
-- Copy direct CDN URL to clipboard and preview in full aspect ratio.
+Explore the live utilities deployed on [YTSnap.tech](https://www.ytsnap.tech/):
 
-### 2. Video Information & Platform Compliance
-- Extracts title, channel name, embed player, duration, and publication date using YouTube's oEmbed API and optional YouTube Data API v3.
-- **Strict Compliance:** Respects YouTube's Terms of Service and Digital Millennium Copyright Act (DMCA). Clearly explains DRM restrictions and directs users to official YouTube Premium offline options.
-- **Authorized Media Inspector:** Content creators can inspect permitted direct media streams (`.mp4`, `.webm`) on authorized self-hosted platforms with full SSRF protection.
+| Tool Name | Direct Link | Key Capability |
+| :--- | :--- | :--- |
+| 🎬 **YouTube Video Downloader** | [**ytsnap.tech/en/tools/youtube-video-downloader**](https://www.ytsnap.tech/en/tools/youtube-video-downloader) | 1080p, 720p HD MP4 & 320kbps MP3 with audio & video muxed together |
+| ⚡ **YouTube Shorts Downloader** | [**ytsnap.tech/en/tools/youtube-shorts-downloader**](https://www.ytsnap.tech/en/tools/youtube-shorts-downloader) | Vertical 9:16 portrait video (1080x1920) with **zero watermarks** |
+| 🖼️ **YouTube Banner Downloader** | [**ytsnap.tech/en/tools/youtube-banner-downloader**](https://www.ytsnap.tech/en/tools/youtube-banner-downloader) | Master 2560x1440 4K channel headers with mobile & desktop safe-area guides |
+| 📸 **YouTube Thumbnail Downloader** | [**ytsnap.tech/en/tools/youtube-thumbnail-downloader**](https://www.ytsnap.tech/en/tools/youtube-thumbnail-downloader) | Direct CDN grabber for full HD (1280x720 `maxresdefault`) without watermarks |
+| 📊 **Video Information Finder** | [**ytsnap.tech/en/tools/youtube-video-information**](https://www.ytsnap.tech/en/tools/youtube-video-information) | Live metadata, SEO tags, view metrics, publish timestamps & embed codes |
+| 📐 **Aspect Ratio Calculator** | [**ytsnap.tech/en/tools/video-aspect-ratio-calculator**](https://www.ytsnap.tech/en/tools/video-aspect-ratio-calculator) | Pixel-perfect dimension calculator for 16:9, 9:16 Shorts, 1:1, and 4:3 |
+| 📝 **YouTube Title Generator** | [**ytsnap.tech/en/tools/youtube-title-generator**](https://www.ytsnap.tech/en/tools/youtube-title-generator) | High-CTR psychological title formulas under 70 characters |
+| 🏷️ **YouTube Tags Generator** | [**ytsnap.tech/en/tools/youtube-tags-generator**](https://www.ytsnap.tech/en/tools/youtube-tags-generator) | High-search volume tag clusters with 500-char live counter |
+| 🗜️ **Thumbnail Compressor** | [**ytsnap.tech/en/tools/image-compressor**](https://www.ytsnap.tech/en/tools/image-compressor) | Reduces file size under YouTube's strict 2MB limit with 0 quality loss |
+| 🔄 **Image Format Converter** | [**ytsnap.tech/en/tools/image-converter**](https://www.ytsnap.tech/en/tools/image-converter) | 1-click converter between JPG, PNG, and next-gen WebP |
 
-### 3. Complete Creator Utility Suite (All 10 Tools Functional)
-1. **YouTube Thumbnail Downloader:** Instant retrieval and multi-resolution availability checker.
-2. **YouTube Video Information Finder:** Metadata, channel details, and embed code generator.
-3. **Thumbnail Image Resizer:** Presets for YouTube Thumbnails (1280x720), Banners (2560x1440), Shorts (1080x1920), and Community Posts (1200x1200) with aspect ratio lock and Sharp image engine.
-4. **Image Compressor:** Reduces images below YouTube's strict 2MB threshold with real-time savings percentage and visual quality retention.
-5. **Image Format Converter:** Fast conversion between PNG, JPG, WEBP, and AVIF formats.
-6. **YouTube Title Generator:** Generates 10+ algorithm-optimized titles categorized by tone (Curiosity, Educational, Urgency, Listicle) with CTR score estimations.
-7. **YouTube Description Generator:** Structured template generator with timestamps, social media links, affiliate notices, and search keywords.
-8. **YouTube Tags Generator:** Tag extractor with live character count tracker against YouTube's 500-character limit and 1-click comma-separated copy.
-9. **YouTube Hashtag Generator:** Broad and niche hashtag generator for YouTube search and Shorts feed visibility.
-10. **Video Aspect Ratio & Bitrate Calculator:** Calculates aspect ratios (16:9, 9:16 Shorts, 1:1, 4:3, 21:9), visual box preview, recommended YouTube bitrates, and file size estimates.
+---
 
-### 4. Multilingual System (8 Languages + True RTL)
-- Structured dictionary files for 8 languages:
-  1. **English (`en`)** - Default
-  2. **Hindi (`hi`)**
-  3. **Spanish (`es`)**
-  4. **Portuguese (`pt`)**
-  5. **French (`fr`)**
-  6. **German (`de`)**
-  7. **Arabic (`ar`)** - Full RTL layout (`dir="rtl"`, mirrored UI elements)
-  8. **Indonesian (`id`)**
-- Header language switcher with flags and native names.
-- Auto-detects browser language on first visit via middleware and remembers user preferences in cookies.
-- Clean SEO URL prefixes: `/[lang]/tools/...`.
+## 🌟 Architecture & Key Features
 
-### 5. Secure Admin Dashboard & CMS (`/admin`)
-- Secure session authentication with **bcrypt** password hashing and HTTP-only **JWT cookies**.
-- Pre-seeded admin account: `admin@ytsnap.tech` / `Admin@YTSnap2026!`.
-- **Analytics & Metrics:** Total tool runs, daily visitors, monthly estimates, tool popularity breakdown, and language distribution.
-- **Blog CMS:** Create, edit, and delete multilingual articles with tags, reading times, and cover images.
-- **FAQ Manager:** Add and manage FAQs per language and tool category.
-- **Contact Inquiries:** View, toggle read status, and manage incoming user messages.
-- **Settings & Ad Slots:** Edit website settings, Google Analytics ID, API keys, and toggle banner ad slots.
+### 1. In-Browser Client-Side Muxing (No Silent Videos)
+YouTube delivers 1080p, 1440p, and 4K video using the DASH protocol, separating the video and audio tracks. While legacy downloaders output silent videos, [YTSnap](https://www.ytsnap.tech/) integrates client-side muxing using `mediabunny`. It streams the video and audio byte ranges directly into the user's browser, combining them into a single, crystal-clear MP4 file in 1-2 seconds with zero server transcoding bottlenecks.
 
-### 6. Technical SEO & Performance
-- Full static site generation (180+ pre-rendered pages) and edge API routes.
-- XML Sitemap (`/sitemap.xml`) with alternate `hreflang` links across all 8 languages.
-- Search-engine compliant `robots.txt` (`/robots.txt`).
-- Structured Schema.org JSON-LD data: `WebSite`, `Organization`, `WebApplication`, `BreadcrumbList`, `Article`, and `FAQPage`.
-- Fast, accessible UI with Dark and Light mode (zero-flicker theme script).
+### 2. Multi-Language Audio Track Selection
+Supports multi-language dubbed YouTube tracks. Users can inspect and pick their desired audio stream (e.g., Original Hindi, English, Spanish, Bengali) to merge with the high-definition video track.
+
+### 3. Internationalization & Geo-Targeting (8 Languages)
+YTSnap natively supports 8 languages with automatic Geo-IP detection:
+- 🇺🇸 [English (`/en`)](https://www.ytsnap.tech/en)
+- 🇮🇳 [हिन्दी / Hindi (`/hi`)](https://www.ytsnap.tech/hi)
+- 🇪🇸 [Español / Spanish (`/es`)](https://www.ytsnap.tech/es)
+- 🇧🇷 [Português / Portuguese (`/pt`)](https://www.ytsnap.tech/pt)
+- 🇫🇷 [Français / French (`/fr`)](https://www.ytsnap.tech/fr)
+- 🇩🇪 [Deutsch / German (`/de`)](https://www.ytsnap.tech/de)
+- 🇸🇦 [العربية / Arabic (`/ar`) - Native RTL layout](https://www.ytsnap.tech/ar)
+- 🇮🇩 [Bahasa Indonesia (`/id`)](https://www.ytsnap.tech/id)
+
+### 4. Technical SEO & Core Web Vitals
+- **Pre-rendered Static Site Generation (SSG):** All 200+ localized pages are pre-compiled to static HTML for instant sub-second Googlebot indexing.
+- **Rich Structured Data:** JSON-LD `WebApplication`, `HowTo`, `FAQPage`, and `WebSite` schemas.
+- **Clean User Experience:** Zero deceptive pop-under ads, zero malware, zero third-party tracking cookies.
 
 ---
 
 ## 🛠️ Technology Stack
 
-- **Framework:** Next.js 14 (App Router)
-- **Language:** TypeScript
-- **Styling:** Tailwind CSS + PostCSS
-- **Database & ORM:** SQLite out-of-the-box (Prisma ORM, seamlessly switchable to PostgreSQL)
-- **Image Processing:** Sharp
-- **Security & Auth:** bcryptjs, jsonwebtoken, SSRF validator, in-memory sliding-window rate limiting
-- **Icons:** Lucide React
+- **Frontend & Routing:** Next.js 14 (App Router), React 18, TypeScript
+- **Styling:** Tailwind CSS, PostCSS, Lucide Icons
+- **Stream Processing:** Undici ProxyAgent, MediaBunny Client-Side Remuxer
+- **Database & ORM:** Prisma ORM (PostgreSQL on Neon / SQLite for local development)
+- **Security:** In-memory sliding-window rate limiting, SSRF protection (`isSafePublicUrl`)
+- **Hosting & Infrastructure:** Vercel Serverless Edge, Node.js 20+
 
 ---
 
-## 🚀 Quick Start Guide
+## 🚀 Local Development Setup
 
-### 1. Prerequisites
-- Node.js 18.17+ or 20+ (tested on Node 22)
-- npm or pnpm
-
-### 2. Installation
+### 1. Clone the repository
 ```bash
-# Clone or navigate to the project directory
-cd d:/yt-new
+git clone https://github.com/dmcr247-byte/ytsnap.git
+cd ytsnap
+```
 
-# Install dependencies
+### 2. Install dependencies
+```bash
 npm install
 ```
 
-### 3. Database Setup & Seed
+### 3. Environment Variables
+Copy `.env.example` to `.env` and configure your local settings:
 ```bash
-# Push schema to SQLite database (dev.db)
-npx prisma db push
-
-# Seed initial admin, settings, FAQs, and blog guides
-node scripts/seed.js
+cp .env.example .env
 ```
 
-### 4. Running the Application
-```bash
-# Development mode
-npm run dev
+> **Note on Security:** Administrative dashboard credentials and secret keys must be configured exclusively in your private `.env` file or hosting environment variables. Never commit secret credentials to public version control.
 
-# Production build and start
+### 4. Run the Development Server
+```bash
+npm run dev
+```
+Open [http://localhost:3000](http://localhost:3000) in your browser.
+
+### 5. Production Build
+```bash
 npm run build
 npm start
 ```
-The application will be live at `http://localhost:3000`.
 
 ---
 
-## 🧪 Automated Test Suite
+## 🛡️ Fair Use & Copyright Compliance
 
-A built-in end-to-end test runner verifies all 28 critical routes and API endpoints:
-
-```bash
-node scripts/test-endpoints.js
-```
-
-**Test Coverage:**
-- ✅ Root Language Redirect (307)
-- ✅ All 8 Language Homepages (200 OK)
-- ✅ Arabic True RTL layout validation
-- ✅ Live YouTube Thumbnail CDN inspection
-- ✅ Error handling for invalid video URLs
-- ✅ Download proxy stream with JPG & PNG headers
-- ✅ Video Info metadata & compliance notices
-- ✅ Authorized media inspection & YouTube DRM guard
-- ✅ Contact form validation & SQLite database persistence
-- ✅ Admin authentication, password verification, & JWT cookie
-- ✅ Admin stats & metric endpoints
-- ✅ Dynamic XML sitemap & robots.txt
-- ✅ All 10 Creator Tools pages
+[YTSnap](https://www.ytsnap.tech/) strictly adheres to international copyright laws and fair use principles. The platform is designed for creators to back up their own content, access royalty-free educational media, and inspect public metadata. YTSnap does not circumvent DRM protections or host copyrighted media files on its servers.
 
 ---
 
-## 🛡️ Security Architecture
+## 📄 License & Attribution
 
-1. **SSRF Protection:** All outgoing media inspection requests pass through `isSafePublicUrl()` in `src/lib/security.ts`. Loops back, private IP ranges (RFC 1918: `10.0.0.0/8`, `172.16.0.0/12`, `192.168.0.0/16`), local domains (`localhost`, `.internal`, `.local`), and cloud metadata IPs (`169.254.169.254`) are blocked.
-2. **API Abuse Prevention & Rate Limiting:** In-memory sliding window rate limiter protects endpoints (`/api/thumbnail`, `/api/video-info`, `/api/contact`) by client IP hash.
-3. **Admin Protection:** Sensitive operations require authenticated JWT verification via `verifyAdminToken()`.
+Distributed under the MIT License. See `LICENSE` for more information.
 
----
-
-## 📂 Project Architecture
-
-```
-d:/yt-new/
-├── prisma/
-│   └── schema.prisma         # Database models (AdminUser, BlogPost, ToolUsage, etc.)
-├── scripts/
-│   ├── seed.js               # Database seeder (Admin, blog posts, FAQs, settings)
-│   └── test-endpoints.js     # 28-point end-to-end automated test runner
-├── src/
-│   ├── app/
-│   │   ├── [lang]/           # Multilingual dynamic routes (en, hi, es, pt, fr, de, ar, id)
-│   │   │   ├── layout.tsx    # Header, Footer, and RTL direction wrapper
-│   │   │   ├── page.tsx      # Homepage with Hero, How It Works, FAQs
-│   │   │   ├── tools/
-│   │   │   │   └── [toolSlug]/page.tsx  # Dynamic router for all 10 Creator Tools
-│   │   │   ├── blog/         # Multilingual blog list and detail pages
-│   │   │   ├── about/        # About Us page
-│   │   │   ├── contact/      # Interactive Contact form
-│   │   │   ├── privacy-policy/
-│   │   │   ├── terms/
-│   │   │   ├── disclaimer/
-│   │   │   ├── copyright/
-│   │   │   ├── dmca/
-│   │   │   └── cookie-policy/
-│   │   ├── admin/            # Secure Admin Dashboard & CMS
-│   │   ├── api/              # Secure API routes (thumbnail, download, proxy, auth)
-│   │   ├── layout.tsx        # Root HTML layout with ThemeScript
-│   │   ├── not-found.tsx     # Custom 404 page
-│   │   ├── robots.ts         # Robots.txt generator
-│   │   └── sitemap.ts        # XML Sitemap with hreflang alternates
-│   ├── components/
-│   │   ├── Header.tsx        # Responsive navigation, language picker, theme toggle
-│   │   ├── Footer.tsx        # Footer with tools, legal links, language strip
-│   │   ├── ThumbnailHero.tsx # Main thumbnail search & preview interface
-│   │   ├── HomeSections.tsx  # How It Works, Features, Resolution Guide, FAQs
-│   │   ├── tools/            # 10 Interactive Creator Tool Components
-│   │   ├── Breadcrumbs.tsx   # Semantic breadcrumb component
-│   │   ├── JsonLd.tsx        # Schema.org structured data renderer
-│   │   └── ThemeScript.tsx   # Anti-FOUC dark mode script
-│   ├── lib/
-│   │   ├── i18n.ts           # Language dictionaries, types, RTL utilities
-│   │   ├── prisma.ts         # Prisma client singleton
-│   │   ├── security.ts       # SSRF protection, rate limiting, JWT & bcrypt helpers
-│   │   └── youtube.ts        # URL parser, CDN checker, oEmbed fetcher
-│   ├── locales/              # 8 Translation JSON files (en, hi, es, pt, fr, de, ar, id)
-│   └── middleware.ts         # Language detection, routing, and cookie persistence
-├── .env                      # Active environment configuration
-├── .env.example              # Environment variables template
-├── tailwind.config.ts        # Design system colors, fonts, dark mode configuration
-└── tsconfig.json             # TypeScript configuration
-```
-
----
-
-## 📄 License & Compliance
-
-YTSnap is provided as an open tool under standard commercial web guidelines. All YouTube thumbnail images and metadata belong to their respective copyright owners. YTSnap is an independent third-party tool and is not affiliated with or endorsed by YouTube or Google LLC.
+*Disclaimer: YTSnap is an independent third-party tool and is not officially affiliated with, endorsed by, or sponsored by YouTube, Google LLC, or Alphabet Inc. YouTube is a registered trademark of Google LLC.*

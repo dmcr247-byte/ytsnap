@@ -42,10 +42,12 @@ export function Footer({ lang, dict }: FooterProps) {
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-8 mb-12">
           {/* Brand & Mission */}
           <div className="lg:col-span-2 space-y-4">
-            <Link href={`/${lang}`} className="flex items-center gap-2 group">
-              <div className="w-9 h-9 rounded-xl bg-gradient-to-tr from-primary to-rose-500 flex items-center justify-center text-white shadow-md shadow-primary/20">
-                <Sparkles className="w-5 h-5 fill-white" />
-              </div>
+            <Link href={`/${lang}`} className="flex items-center gap-2.5 group">
+              <img
+                src="/logo-icon.png"
+                alt="YTSnap Logo"
+                className="w-9 h-9 rounded-xl object-contain shadow-md shadow-red-500/20 group-hover:scale-105 transition-transform"
+              />
               <span className="text-xl font-extrabold tracking-tight text-slate-900 dark:text-white flex items-center gap-0.5">
                 YT<span className="text-primary">Snap</span>
               </span>

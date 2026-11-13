@@ -181,15 +181,17 @@ export function Header({ lang, dict }: HeaderProps) {
           href={`/${lang}`}
           className="flex items-center gap-2.5 group focus:outline-none focus:ring-2 focus:ring-primary rounded-lg p-1"
         >
-          <div className="w-10 h-10 rounded-xl bg-gradient-to-tr from-primary to-rose-500 flex items-center justify-center text-white shadow-md shadow-primary/20 group-hover:scale-105 transition-transform">
-            <Sparkles className="w-5 h-5 fill-white" />
-          </div>
+          <img
+            src="/logo-icon.png"
+            alt="YTSnap Logo"
+            className="w-10 h-10 rounded-xl object-contain shadow-md shadow-red-500/20 group-hover:scale-105 transition-transform"
+          />
           <div className="flex flex-col">
             <span className="text-xl font-extrabold tracking-tight text-slate-900 dark:text-white flex items-center gap-0.5">
               YT<span className="text-primary">Snap</span>
             </span>
             <span className="text-[10px] font-semibold text-slate-500 dark:text-slate-400 -mt-1 tracking-wider uppercase">
-              Creator Suite
+              Creator Tools
             </span>
           </div>
         </Link>

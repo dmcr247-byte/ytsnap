@@ -14,6 +14,21 @@ const nextConfig = {
       "mediabunny",
     ],
   },
+  async redirects() {
+    return [
+      {
+        source: "/:path*",
+        has: [
+          {
+            type: "host",
+            value: "ytsnap-chi.vercel.app",
+          },
+        ],
+        destination: "https://www.ytsnap.tech/:path*",
+        permanent: true,
+      },
+    ];
+  },
   webpack: (config, { isServer }) => {
     if (isServer) {
       if (Array.isArray(config.externals)) {

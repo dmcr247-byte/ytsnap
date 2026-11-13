@@ -8,17 +8,42 @@ export const dynamic = "force-dynamic";
 export async function generateMetadata(): Promise<Metadata> {
   const settings = await getAllSettings();
   const siteName = settings.site_name || "YTSnap";
-  const siteTagline = settings.site_tagline || "Free YouTube Thumbnail & Creator Media Tools";
+  const siteTagline = settings.site_tagline || "Free YouTube Video, Shorts & Creator Media Tools";
   const googleVerification = settings.google_site_verification;
 
   return {
-    metadataBase: new URL(process.env.NEXT_PUBLIC_APP_URL || "https://ytsnap.tech"),
+    metadataBase: new URL(process.env.NEXT_PUBLIC_APP_URL || "https://www.ytsnap.tech"),
     title: {
       template: "%s",
       default: `${siteName} - ${siteTagline}`,
     },
     description:
-      "Preview and download full HD YouTube thumbnails (1280x720), inspect video metadata, and access 10 free creator utilities in 8 languages.",
+      "Download HD YouTube videos, shorts, audio, thumbnails, and access 10+ free creator utilities in 8 languages.",
+    icons: {
+      icon: [
+        { url: "/favicon.ico", sizes: "any" },
+        { url: "/logo-icon.png", type: "image/png", sizes: "512x512" },
+      ],
+      apple: [
+        { url: "/apple-touch-icon.png", sizes: "180x180", type: "image/png" },
+      ],
+      shortcut: "/favicon.ico",
+    },
+    openGraph: {
+      title: `${siteName} - ${siteTagline}`,
+      description:
+        "Download HD YouTube videos, shorts, audio, thumbnails, and access 10+ free creator utilities.",
+      url: "https://www.ytsnap.tech",
+      siteName: siteName,
+      images: [
+        {
+          url: "/logo.png",
+          width: 1024,
+          height: 1024,
+          alt: "YTSnap Creator Tools",
+        },
+      ],
+    },
     verification: googleVerification
       ? {
           google: googleVerification,
@@ -44,6 +69,9 @@ export default async function RootLayout({
     <html lang="en" suppressHydrationWarning>
       <head>
         <ThemeScript />
+        <link rel="icon" href="/favicon.ico" sizes="any" />
+        <link rel="icon" href="/logo-icon.png" type="image/png" sizes="512x512" />
+        <link rel="apple-touch-icon" href="/apple-touch-icon.png" sizes="180x180" />
 
         {/* Google Site Verification Meta Tag */}
         {googleVerification && (

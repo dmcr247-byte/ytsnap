@@ -85,6 +85,16 @@ const COUNTRY_TO_LANG: Record<string, SupportedLanguage> = {
 };
 
 export function middleware(req: NextRequest) {
+  // 1. Redirect vercel.app domains (e.g. ytsnap-chi.vercel.app) to official domain
+  const host = req.headers.get("x-forwarded-host") || req.headers.get("host") || "";
+  if (host.includes("vercel.app")) {
+    const targetUrl = new URL(
+      `${req.nextUrl.pathname}${req.nextUrl.search}`,
+      "https://www.ytsnap.tech"
+    );
+    return NextResponse.redirect(targetUrl, 301);
+  }
+
   const { pathname } = req.nextUrl;
 
   // Skip API routes, Next.js static assets, favicon, robots, sitemap

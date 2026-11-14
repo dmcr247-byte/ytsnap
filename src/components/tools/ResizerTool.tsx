@@ -92,6 +92,46 @@ export function ResizerTool({ lang, dict }: ResizerToolProps) {
     if (!imageSrc) return;
     setIsProcessing(true);
 
+    // 1. Try instant high-quality client-side Canvas resizing
+    try {
+      const img = new Image();
+      img.crossOrigin = "anonymous";
+      await new Promise<void>((resolve, reject) => {
+        img.onload = () => resolve();
+        img.onerror = () => reject(new Error("Image load error"));
+        img.src = imageSrc;
+      });
+
+      const canvas = document.createElement("canvas");
+      canvas.width = width;
+      canvas.height = height;
+      const ctx = canvas.getContext("2d");
+      if (ctx) {
+        ctx.imageSmoothingEnabled = true;
+        ctx.imageSmoothingQuality = "high";
+        ctx.drawImage(img, 0, 0, width, height);
+
+        const mime = format === "png" ? "image/png" : (format === "webp" ? "image/webp" : "image/jpeg");
+        const blob = await new Promise<Blob | null>((resolve) =>
+          canvas.toBlob((b) => resolve(b), mime, 0.95)
+        );
+
+        if (blob) {
+          const downloadUrl = window.URL.createObjectURL(blob);
+          const a = document.createElement("a");
+          a.href = downloadUrl;
+          a.download = `ytsnap-resized-${width}x${height}.${format === "jpeg" ? "jpg" : format}`;
+          document.body.appendChild(a);
+          a.click();
+          a.remove();
+          setIsProcessing(false);
+          return;
+        }
+      }
+    } catch {
+      // Fallback to server /api/image-process
+    }
+
     try {
       const formData = new FormData();
       formData.append("action", "resize");
@@ -122,7 +162,7 @@ export function ResizerTool({ lang, dict }: ResizerToolProps) {
       a.remove();
     } catch (err) {
       console.error(err);
-      alert("Failed to resize image. Please try again.");
+      alert(lang === "hi" ? "इमेज रिसाइज़ करने में समस्या आई। कृपया पुनः प्रयास करें।" : "Failed to resize image. Please try again.");
     } finally {
       setIsProcessing(false);
     }

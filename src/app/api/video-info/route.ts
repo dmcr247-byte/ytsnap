@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
-import { extractYouTubeVideoId, fetchYouTubeMetadata } from "@/lib/youtube";
+import { extractYouTubeVideoId } from "@/lib/youtube";
+import { fetchYouTubeMetadata } from "@/lib/youtube-server";
 import { checkRateLimit, hashIp } from "@/lib/security";
 import prisma from "@/lib/prisma";
 
@@ -55,13 +56,6 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({
       success: true,
       data: meta,
-      complianceNotice: {
-        isDirectDownloadAllowed: false,
-        reason:
-          "YouTube Terms of Service explicitly prohibit unauthorized downloading of copyrighted video streams. YTSnap does not circumvent DRM or provide unauthorized download links.",
-        officialOption:
-          "For offline viewing, use the official YouTube mobile app with a YouTube Premium subscription.",
-      },
     });
   } catch (error) {
     console.error("Video Info API error:", error);

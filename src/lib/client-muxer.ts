@@ -18,14 +18,16 @@ function sanitizeFilename(name: string): string {
 }
 
 async function fetchWithProgress(
-  url: string,
+  urlOrEndpoint: string,
   label: string,
   startPct: number,
   endPct: number,
   onProgress?: MergeProgressCallback
 ): Promise<Uint8Array> {
-  const proxyUrl = `/api/stream-proxy?url=${encodeURIComponent(url)}`;
-  const res = await fetch(proxyUrl);
+  const fetchUrl = urlOrEndpoint.startsWith("/api/")
+    ? urlOrEndpoint
+    : `/api/stream-proxy?url=${encodeURIComponent(urlOrEndpoint)}`;
+  const res = await fetch(fetchUrl);
 
   if (!res.ok) {
     throw new Error(`Failed to stream ${label} (HTTP ${res.status})`);

@@ -1,6 +1,8 @@
 import { NextRequest, NextResponse } from "next/server";
+import { Ytdl } from "@distube/ytdl-core";
 
-export const runtime = "edge";
+export const dynamic = "force-dynamic";
+export const maxDuration = 60;
 
 export async function OPTIONS() {
   return new NextResponse(null, {
@@ -15,23 +17,46 @@ export async function OPTIONS() {
 }
 
 export async function GET(req: NextRequest) {
-  const urlParam = req.nextUrl.searchParams.get("url");
-
-  if (!urlParam) {
-    return new NextResponse("Missing url parameter", { status: 400 });
-  }
-
-  let targetUrl = urlParam;
   try {
-    if (urlParam.startsWith("http%3A") || urlParam.startsWith("https%3A")) {
-      targetUrl = decodeURIComponent(urlParam);
+    const { searchParams } = new URL(req.url);
+    const id = searchParams.get("id");
+    const itagParam = searchParams.get("itag");
+    const urlParam = searchParams.get("url");
+
+    let streamUrl = "";
+
+    // 1. If video ID and itag are provided, resolve fresh URL on this server
+    if (id && /^[a-zA-Z0-9_-]{11}$/.test(id)) {
+      const itag = itagParam ? parseInt(itagParam, 10) : null;
+      const ytdl = new Ytdl({ clients: ["mweb", "web_embedded"] });
+      const info = await ytdl.getInfo(`https://www.youtube.com/watch?v=${id}`);
+      const format = itag
+        ? (info.formats || []).find((f: any) => f.itag === itag)
+        : (info.formats || [])[0];
+
+      if (format && format.url) {
+        streamUrl = format.url;
+      }
     }
-  } catch {
-    targetUrl = urlParam;
-  }
 
-  try {
-    const parsed = new URL(targetUrl);
+    // 2. Or fallback to provided url parameter
+    if (!streamUrl && urlParam) {
+      try {
+        streamUrl = urlParam.startsWith("http%3A") || urlParam.startsWith("https%3A")
+          ? decodeURIComponent(urlParam)
+          : urlParam;
+      } catch {
+        streamUrl = urlParam;
+      }
+    }
+
+    if (!streamUrl) {
+      return new NextResponse("Missing stream source (id or url parameter required)", {
+        status: 400,
+      });
+    }
+
+    const parsed = new URL(streamUrl);
     if (!parsed.hostname.endsWith("googlevideo.com")) {
       return new NextResponse("Unauthorized media host", { status: 403 });
     }
@@ -45,7 +70,7 @@ export async function GET(req: NextRequest) {
       fetchHeaders["Range"] = range;
     }
 
-    const cdnRes = await fetch(targetUrl, {
+    const cdnRes = await fetch(streamUrl, {
       headers: fetchHeaders,
     });
 
@@ -68,6 +93,7 @@ export async function GET(req: NextRequest) {
       headers: resHeaders,
     });
   } catch (err: any) {
+    console.error("Stream proxy error:", err);
     return new NextResponse(err.message || "Streaming error", { status: 500 });
   }
 }

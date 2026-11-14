@@ -18,7 +18,11 @@ export interface VideoMetadata {
   description?: string;
   publishedAt?: string;
   duration?: string;
+  durationSeconds?: number;
   viewCount?: string;
+  viewCountNumber?: number;
+  keywords?: string[];
+  category?: string;
   thumbnails: ThumbnailItem[];
 }
 
@@ -161,6 +165,17 @@ export async function getThumbnailDetails(videoId: string): Promise<ThumbnailIte
   return results;
 }
 
+function formatDuration(sec: number): string {
+  if (!sec || isNaN(sec)) return "0:00";
+  const hours = Math.floor(sec / 3600);
+  const minutes = Math.floor((sec % 3600) / 60);
+  const seconds = sec % 60;
+  if (hours > 0) {
+    return `${hours}:${minutes.toString().padStart(2, "0")}:${seconds.toString().padStart(2, "0")}`;
+  }
+  return `${minutes}:${seconds.toString().padStart(2, "0")}`;
+}
+
 export async function fetchYouTubeMetadata(videoId: string): Promise<VideoMetadata> {
   const watchUrl = `https://www.youtube.com/watch?v=${videoId}`;
   const oEmbedUrl = `https://www.youtube.com/oembed?url=${encodeURIComponent(
@@ -174,6 +189,12 @@ export async function fetchYouTubeMetadata(videoId: string): Promise<VideoMetada
   let embedHtml = `<iframe width="100%" height="360" src="https://www.youtube-nocookie.com/embed/${videoId}" frameborder="0" allowfullscreen></iframe>`;
   let description: string | undefined;
   let publishedAt: string | undefined;
+  let duration: string | undefined;
+  let durationSeconds: number | undefined;
+  let viewCount: string | undefined;
+  let viewCountNumber: number | undefined;
+  let keywords: string[] | undefined;
+  let category: string | undefined;
 
   try {
     const res = await fetch(oEmbedUrl, {
@@ -196,27 +217,6 @@ export async function fetchYouTubeMetadata(videoId: string): Promise<VideoMetada
     console.error("oEmbed fetch error:", err);
   }
 
-  // Optional: If YouTube Data API key is configured
-  const apiKey = process.env.YOUTUBE_API_KEY;
-  if (apiKey) {
-    try {
-      const apiUrl = `https://www.googleapis.com/youtube/v3/videos?id=${videoId}&part=snippet,contentDetails,statistics&key=${apiKey}`;
-      const apiRes = await fetch(apiUrl);
-      if (apiRes.ok) {
-        const apiData = await apiRes.json();
-        if (apiData.items && apiData.items.length > 0) {
-          const item = apiData.items[0];
-          title = item.snippet.title || title;
-          authorName = item.snippet.channelTitle || authorName;
-          description = item.snippet.description;
-          publishedAt = item.snippet.publishedAt;
-        }
-      }
-    } catch (apiErr) {
-      console.warn("YouTube API optional fetch error:", apiErr);
-    }
-  }
-
   const thumbnails = await getThumbnailDetails(videoId);
 
   return {
@@ -228,6 +228,12 @@ export async function fetchYouTubeMetadata(videoId: string): Promise<VideoMetada
     embedHtml,
     description,
     publishedAt,
+    duration,
+    durationSeconds,
+    viewCount,
+    viewCountNumber,
+    keywords,
+    category,
     thumbnails,
   };
 }

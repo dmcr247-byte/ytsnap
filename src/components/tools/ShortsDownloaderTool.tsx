@@ -173,25 +173,19 @@ export function ShortsDownloaderTool({ lang, dict }: ShortsDownloaderToolProps) 
     setDownloadingItag(format.itag);
 
     let targetUrl: string;
-    if (format.isAudioOnly) {
-      const bestAudio = videoData.audioFormats?.[0];
-      targetUrl =
-        bestAudio?.url ||
-        `/api/video-download?id=${videoData.id}&itag=${bestAudio?.itag || 140}&title=${encodeURIComponent(
-          title
-        )}&format=mp3`;
+    if (format.isAudioOnly || format.isMp3 || format.container === "MP3") {
+      targetUrl = `/api/video-download?id=${videoData.id}&itag=${format.itag || 140}&title=${encodeURIComponent(
+        title
+      )}&format=mp3`;
     } else {
-      targetUrl =
-        format.url ||
-        `/api/video-download?id=${videoData.id}&itag=${format.itag}&title=${encodeURIComponent(
-          title
-        )}`;
+      targetUrl = `/api/video-download?id=${videoData.id}&itag=${format.itag}&title=${encodeURIComponent(
+        title
+      )}`;
     }
 
     const a = document.createElement("a");
     a.href = targetUrl;
-    a.target = "_blank";
-    a.rel = "noopener noreferrer";
+    a.setAttribute("download", "");
     document.body.appendChild(a);
     a.click();
     a.remove();
@@ -246,16 +240,6 @@ export function ShortsDownloaderTool({ lang, dict }: ShortsDownloaderToolProps) 
   const handleMergeAndDownload = async () => {
     if (!videoData || !selectedHdVideoFormat || !selectedAudioFormat) return;
 
-    if (!selectedHdVideoFormat.url || !selectedAudioFormat.url) {
-      setMergeError(
-        lang === "hi"
-          ? "इस स्ट्रीम के लिए डायरेक्ट URL उपलब्ध नहीं है। कृपया नीचे दिए गए अलग-अलग बटन से सेव करें।"
-          : "Direct stream URL not available for automated muxing. Please download separate tracks below."
-      );
-      setShowManualFallback(true);
-      return;
-    }
-
     setIsMerging(true);
     setMergeError(null);
     setMergeSuccess(false);
@@ -267,10 +251,17 @@ export function ShortsDownloaderTool({ lang, dict }: ShortsDownloaderToolProps) 
     );
 
     try {
+      const videoStreamEndpoint = `/api/video-download?id=${videoData.id}&itag=${selectedHdVideoFormat.itag}&title=${encodeURIComponent(
+        videoData.title
+      )}`;
+      const audioStreamEndpoint = `/api/video-download?id=${videoData.id}&itag=${selectedAudioFormat.itag}&title=${encodeURIComponent(
+        videoData.title
+      )}&format=m4a`;
+
       const { mergeVideoAndAudioInBrowser } = await import("@/lib/client-muxer");
       await mergeVideoAndAudioInBrowser(
-        selectedHdVideoFormat.url,
-        selectedAudioFormat.url,
+        videoStreamEndpoint,
+        audioStreamEndpoint,
         videoData.title,
         selectedHdVideoFormat.qualityLabel,
         (status, pct) => {

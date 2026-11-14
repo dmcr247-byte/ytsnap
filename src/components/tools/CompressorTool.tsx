@@ -58,6 +58,41 @@ export function CompressorTool({ lang, dict }: CompressorToolProps) {
     if (!imageSrc) return;
     setIsProcessing(true);
 
+    // 1. Try instant client-side Canvas compression
+    try {
+      const img = new Image();
+      img.crossOrigin = "anonymous";
+      await new Promise<void>((resolve, reject) => {
+        img.onload = () => resolve();
+        img.onerror = () => reject(new Error("Image load error"));
+        img.src = imageSrc;
+      });
+
+      const canvas = document.createElement("canvas");
+      canvas.width = img.naturalWidth || 1280;
+      canvas.height = img.naturalHeight || 720;
+      const ctx = canvas.getContext("2d");
+      if (ctx) {
+        ctx.imageSmoothingEnabled = true;
+        ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
+
+        const mime = format === "png" ? "image/png" : (format === "webp" ? "image/webp" : "image/jpeg");
+        const q = Math.max(0.1, Math.min(1.0, quality / 100));
+        const blob = await new Promise<Blob | null>((resolve) =>
+          canvas.toBlob((b) => resolve(b), mime, q)
+        );
+
+        if (blob) {
+          setCompressedBlob(blob);
+          setCompressedSize(blob.size);
+          setIsProcessing(false);
+          return;
+        }
+      }
+    } catch {
+      // Fallback to server /api/image-process
+    }
+
     try {
       const formData = new FormData();
       formData.append("action", "compress");
@@ -82,7 +117,7 @@ export function CompressorTool({ lang, dict }: CompressorToolProps) {
       setCompressedSize(blob.size);
     } catch (err) {
       console.error(err);
-      alert("Failed to compress image. Please try again.");
+      alert(lang === "hi" ? "इमेज कंप्रेस करने में समस्या आई। कृपया पुनः प्रयास करें।" : "Failed to compress image. Please try again.");
     } finally {
       setIsProcessing(false);
     }

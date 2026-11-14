@@ -84,16 +84,6 @@ export async function POST(req: NextRequest) {
     }
 
     const html = await res.text();
-    const dataMatch = html.match(/var ytInitialData\s*=\s*({.+?});<\/script>/);
-    if (!dataMatch) {
-      return NextResponse.json(
-        { error: "Could not read YouTube channel metadata. The channel may be private or restricted." },
-        { status: 500 }
-      );
-    }
-
-    const data = JSON.parse(dataMatch[1]);
-    const header = data.header;
 
     let channelTitle = "YouTube Creator";
     let handle = "";
@@ -101,55 +91,102 @@ export async function POST(req: NextRequest) {
     let avatarUrl = "";
     let rawBannerUrl = "";
 
-    // Case A: pageHeaderRenderer (Modern InnerTube layout)
-    if (header?.pageHeaderRenderer) {
-      const phr = header.pageHeaderRenderer;
-      channelTitle = phr.pageTitle || channelTitle;
-      const vm = phr.content?.pageHeaderViewModel;
+    // Method 1: Try parsing structured ytInitialData
+    const dataMatch = html.match(/(?:var\s+ytInitialData\s*=|window\["ytInitialData"\]\s*=|ytInitialData\s*=)\s*({.+?});\s*<\/script>/);
+    if (dataMatch) {
+      try {
+        const data = JSON.parse(dataMatch[1]);
+        const header = data.header;
 
-      if (vm?.metadata?.contentMetadataViewModel?.metadataRows) {
-        const rows = vm.metadata.contentMetadataViewModel.metadataRows;
-        const parts = rows?.[0]?.metadataParts || [];
-        for (const p of parts) {
-          const text = p?.text?.content || "";
-          if (text.startsWith("@")) handle = text;
-          else if (text.toLowerCase().includes("subscriber") || text.toLowerCase().includes("sub")) {
-            subscriberCount = text;
+        // Case A: pageHeaderRenderer (Modern InnerTube layout)
+        if (header?.pageHeaderRenderer) {
+          const phr = header.pageHeaderRenderer;
+          channelTitle = phr.pageTitle || channelTitle;
+          const vm = phr.content?.pageHeaderViewModel;
+
+          if (vm?.metadata?.contentMetadataViewModel?.metadataRows) {
+            const rows = vm.metadata.contentMetadataViewModel.metadataRows;
+            const parts = rows?.[0]?.metadataParts || [];
+            for (const p of parts) {
+              const text = p?.text?.content || "";
+              if (text.startsWith("@")) handle = text;
+              else if (text.toLowerCase().includes("sub")) {
+                subscriberCount = text;
+              }
+            }
+          }
+
+          const avatarSources = vm?.image?.decoratedAvatarViewModel?.avatar?.avatarViewModel?.image?.sources;
+          if (avatarSources && avatarSources.length > 0) {
+            avatarUrl = avatarSources[avatarSources.length - 1].url;
+          }
+
+          const bannerSources = vm?.banner?.imageBannerViewModel?.image?.sources;
+          if (bannerSources && bannerSources.length > 0) {
+            rawBannerUrl = bannerSources[bannerSources.length - 1].url;
           }
         }
-      }
+        // Case B: c4TabbedHeaderRenderer (Legacy InnerTube layout)
+        else if (header?.c4TabbedHeaderRenderer) {
+          const c4 = header.c4TabbedHeaderRenderer;
+          channelTitle = c4.title || channelTitle;
+          handle = c4.channelHandleText?.runs?.[0]?.text || "";
+          subscriberCount = c4.subscriberCountText?.simpleText || "";
 
-      const avatarSources = vm?.image?.decoratedAvatarViewModel?.avatar?.avatarViewModel?.image?.sources;
-      if (avatarSources && avatarSources.length > 0) {
-        avatarUrl = avatarSources[avatarSources.length - 1].url;
-      }
+          const avatarSources = c4.avatar?.thumbnails;
+          if (avatarSources && avatarSources.length > 0) {
+            avatarUrl = avatarSources[avatarSources.length - 1].url;
+          }
 
-      const bannerSources = vm?.banner?.imageBannerViewModel?.image?.sources;
-      if (bannerSources && bannerSources.length > 0) {
-        rawBannerUrl = bannerSources[bannerSources.length - 1].url;
+          const bannerSources = c4.banner?.thumbnails;
+          if (bannerSources && bannerSources.length > 0) {
+            rawBannerUrl = bannerSources[bannerSources.length - 1].url;
+          }
+        }
+      } catch (parseErr) {
+        console.warn("ytInitialData parse note:", parseErr);
       }
     }
-    // Case B: c4TabbedHeaderRenderer (Legacy InnerTube layout)
-    else if (header?.c4TabbedHeaderRenderer) {
-      const c4 = header.c4TabbedHeaderRenderer;
-      channelTitle = c4.title || channelTitle;
-      handle = c4.channelHandleText?.runs?.[0]?.text || "";
-      subscriberCount = c4.subscriberCountText?.simpleText || "";
 
-      const avatarSources = c4.avatar?.thumbnails;
-      if (avatarSources && avatarSources.length > 0) {
-        avatarUrl = avatarSources[avatarSources.length - 1].url;
+    // Method 2: Fallback direct regex extraction from HTML if JSON missing
+    if (!rawBannerUrl) {
+      const bannerMatch =
+        html.match(/https:\/\/yt3\.(?:googleusercontent|ggpht)\.com\/[a-zA-Z0-9_-]+=(?:s0|w2560|s2560|w2120|w1707|w1060)[^"'\s\\]*/) ||
+        html.match(/"banner":\s*\{\s*"imageBannerViewModel":\s*\{\s*"image":\s*\{\s*"sources":\s*\[\s*\{\s*"url":\s*"([^"]+)"/) ||
+        html.match(/"tvBanner":\s*\{\s*"thumbnails":\s*\[\s*\{\s*"url":\s*"([^"]+)"/);
+      if (bannerMatch) {
+        rawBannerUrl = bannerMatch[1] || bannerMatch[0];
       }
+    }
 
-      const bannerSources = c4.banner?.thumbnails;
-      if (bannerSources && bannerSources.length > 0) {
-        rawBannerUrl = bannerSources[bannerSources.length - 1].url;
+    if (!avatarUrl) {
+      const avatarMatch =
+        html.match(/https:\/\/yt3\.(?:googleusercontent|ggpht)\.com\/[a-zA-Z0-9_-]+=(?:s900|s800|s240|s160)[^"'\s\\]*/) ||
+        html.match(/"avatar":\s*\{\s*"thumbnails":\s*\[\s*\{\s*"url":\s*"([^"]+)"/);
+      if (avatarMatch) {
+        avatarUrl = avatarMatch[1] || avatarMatch[0];
+      }
+    }
+
+    if (!channelTitle || channelTitle === "YouTube Creator") {
+      const titleMatch =
+        html.match(/<meta property="og:title" content="([^"]+)">/) ||
+        html.match(/<title>([^<]+)<\/title>/);
+      if (titleMatch) {
+        channelTitle = titleMatch[1].replace(/\s*-\s*YouTube\s*$/, "").trim();
       }
     }
 
     // Clean base image URLs
     const baseBanner = rawBannerUrl ? rawBannerUrl.split("=")[0] : "";
     const baseAvatar = avatarUrl ? avatarUrl.split("=")[0] : "";
+
+    if (!baseBanner && !baseAvatar) {
+      return NextResponse.json(
+        { error: "Could not locate banner or profile image for this channel. The channel may have no banner uploaded or be restricted." },
+        { status: 404 }
+      );
+    }
 
     // Log tool usage asynchronously
     try {

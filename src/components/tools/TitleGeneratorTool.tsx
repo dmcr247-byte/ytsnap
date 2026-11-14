@@ -39,61 +39,115 @@ export function TitleGeneratorTool({ lang, dict }: TitleGeneratorToolProps) {
 
   const handleGenerate = (e: React.FormEvent) => {
     e.preventDefault();
-    const cleanTopic = topic.trim() || "YouTube Video";
+    const cleanTopic = topic.trim() || (lang === "hi" ? "यूट्यूब वीडियो" : "YouTube Video");
+    const isHindi = lang === "hi";
 
-    // Proven title formula generators
-    const titlesList: Array<{ title: string; score: number; style: string }> = [
-      {
-        title: `I Tested ${cleanTopic} For 30 Days (Here's What Happened)`,
-        score: 96,
-        style: "Case Study",
-      },
-      {
-        title: `Why Nobody Is Talking About ${cleanTopic} in 2026`,
-        score: 94,
-        style: "Curiosity Loop",
-      },
-      {
-        title: `The Ultimate ${cleanTopic} Guide (From Beginner to Pro)`,
-        score: 92,
-        style: "Comprehensive",
-      },
-      {
-        title: `Stop Doing ${cleanTopic} Like This! (Big Mistake)`,
-        score: 95,
-        style: "Warning",
-      },
-      {
-        title: `5 Secret ${cleanTopic} Tips Pros Don't Want You to Know`,
-        score: 91,
-        style: "Listicle",
-      },
-      {
-        title: `Is ${cleanTopic} Really Worth It? (Honest Review)`,
-        score: 89,
-        style: "Review",
-      },
-      {
-        title: `How I Mastered ${cleanTopic} in 24 Hours`,
-        score: 93,
-        style: "Fast Results",
-      },
-      {
-        title: `${cleanTopic}: Everything Changed After This`,
-        score: 90,
-        style: "Story Arc",
-      },
-      {
-        title: `The TRUTH About ${cleanTopic} Nobody Tells You`,
-        score: 97,
-        style: "Exposé",
-      },
-      {
-        title: `Don't Buy ${cleanTopic} Until You Watch This!`,
-        score: 94,
-        style: "High Urgency",
-      },
-    ];
+    // Proven high-CTR title formula generators
+    const titlesList: Array<{ title: string; score: number; style: string }> = isHindi
+      ? [
+          {
+            title: `मैंने 30 दिनों तक ${cleanTopic} किया (नतीजा चौंकाने वाला था!)`,
+            score: 98,
+            style: "केस स्टडी / हाई CTR",
+          },
+          {
+            title: `${cleanTopic} का असली सच जो कोई नहीं बताता! (The Reality)`,
+            score: 97,
+            style: "Curiosity Loop",
+          },
+          {
+            title: `2026 में ${cleanTopic} शुरू करने से पहले ये 1 गलती कभी मत करना!`,
+            score: 96,
+            style: "चेतावनी / हाई अर्जेंसी",
+          },
+          {
+            title: `The Ultimate ${cleanTopic} Guide (शुरुआत से एक्सपर्ट तक पूरी जानकारी)`,
+            score: 94,
+            style: "A to Z कम्पलीट गाइड",
+          },
+          {
+            title: `${cleanTopic} के 5 सीक्रेट टिप्स जो 99% क्रिएटर्स नहीं जानते`,
+            score: 93,
+            style: "लिस्टिकल फॉर्मूला",
+          },
+          {
+            title: `How I Mastered ${cleanTopic} in 24 Hours (${cleanTopic} का सही तरीका)`,
+            score: 95,
+            style: "फास्ट रिजल्ट्स",
+          },
+          {
+            title: `क्या 2026 में ${cleanTopic} करना सही है? (Honest Review)`,
+            score: 91,
+            style: "रिव्यू / ओपिनियन",
+          },
+          {
+            title: `Stop Doing ${cleanTopic} Like This! (बड़ा नुकसान होने से बचाएं)`,
+            score: 95,
+            style: "मिस्टेक करेक्शन",
+          },
+          {
+            title: `${cleanTopic}: इसके बाद मेरी पूरी ज़िंदगी बदल गई!`,
+            score: 92,
+            style: "स्टोरी आर्क",
+          },
+          {
+            title: `I Tested ${cleanTopic} For 30 Days (Here's What Happened)`,
+            score: 96,
+            style: "ग्लोबल वायरल",
+          },
+        ]
+      : [
+          {
+            title: `I Tested ${cleanTopic} For 30 Days (Here's What Happened)`,
+            score: 96,
+            style: "Case Study",
+          },
+          {
+            title: `Why Nobody Is Talking About ${cleanTopic} in 2026`,
+            score: 94,
+            style: "Curiosity Loop",
+          },
+          {
+            title: `The Ultimate ${cleanTopic} Guide (From Beginner to Pro)`,
+            score: 92,
+            style: "Comprehensive",
+          },
+          {
+            title: `Stop Doing ${cleanTopic} Like This! (Big Mistake)`,
+            score: 95,
+            style: "Warning",
+          },
+          {
+            title: `5 Secret ${cleanTopic} Tips Pros Don't Want You to Know`,
+            score: 91,
+            style: "Listicle",
+          },
+          {
+            title: `Is ${cleanTopic} Really Worth It? (Honest Review)`,
+            score: 89,
+            style: "Review",
+          },
+          {
+            title: `How I Mastered ${cleanTopic} in 24 Hours`,
+            score: 93,
+            style: "Fast Results",
+          },
+          {
+            title: `${cleanTopic}: Everything Changed After This`,
+            score: 90,
+            style: "Story Arc",
+          },
+          {
+            title: `The TRUTH About ${cleanTopic} Nobody Tells You`,
+            score: 97,
+            style: "Exposé",
+          },
+          {
+            title: `Don't Buy ${cleanTopic} Until You Watch This!`,
+            score: 94,
+            style: "High Urgency",
+          },
+        ];
 
     setGeneratedTitles(titlesList);
   };

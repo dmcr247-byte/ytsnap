@@ -1,19 +1,25 @@
 "use client";
 
 import React, { useState } from "react";
+import Link from "next/link";
 import { SupportedLanguage, TranslationDictionary } from "@/lib/i18n";
 import { VideoMetadata } from "@/lib/youtube";
 import {
   Search,
   ExternalLink,
-  ShieldCheck,
-  AlertTriangle,
-  FileCode,
+  Eye,
+  Clock,
+  Calendar,
+  Tag,
   Copy,
   Check,
   Loader2,
   Download,
-  Info,
+  FileCode,
+  Layers,
+  ChevronDown,
+  ChevronUp,
+  Sparkles,
 } from "lucide-react";
 
 interface VideoInfoToolProps {
@@ -27,12 +33,8 @@ export function VideoInfoTool({ lang, dict }: VideoInfoToolProps) {
   const [error, setError] = useState<string | null>(null);
   const [videoData, setVideoData] = useState<VideoMetadata | null>(null);
   const [copiedCode, setCopiedCode] = useState(false);
-
-  // Authorized direct media inspector state
-  const [directMediaUrl, setDirectMediaUrl] = useState("");
-  const [isInspectingDirect, setIsInspectingDirect] = useState(false);
-  const [directMediaResult, setDirectMediaResult] = useState<any>(null);
-  const [directMediaError, setDirectMediaError] = useState<string | null>(null);
+  const [copiedTags, setCopiedTags] = useState(false);
+  const [showFullDesc, setShowFullDesc] = useState(false);
 
   const handleInspect = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -73,54 +75,36 @@ export function VideoInfoTool({ lang, dict }: VideoInfoToolProps) {
     }
   };
 
-  const handleInspectDirectMedia = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!directMediaUrl.trim()) return;
-
-    setIsInspectingDirect(true);
-    setDirectMediaError(null);
-    setDirectMediaResult(null);
-
-    try {
-      const res = await fetch("/api/authorized-download", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ mediaUrl: directMediaUrl.trim() }),
-      });
-
-      const json = await res.json();
-      if (!res.ok || json.error) {
-        setDirectMediaError(json.error || "Failed to inspect media URL.");
-      } else {
-        setDirectMediaResult(json);
-      }
-    } catch {
-      setDirectMediaError("Error connecting to media server.");
-    } finally {
-      setIsInspectingDirect(false);
+  const handleCopyTags = () => {
+    if (videoData?.keywords && videoData.keywords.length > 0) {
+      navigator.clipboard.writeText(videoData.keywords.join(", "));
+      setCopiedTags(true);
+      setTimeout(() => setCopiedTags(false), 2000);
     }
   };
 
   return (
-    <div className="space-y-12 max-w-4xl mx-auto">
+    <div className="space-y-8 max-w-4xl mx-auto">
       {/* Search Input */}
       <div className="bg-white dark:bg-slate-900 rounded-3xl border border-slate-200 dark:border-slate-800 p-6 sm:p-8 shadow-sm">
         <form onSubmit={handleInspect} className="space-y-4">
           <label className="block text-sm font-bold text-slate-900 dark:text-white">
-            {dict.videoInfo.inputPlaceholder}
+            {lang === "hi"
+              ? "यूट्यूब वीडियो का लिंक डालें और पूरी जानकारी निकालें:"
+              : dict.videoInfo.inputPlaceholder}
           </label>
           <div className="flex flex-col sm:flex-row gap-3">
             <input
               type="text"
               value={urlInput}
               onChange={(e) => setUrlInput(e.target.value)}
-              placeholder="https://www.youtube.com/watch?v=..."
-              className="flex-1 px-4 py-3.5 rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-primary"
+              placeholder="https://www.youtube.com/watch?v=... or https://youtu.be/..."
+              className="flex-1 px-4 py-3.5 rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 text-slate-900 dark:text-white text-sm focus:outline-none focus:ring-2 focus:ring-primary"
             />
             <button
               type="submit"
               disabled={isLoading}
-              className="px-6 py-3.5 bg-primary hover:bg-primary-hover text-white font-bold rounded-xl shadow-md shadow-primary/20 flex items-center justify-center gap-2 transition-all disabled:opacity-60"
+              className="px-6 py-3.5 bg-primary hover:bg-primary-hover text-white font-bold rounded-xl shadow-md shadow-primary/20 flex items-center justify-center gap-2 transition-all disabled:opacity-60 shrink-0"
             >
               {isLoading ? (
                 <>
@@ -130,13 +114,13 @@ export function VideoInfoTool({ lang, dict }: VideoInfoToolProps) {
               ) : (
                 <>
                   <Search className="w-5 h-5" />
-                  <span>{dict.videoInfo.fetchBtn}</span>
+                  <span>{lang === "hi" ? "जानकारी निकालें" : dict.videoInfo.fetchBtn}</span>
                 </>
               )}
             </button>
           </div>
           {error && (
-            <p className="text-sm text-red-600 dark:text-red-400 mt-2">{error}</p>
+            <p className="text-sm text-red-600 dark:text-red-400 mt-2 font-medium">{error}</p>
           )}
         </form>
       </div>
@@ -144,40 +128,63 @@ export function VideoInfoTool({ lang, dict }: VideoInfoToolProps) {
       {/* Video Details Card */}
       {videoData && (
         <div className="bg-white dark:bg-slate-900 rounded-3xl border border-slate-200 dark:border-slate-800 p-6 sm:p-8 shadow-xl space-y-6 animate-in fade-in duration-200">
+          {/* Header Preview & Channel Info */}
           <div className="flex flex-col md:flex-row gap-6 items-start">
-            <div className="w-full md:w-72 rounded-2xl overflow-hidden aspect-video bg-black shrink-0 relative">
+            <div className="w-full md:w-80 rounded-2xl overflow-hidden aspect-video bg-black shrink-0 relative shadow-md">
               {/* eslint-disable-next-line @next/next/no-img-element */}
               <img
                 src={videoData.thumbnailUrl}
                 alt={videoData.title}
                 className="w-full h-full object-cover"
               />
+              {videoData.duration && (
+                <span className="absolute bottom-2 right-2 bg-black/80 text-white text-xs px-2 py-0.5 rounded font-mono font-bold">
+                  {videoData.duration}
+                </span>
+              )}
             </div>
+
             <div className="flex-1 space-y-3">
-              <h2 className="text-xl sm:text-2xl font-bold text-slate-900 dark:text-white leading-snug">
+              <h2 className="text-xl sm:text-2xl font-extrabold text-slate-900 dark:text-white leading-snug">
                 {videoData.title}
               </h2>
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 text-sm">
-                <div>
-                  <span className="text-xs text-slate-400 block">{dict.videoInfo.channel}</span>
-                  <span className="font-semibold text-slate-800 dark:text-slate-200">
-                    {videoData.authorName}
-                  </span>
-                </div>
-                <div>
-                  <span className="text-xs text-slate-400 block">{dict.videoInfo.videoId}</span>
-                  <span className="font-mono text-xs font-semibold text-slate-800 dark:text-slate-200">
-                    {videoData.id}
-                  </span>
-                </div>
+
+              <div className="flex flex-wrap items-center gap-4 text-sm text-slate-600 dark:text-slate-300">
+                <a
+                  href={videoData.authorUrl || `https://www.youtube.com`}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="font-bold text-primary hover:underline flex items-center gap-1"
+                >
+                  <span>{videoData.authorName}</span>
+                  <ExternalLink className="w-3.5 h-3.5" />
+                </a>
+                <span>•</span>
+                <span className="font-mono text-xs text-slate-400">ID: {videoData.id}</span>
               </div>
 
-              <div className="pt-2 flex flex-wrap gap-3">
+              {/* Quick Actions */}
+              <div className="pt-2 flex flex-wrap gap-2.5">
+                <Link
+                  href={`/${lang}/tools/youtube-video-downloader`}
+                  className="inline-flex items-center gap-1.5 px-4 py-2 rounded-xl text-xs font-bold bg-emerald-600 text-white hover:bg-emerald-700 shadow-sm transition-colors"
+                >
+                  <Download className="w-3.5 h-3.5" />
+                  <span>{lang === "hi" ? "वीडियो डाउनलोड करें" : "Download Video"}</span>
+                </Link>
+
+                <Link
+                  href={`/${lang}/tools/youtube-thumbnail-downloader`}
+                  className="inline-flex items-center gap-1.5 px-4 py-2 rounded-xl text-xs font-bold bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-200 hover:bg-slate-200 transition-colors"
+                >
+                  <span>{lang === "hi" ? "थंबनेल सेव करें" : "Get Thumbnails"}</span>
+                </Link>
+
                 <a
                   href={`https://www.youtube.com/watch?v=${videoData.id}`}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="inline-flex items-center gap-1.5 px-4 py-2 rounded-xl text-xs font-bold bg-primary text-white hover:bg-primary-hover shadow-sm transition-colors"
+                  className="inline-flex items-center gap-1.5 px-4 py-2 rounded-xl text-xs font-bold border border-slate-200 dark:border-slate-700 text-slate-700 dark:text-slate-200 hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors"
                 >
                   <span>{dict.videoInfo.openInYoutube}</span>
                   <ExternalLink className="w-3.5 h-3.5" />
@@ -186,9 +193,109 @@ export function VideoInfoTool({ lang, dict }: VideoInfoToolProps) {
             </div>
           </div>
 
+          {/* Metric Stats Grid */}
+          <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 pt-2">
+            <div className="p-4 rounded-2xl bg-slate-50 dark:bg-slate-800/60 border border-slate-100 dark:border-slate-800">
+              <div className="flex items-center gap-2 text-slate-400 text-xs font-semibold mb-1">
+                <Eye className="w-3.5 h-3.5 text-blue-500" />
+                <span>{lang === "hi" ? "व्यूज (Views)" : "Total Views"}</span>
+              </div>
+              <div className="text-base sm:text-lg font-extrabold text-slate-900 dark:text-white">
+                {videoData.viewCount || "Public"}
+              </div>
+            </div>
+
+            <div className="p-4 rounded-2xl bg-slate-50 dark:bg-slate-800/60 border border-slate-100 dark:border-slate-800">
+              <div className="flex items-center gap-2 text-slate-400 text-xs font-semibold mb-1">
+                <Clock className="w-3.5 h-3.5 text-emerald-500" />
+                <span>{lang === "hi" ? "अवधि (Duration)" : "Duration"}</span>
+              </div>
+              <div className="text-base sm:text-lg font-extrabold text-slate-900 dark:text-white font-mono">
+                {videoData.duration || "HD Video"}
+              </div>
+            </div>
+
+            <div className="p-4 rounded-2xl bg-slate-50 dark:bg-slate-800/60 border border-slate-100 dark:border-slate-800">
+              <div className="flex items-center gap-2 text-slate-400 text-xs font-semibold mb-1">
+                <Calendar className="w-3.5 h-3.5 text-amber-500" />
+                <span>{lang === "hi" ? "पब्लिश डेट" : "Published Date"}</span>
+              </div>
+              <div className="text-xs sm:text-sm font-bold text-slate-900 dark:text-white truncate">
+                {videoData.publishedAt ? new Date(videoData.publishedAt).toLocaleDateString() : "Uploaded"}
+              </div>
+            </div>
+
+            <div className="p-4 rounded-2xl bg-slate-50 dark:bg-slate-800/60 border border-slate-100 dark:border-slate-800">
+              <div className="flex items-center gap-2 text-slate-400 text-xs font-semibold mb-1">
+                <Layers className="w-3.5 h-3.5 text-purple-500" />
+                <span>{lang === "hi" ? "कैटेगरी" : "Category"}</span>
+              </div>
+              <div className="text-xs sm:text-sm font-bold text-slate-900 dark:text-white truncate">
+                {videoData.category || "Entertainment"}
+              </div>
+            </div>
+          </div>
+
+          {/* YouTube Video Tags / Keywords Section */}
+          {videoData.keywords && videoData.keywords.length > 0 && (
+            <div className="border-t border-slate-100 dark:border-slate-800 pt-5 space-y-3">
+              <div className="flex items-center justify-between">
+                <h3 className="text-sm font-bold text-slate-900 dark:text-white flex items-center gap-2">
+                  <Tag className="w-4 h-4 text-primary" />
+                  <span>{lang === "hi" ? `वीडियो टैग्स (${videoData.keywords.length})` : `Video Tags (${videoData.keywords.length})`}</span>
+                </h3>
+                <button
+                  onClick={handleCopyTags}
+                  className="flex items-center gap-1.5 text-xs font-bold px-3 py-1.5 rounded-lg bg-primary/10 text-primary hover:bg-primary/20 transition-colors"
+                >
+                  {copiedTags ? <Check className="w-3.5 h-3.5" /> : <Copy className="w-3.5 h-3.5" />}
+                  <span>{copiedTags ? (lang === "hi" ? "कॉपी हो गया!" : "Copied!") : (lang === "hi" ? "सभी टैग कॉपी करें" : "Copy All Tags")}</span>
+                </button>
+              </div>
+
+              <div className="flex flex-wrap gap-1.5">
+                {videoData.keywords.map((kw, idx) => (
+                  <span
+                    key={idx}
+                    className="px-2.5 py-1 rounded-lg bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 text-xs font-medium border border-slate-200/60 dark:border-slate-700/60"
+                  >
+                    #{kw}
+                  </span>
+                ))}
+              </div>
+            </div>
+          )}
+
+          {/* Video Description */}
+          {videoData.description && (
+            <div className="border-t border-slate-100 dark:border-slate-800 pt-5 space-y-2">
+              <h3 className="text-sm font-bold text-slate-900 dark:text-white">
+                {lang === "hi" ? "वीडियो विवरण (Description):" : "Video Description:"}
+              </h3>
+              <div className="relative">
+                <p
+                  className={`text-xs text-slate-600 dark:text-slate-400 whitespace-pre-line leading-relaxed ${
+                    showFullDesc ? "" : "max-h-28 overflow-hidden"
+                  }`}
+                >
+                  {videoData.description}
+                </p>
+                {videoData.description.length > 250 && (
+                  <button
+                    onClick={() => setShowFullDesc(!showFullDesc)}
+                    className="mt-2 text-xs font-bold text-primary flex items-center gap-1 hover:underline"
+                  >
+                    <span>{showFullDesc ? (lang === "hi" ? "कम दिखाएं" : "Show less") : (lang === "hi" ? "पूरा विवरण पढ़ें" : "Read full description")}</span>
+                    {showFullDesc ? <ChevronUp className="w-3.5 h-3.5" /> : <ChevronDown className="w-3.5 h-3.5" />}
+                  </button>
+                )}
+              </div>
+            </div>
+          )}
+
           {/* Interactive Embed Preview & Code */}
           {videoData.embedHtml && (
-            <div className="border-t border-slate-100 dark:border-slate-800 pt-6 space-y-3">
+            <div className="border-t border-slate-100 dark:border-slate-800 pt-5 space-y-3">
               <div className="flex items-center justify-between">
                 <h3 className="text-sm font-bold text-slate-900 dark:text-white flex items-center gap-2">
                   <FileCode className="w-4 h-4 text-primary" />
@@ -196,7 +303,7 @@ export function VideoInfoTool({ lang, dict }: VideoInfoToolProps) {
                 </h3>
                 <button
                   onClick={handleCopyEmbed}
-                  className="flex items-center gap-1 text-xs font-semibold px-3 py-1.5 rounded-lg bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 hover:bg-slate-200"
+                  className="flex items-center gap-1 text-xs font-semibold px-3 py-1.5 rounded-lg bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 hover:bg-slate-200 transition-colors"
                 >
                   {copiedCode ? <Check className="w-3.5 h-3.5 text-emerald-500" /> : <Copy className="w-3.5 h-3.5" />}
                   <span>{copiedCode ? dict.common.copied : dict.common.copy}</span>
@@ -208,100 +315,8 @@ export function VideoInfoTool({ lang, dict }: VideoInfoToolProps) {
               />
             </div>
           )}
-
-          {/* Compliance & Fair Use Notice */}
-          <div className="border-t border-slate-100 dark:border-slate-800 pt-6">
-            <div className="p-5 rounded-2xl bg-amber-50/70 dark:bg-amber-950/30 border border-amber-200 dark:border-amber-900/60 space-y-2">
-              <div className="flex items-center gap-2 text-amber-800 dark:text-amber-400 font-bold text-sm">
-                <AlertTriangle className="w-4 h-4" />
-                <span>{dict.videoInfo.complianceTitle}</span>
-              </div>
-              <p className="text-xs text-amber-900/80 dark:text-amber-300 leading-relaxed">
-                {dict.videoInfo.complianceText}
-              </p>
-              <p className="text-xs text-slate-600 dark:text-slate-400 pt-1 font-medium">
-                {dict.videoInfo.officialYoutubeNotice}
-              </p>
-            </div>
-          </div>
         </div>
       )}
-
-      {/* Authorized Media / Self-Hosted Stream Inspector */}
-      <div className="bg-white dark:bg-slate-900 rounded-3xl border border-slate-200 dark:border-slate-800 p-6 sm:p-8 shadow-sm space-y-4">
-        <div className="flex items-center gap-2">
-          <ShieldCheck className="w-5 h-5 text-emerald-500" />
-          <h3 className="text-lg font-bold text-slate-900 dark:text-white">
-            {dict.videoInfo.authorizedDownloadSection}
-          </h3>
-        </div>
-        <p className="text-sm text-slate-600 dark:text-slate-400 leading-relaxed">
-          {dict.videoInfo.authorizedDownloadHelp}
-        </p>
-
-        <form onSubmit={handleInspectDirectMedia} className="flex flex-col sm:flex-row gap-3 pt-2">
-          <input
-            type="url"
-            value={directMediaUrl}
-            onChange={(e) => setDirectMediaUrl(e.target.value)}
-            placeholder={dict.videoInfo.authorizedUrlPlaceholder}
-            className="flex-1 px-4 py-3 rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 text-slate-900 dark:text-white text-sm focus:outline-none focus:ring-2 focus:ring-primary"
-          />
-          <button
-            type="submit"
-            disabled={isInspectingDirect}
-            className="px-5 py-3 bg-secondary hover:bg-secondary-hover text-white text-sm font-bold rounded-xl shadow-md transition-colors disabled:opacity-60 flex items-center justify-center gap-2"
-          >
-            {isInspectingDirect ? <Loader2 className="w-4 h-4 animate-spin" /> : null}
-            <span>{dict.videoInfo.inspectMediaBtn}</span>
-          </button>
-        </form>
-
-        {directMediaError && (
-          <div className="p-4 rounded-xl bg-red-50 dark:bg-red-950/40 border border-red-200 dark:border-red-900 text-red-700 dark:text-red-300 text-xs">
-            {directMediaError}
-          </div>
-        )}
-
-        {directMediaResult && (
-          <div className="p-5 rounded-2xl bg-slate-50 dark:bg-slate-800/80 border border-slate-200 dark:border-slate-700 space-y-3 text-sm">
-            {directMediaResult.authorized ? (
-              <>
-                <div className="flex items-center gap-2 text-emerald-600 dark:text-emerald-400 font-bold">
-                  <Check className="w-4 h-4" />
-                  <span>Authorized Stream Verified</span>
-                </div>
-                <div className="grid grid-cols-2 gap-2 text-xs">
-                  <div>
-                    <span className="text-slate-400 block">Content Type</span>
-                    <span className="font-mono">{directMediaResult.contentType}</span>
-                  </div>
-                  <div>
-                    <span className="text-slate-400 block">Content Length</span>
-                    <span className="font-mono">
-                      {directMediaResult.contentLength
-                        ? `${(directMediaResult.contentLength / (1024 * 1024)).toFixed(2)} MB`
-                        : "Stream"}
-                    </span>
-                  </div>
-                </div>
-                <a
-                  href={directMediaResult.mediaUrl}
-                  download
-                  className="inline-flex items-center gap-2 px-4 py-2.5 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl text-xs font-bold shadow-md transition-colors"
-                >
-                  <Download className="w-4 h-4" />
-                  <span>{dict.videoInfo.downloadMediaBtn}</span>
-                </a>
-              </>
-            ) : (
-              <div className="text-amber-600 dark:text-amber-400 text-xs leading-relaxed">
-                <strong>Platform Notice:</strong> {directMediaResult.message}
-              </div>
-            )}
-          </div>
-        )}
-      </div>
     </div>
   );
 }

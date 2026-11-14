@@ -46,6 +46,44 @@ export function ConverterTool({ lang, dict }: ConverterToolProps) {
     if (!imageSrc) return;
     setIsProcessing(true);
 
+    // 1. Try instant client-side Canvas conversion
+    try {
+      const img = new Image();
+      img.crossOrigin = "anonymous";
+      await new Promise<void>((resolve, reject) => {
+        img.onload = () => resolve();
+        img.onerror = () => reject(new Error("Image load error"));
+        img.src = imageSrc;
+      });
+
+      const canvas = document.createElement("canvas");
+      canvas.width = img.naturalWidth || 1280;
+      canvas.height = img.naturalHeight || 720;
+      const ctx = canvas.getContext("2d");
+      if (ctx) {
+        ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
+
+        const mime = targetFormat === "png" ? "image/png" : (targetFormat === "webp" ? "image/webp" : "image/jpeg");
+        const blob = await new Promise<Blob | null>((resolve) =>
+          canvas.toBlob((b) => resolve(b), mime, 0.95)
+        );
+
+        if (blob) {
+          const downloadUrl = window.URL.createObjectURL(blob);
+          const a = document.createElement("a");
+          a.href = downloadUrl;
+          a.download = `ytsnap-converted.${targetFormat === "jpeg" ? "jpg" : targetFormat}`;
+          document.body.appendChild(a);
+          a.click();
+          a.remove();
+          setIsProcessing(false);
+          return;
+        }
+      }
+    } catch {
+      // Fallback to server /api/image-process
+    }
+
     try {
       const formData = new FormData();
       formData.append("action", "convert");
@@ -74,7 +112,7 @@ export function ConverterTool({ lang, dict }: ConverterToolProps) {
       a.remove();
     } catch (err) {
       console.error(err);
-      alert("Conversion failed. Please try again.");
+      alert(lang === "hi" ? "इमेज फॉर्मेट बदलने में समस्या आई। कृपया पुनः प्रयास करें।" : "Conversion failed. Please try again.");
     } finally {
       setIsProcessing(false);
     }

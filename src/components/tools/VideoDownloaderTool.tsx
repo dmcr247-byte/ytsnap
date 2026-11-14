@@ -160,14 +160,15 @@ export function VideoDownloaderTool({ lang, dict }: VideoDownloaderToolProps) {
     setDownloadingItag(format.itag);
 
     let targetUrl: string;
+    const streamParam = format.url ? `&streamUrl=${encodeURIComponent(format.url)}` : "";
     if (format.isAudioOnly || format.isMp3 || format.container === "MP3") {
       targetUrl = `/api/video-download?id=${videoData.id}&itag=${format.itag || 140}&title=${encodeURIComponent(
         title
-      )}&format=mp3`;
+      )}&format=mp3${streamParam}`;
     } else {
       targetUrl = `/api/video-download?id=${videoData.id}&itag=${format.itag}&title=${encodeURIComponent(
         title
-      )}`;
+      )}${streamParam}`;
     }
 
     const a = document.createElement("a");
@@ -203,12 +204,19 @@ export function VideoDownloaderTool({ lang, dict }: VideoDownloaderToolProps) {
     );
 
     try {
+      const videoStreamParam = selectedHdVideoFormat.url
+        ? `&streamUrl=${encodeURIComponent(selectedHdVideoFormat.url)}`
+        : "";
+      const audioStreamParam = selectedAudioFormat.url
+        ? `&streamUrl=${encodeURIComponent(selectedAudioFormat.url)}`
+        : "";
+
       const videoStreamEndpoint = `/api/video-download?id=${videoData.id}&itag=${selectedHdVideoFormat.itag}&title=${encodeURIComponent(
         videoData.title
-      )}`;
+      )}${videoStreamParam}`;
       const audioStreamEndpoint = `/api/video-download?id=${videoData.id}&itag=${selectedAudioFormat.itag}&title=${encodeURIComponent(
         videoData.title
-      )}&format=m4a`;
+      )}&format=m4a${audioStreamParam}`;
 
       const { mergeVideoAndAudioInBrowser } = await import("@/lib/client-muxer");
       await mergeVideoAndAudioInBrowser(

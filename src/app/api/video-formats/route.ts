@@ -99,6 +99,41 @@ export async function POST(req: NextRequest) {
       );
     }
 
+    // Priority 0: RapidAPI extraction (completely immune to serverless IP bot walls)
+    if (
+      process.env.RAPIDAPI_KEY ||
+      process.env.RAPID_API_KEY ||
+      process.env.YOUTUBE_RAPIDAPI_KEY
+    ) {
+      try {
+        const { fetchFromRapidAPI } = await import("@/lib/rapidapi-youtube");
+        const rapidData = await fetchFromRapidAPI(videoId);
+        if (rapidData && rapidData.videoFormats.length > 0) {
+          try {
+            await prisma.toolUsage.create({
+              data: {
+                toolKey: "youtube-video-downloader",
+                language: lang,
+                videoId,
+                status: "success",
+                ipHash: ipH,
+                userAgent: req.headers.get("user-agent") || undefined,
+              },
+            });
+          } catch (e) {
+            console.warn("Log warning:", e);
+          }
+
+          return NextResponse.json({
+            success: true,
+            data: rapidData,
+          });
+        }
+      } catch (rErr) {
+        console.warn("RapidAPI resolution attempt error:", rErr);
+      }
+    }
+
     let info: any = null;
     let lastError: any = null;
 
@@ -361,8 +396,8 @@ export async function POST(req: NextRequest) {
         : "This video is age-restricted and requires signing in directly on YouTube.";
     } else if (lowerMsg.includes("bot") || lowerMsg.includes("sign in to confirm")) {
       cleanMsg = isHindi
-        ? "YouTube सुरक्षा जांच ट्रिगर हुई है। कृपया कुछ सेकंड प्रतीक्षा करके पुनः प्रयास करें।"
-        : "YouTube security rate-check triggered. Please wait a few seconds and try again.";
+        ? "YouTube सुरक्षा जांच (Bot Rate-Check) ट्रिगर हुई है। 100% स्थायी समाधान के लिए Vercel Environment Variables में RAPIDAPI_KEY या YOUTUBE_PROXY जोड़ें।"
+        : "YouTube security rate-check triggered. Please configure RAPIDAPI_KEY or YOUTUBE_PROXY in Vercel to permanently bypass bot checks.";
     } else if (lowerMsg.includes("cookie") || lowerMsg.includes("signed out")) {
       cleanMsg = isHindi
         ? "वीडियो स्ट्रीम लोड करने में समस्या आई। कृपया वीडियो का लिंक जांचें या दूसरा वीडियो आज़माएं।"

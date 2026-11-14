@@ -67,6 +67,7 @@ function getProxyDispatcher(): ProxyAgent | undefined {
 }
 
 export async function POST(req: NextRequest) {
+  let lang = "en";
   try {
     const ip = req.headers.get("x-forwarded-for") || "127.0.0.1";
     const ipH = hashIp(ip);
@@ -79,7 +80,9 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    const { url, lang = "en" } = await req.json();
+    const body = await req.json().catch(() => ({}));
+    const url = body.url;
+    if (body.lang) lang = body.lang;
 
     if (!url) {
       return NextResponse.json(
@@ -106,23 +109,23 @@ export async function POST(req: NextRequest) {
       : undefined;
 
     // Strategic fallback client candidates:
-    // 1. undefined: all default clients with PO Token
-    // 2. web_embedded: Third-party embedded player (lowest bot detection)
-    // 3. tv: Samsung Tizen TV client
-    // 4. visionos: Apple Vision client
-    // 5. mweb: Mobile web player
+    // 1. ["mweb", "web_embedded"]: Lowest bot detection, public streams
+    // 2. ["tv"]: Samsung Tizen TV client
+    // 3. ["visionos"]: Apple Vision client
+    // 4. ["web_embedded"]: Third-party embedded player
+    // 5. undefined: all default clients with PO Token
     const clientCandidates: (string[] | undefined)[] = [
-      undefined,
-      ["web_embedded"],
+      ["mweb", "web_embedded"],
       ["tv"],
       ["visionos"],
-      ["mweb"],
+      ["web_embedded"],
+      undefined,
     ];
 
+    // Priority 1: Fetch without cookie (prevents "cookie signed out" error on all public videos)
     for (const clients of clientCandidates) {
       try {
         const ytdlOptions: any = {
-          cookie: process.env.YOUTUBE_COOKIE || undefined,
           fetch: customFetch as any,
         };
         if (clients) {
@@ -143,20 +146,23 @@ export async function POST(req: NextRequest) {
       }
     }
 
-    if (!info) {
-      // Fallback attempt without poTokenProvider
+    // Priority 2: Optional cookie fallback only if without-cookie failed AND YOUTUBE_COOKIE is configured
+    if (!info && process.env.YOUTUBE_COOKIE) {
       try {
-        const fallbackYtdl = new Ytdl({
+        const cookieYtdl = new Ytdl({
           clients: ["web_embedded", "tv"] as any,
-          cookie: process.env.YOUTUBE_COOKIE || undefined,
+          cookie: process.env.YOUTUBE_COOKIE,
           fetch: customFetch as any,
         });
-        const fallbackInfo = await fallbackYtdl.getInfo(videoId);
-        if (fallbackInfo && fallbackInfo.formats && fallbackInfo.formats.length > 0) {
-          info = fallbackInfo;
+        const cookieInfo = await cookieYtdl.getInfo(videoId);
+        if (cookieInfo && cookieInfo.formats && cookieInfo.formats.length > 0) {
+          info = cookieInfo;
         }
-      } catch (fbErr: any) {
-        lastError = fbErr;
+      } catch (cErr: any) {
+        // If cookie is expired/signed out, ignore cookie error and preserve meaningful error
+        if (!cErr?.message?.includes("cookie") && !cErr?.message?.includes("signed out")) {
+          lastError = cErr;
+        }
       }
     }
 
@@ -337,15 +343,39 @@ export async function POST(req: NextRequest) {
   } catch (error: any) {
     console.error("Video formats fetch error:", error);
     const rawMsg = error?.message || "";
-    let cleanMsg = rawMsg;
-    if (rawMsg.includes("Sign in to confirm you’re not a bot") || rawMsg.includes("bot")) {
-      cleanMsg = "YouTube security rate-check triggered. Please wait a few seconds and try again.";
+    const lowerMsg = rawMsg.toLowerCase();
+    const isHindi = lang === "hi";
+
+    let cleanMsg = "";
+    if (lowerMsg.includes("unavailable") || lowerMsg.includes("not available") || lowerMsg.includes("404")) {
+      cleanMsg = isHindi
+        ? "यह YouTube वीडियो अनुपलब्ध (Unavailable), प्राइवेट या डिलीट कर दी गई है। कृपया किसी चालू वीडियो का लिंक डालें।"
+        : "This YouTube video is unavailable, private, or has been deleted. Please try another public video link.";
+    } else if (lowerMsg.includes("private")) {
+      cleanMsg = isHindi
+        ? "यह एक प्राइवेट वीडियो है। YTSnap केवल सार्वजनिक (Public) वीडियो को प्रोसेस कर सकता है।"
+        : "This video is private. YTSnap can only process public YouTube videos.";
+    } else if (lowerMsg.includes("age-restricted") || lowerMsg.includes("confirm your age")) {
+      cleanMsg = isHindi
+        ? "यह वीडियो आयु-प्रतिबंधित (Age-Restricted) है। YouTube इसके लिए सीधे साइन-इन मांगता है।"
+        : "This video is age-restricted and requires signing in directly on YouTube.";
+    } else if (lowerMsg.includes("bot") || lowerMsg.includes("sign in to confirm")) {
+      cleanMsg = isHindi
+        ? "YouTube सुरक्षा जांच ट्रिगर हुई है। कृपया कुछ सेकंड प्रतीक्षा करके पुनः प्रयास करें।"
+        : "YouTube security rate-check triggered. Please wait a few seconds and try again.";
+    } else if (lowerMsg.includes("cookie") || lowerMsg.includes("signed out")) {
+      cleanMsg = isHindi
+        ? "वीडियो स्ट्रीम लोड करने में समस्या आई। कृपया वीडियो का लिंक जांचें या दूसरा वीडियो आज़माएं।"
+        : "Unable to retrieve video stream. Please verify the URL or try another video.";
+    } else {
+      cleanMsg = isHindi
+        ? "वीडियो स्ट्रीम लोड करने में समस्या आई। कृपया सुनिश्चित करें कि लिंक सही और वीडियो सार्वजनिक है।"
+        : "Failed to retrieve video stream formats. Please verify the link.";
     }
+
     return NextResponse.json(
       {
-        error:
-          cleanMsg ||
-          "Failed to retrieve video stream formats. Please verify the link.",
+        error: cleanMsg,
         debugDetails: rawMsg,
       },
       { status: 500 }

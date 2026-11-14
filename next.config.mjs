@@ -1,6 +1,8 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
   experimental: {
+    workerThreads: false,
+    cpus: 1,
     outputFileTracingIncludes: {
       "/api/**/*": [
         "./node_modules/@distube/ytdl-core/**/*",

@@ -145,12 +145,17 @@ export async function fetchFromRapidAPI(
       thumbnail = thumbs;
     }
 
-    const allFormats: any[] = [
-      ...(Array.isArray(payload.formats) ? payload.formats : []),
-      ...(Array.isArray(payload.adaptiveFormats) ? payload.adaptiveFormats : []),
-      ...(Array.isArray(rawData.formats) ? rawData.formats : []),
-      ...(Array.isArray(rawData.adaptiveFormats) ? rawData.adaptiveFormats : []),
-    ];
+    const rawFormats = Array.isArray(payload.formats)
+      ? payload.formats
+      : Array.isArray(rawData.formats)
+      ? rawData.formats
+      : [];
+    const rawAdaptive = Array.isArray(payload.adaptiveFormats)
+      ? payload.adaptiveFormats
+      : Array.isArray(rawData.adaptiveFormats)
+      ? rawData.adaptiveFormats
+      : [];
+    const allFormats = [...rawFormats, ...rawAdaptive];
 
     if (allFormats.length === 0) {
       return null;
@@ -159,6 +164,7 @@ export async function fetchFromRapidAPI(
     const videoFormats: NormalizedVideoFormat[] = [];
     const audioFormats: NormalizedAudioFormat[] = [];
     const seenVideoKeys = new Set<string>();
+    const seenAudioKeys = new Set<string>();
     let primaryAudioUrl: string | undefined = undefined;
 
     for (const f of allFormats) {
@@ -228,16 +234,20 @@ export async function fetchFromRapidAPI(
           ? "M4A Audio"
           : "Audio";
 
-        audioFormats.push({
-          itag: itag || 140,
-          audioBitrate,
-          container: rawContainer.toLowerCase() === "m4a" ? "m4a" : "mp3",
-          codecLabel,
-          language: "Original Audio",
-          sizeMb,
-          url: f.url,
-          label: `${codecLabel} · ${audioBitrate} kbps${sizeMb ? ` · ${sizeMb}` : ""}`,
-        });
+        const audioKey = `${itag}-${audioBitrate}-${rawContainer}`;
+        if (!seenAudioKeys.has(audioKey)) {
+          seenAudioKeys.add(audioKey);
+          audioFormats.push({
+            itag: itag || 140,
+            audioBitrate,
+            container: rawContainer.toLowerCase() === "m4a" ? "m4a" : "mp3",
+            codecLabel,
+            language: "Original Audio",
+            sizeMb,
+            url: f.url,
+            label: `${codecLabel} · ${audioBitrate} kbps${sizeMb ? ` · ${sizeMb}` : ""}`,
+          });
+        }
       }
     }
 

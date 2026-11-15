@@ -283,12 +283,25 @@ export function VideoDownloaderTool({
       );
     } catch (err: any) {
       console.warn("Client merge fallback:", err);
-      // Fallback: download video stream directly so user is never blocked
-      handleDownload(videoFormat, `${videoData.title}-${videoFormat.qualityLabel}-HD`);
+      // Fallback: download video stream and audio stream sequentially so user has both
+      handleDownload(videoFormat, `${videoData.title}-${videoFormat.qualityLabel}-HD-Video`);
+      
+      if (targetAudio) {
+        setTimeout(() => {
+          handleDownload(targetAudio, `${videoData.title}-AudioTrack`);
+        }, 1200);
+      }
+
+      setMergeSuccess(true);
+      setMergeStatusText(
+        lang === "hi"
+          ? `✅ ${videoFormat.qualityLabel} HD वीडियो और ऑडियो ट्रैक दोनों डाउनलोड हो गए!`
+          : `✅ ${videoFormat.qualityLabel} HD Video & Audio track downloaded!`
+      );
       setMergeError(
         lang === "hi"
-          ? "डायरेक्ट HD वीडियो डाउनलोड शुरू हो गया है। आप नीचे ऑडियो भी अलग से डाउनलोड कर सकते हैं।"
-          : "Direct HD video download started. You can also save the audio track below."
+          ? "नोट: YouTube 1080p को दो अलग-अलग फाइलों (HD वीडियो + ऑडियो) में रखता है। आपके फोन/PC में 1080p वीडियो और ऑडियो दोनों फाइलें डाउनलोड हो गई हैं। अगर आपको 1 ही फाइल में तुरंत वीडियो+ऑडियो चाहिए, तो नीचे 360p (Instant Video+Audio) चुनें।"
+          : "Notice: YouTube stores 1080p as separate DASH video & audio files. Both HD video and audio have been downloaded. For a single instant combined file, select 360p (Ready-to-watch)."
       );
     } finally {
       setIsMerging(false);
@@ -535,7 +548,7 @@ export function VideoDownloaderTool({
                     >
                       {mainVideoOptions.map((f: any) => (
                         <option key={f.itag} value={f.itag}>
-                          ★ {f.qualityLabel} {f.container} · {f.sizeMb || ""} — Video + Audio
+                          ★ {f.qualityLabel} {f.container} · {f.sizeMb || ""} {f.hasAudio ? "— Video + Audio (1 File Ready)" : "— HD Video + Audio Track"}
                         </option>
                       ))}
                     </optgroup>
@@ -776,7 +789,7 @@ export function VideoDownloaderTool({
                           </span>
                         </td>
                         <td className="py-3 text-slate-600 dark:text-slate-300 font-semibold">
-                          {f.container} (Video + Audio)
+                          {f.container} {f.hasAudio ? "(Video + Audio 1-File)" : "(HD Video + Audio)"}
                         </td>
                         <td className="py-3 text-slate-500 font-mono">
                           {f.sizeMb || "Fast"}

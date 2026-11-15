@@ -636,44 +636,53 @@ export function ShortsDownloaderTool({ lang, dict }: ShortsDownloaderToolProps) 
                   )}
                 </select>
 
-                {/* SnapYT-Style Amber Warning Callout */}
+                {/* Informative Blue Callout (when HD format is selected) */}
                 {isVideoOnlySelected && (
-                  <div className="p-3.5 rounded-2xl bg-amber-50 dark:bg-amber-950/40 border border-amber-200/80 dark:border-amber-900/60 flex items-center justify-between gap-3 animate-in fade-in duration-200">
+                  <div className="p-3.5 rounded-2xl bg-blue-50 dark:bg-blue-950/40 border border-blue-200/80 dark:border-blue-900/60 flex items-center justify-between gap-3 animate-in fade-in duration-200">
                     <div className="flex items-start gap-2.5">
-                      <div className="p-1 rounded-full bg-amber-100 dark:bg-amber-900/60 text-amber-700 dark:text-amber-300">
-                        <AlertCircle className="w-4 h-4 shrink-0" />
+                      <div className="p-1 rounded-full bg-blue-100 dark:bg-blue-900/60 text-blue-700 dark:text-blue-300">
+                        <Sparkles className="w-4 h-4 shrink-0" />
                       </div>
                       <div>
-                        <div className="text-xs font-bold text-amber-950 dark:text-amber-200">
-                          {lang === "hi" ? "इस क्वालिटी में आवाज़ नहीं है" : "This quality has no sound"}
-                        </div>
-                        <div className="text-[11px] text-amber-800 dark:text-amber-300 mt-0.5">
+                        <div className="text-xs font-bold text-blue-950 dark:text-blue-200">
                           {lang === "hi"
-                            ? "पूरी HD फाइल डाउनलोड करने के लिए इसे नीचे दिए गए ऑडियो ट्रैक से जोड़ें।"
-                            : "Pair it with an audio track below to download a complete HD file."}
+                            ? `HD शॉर्ट्स (${currentSelectedTopFormat.qualityLabel}) + ओरिजिनल ऑडियो`
+                            : `Full HD (${currentSelectedTopFormat.qualityLabel}) Video + Audio Included`}
+                        </div>
+                        <div className="text-[11px] text-blue-800 dark:text-blue-300 mt-0.5">
+                          {lang === "hi"
+                            ? "डाउनलोड बटन दबाते ही यह उच्च क्वालिटी शॉर्ट्स और आवाज़ को 1 पूरी MP4 फाइल में जोड़कर सेव करेगा।"
+                            : "Downloads the highest quality shorts with sound bundled into 1 complete MP4 file."}
                         </div>
                       </div>
                     </div>
-                    <button
-                      type="button"
-                      onClick={() => combineRef.current?.scrollIntoView({ behavior: "smooth" })}
-                      className="px-3 py-1.5 rounded-xl bg-amber-800 hover:bg-amber-900 text-white text-xs font-bold whitespace-nowrap shadow-xs transition-colors shrink-0"
-                    >
-                      <span>{lang === "hi" ? "Combine with audio →" : "Combine with audio →"}</span>
-                    </button>
                   </div>
                 )}
 
                 {/* Big Green Download Button */}
                 <button
-                  onClick={() =>
-                    currentSelectedTopFormat &&
-                    handleDownload(currentSelectedTopFormat, videoData.title)
-                  }
-                  disabled={downloadingItag === currentSelectedTopFormat?.itag}
-                  className="w-full py-4 bg-emerald-600 hover:bg-emerald-700 active:scale-[0.99] text-white font-extrabold text-base rounded-2xl shadow-lg shadow-emerald-600/25 flex items-center justify-center gap-2 transition-all disabled:opacity-60"
+                  onClick={() => {
+                    if (!currentSelectedTopFormat) return;
+                    if (isVideoOnlySelected) {
+                      handleMergeAndDownload();
+                    } else {
+                      handleDownload(currentSelectedTopFormat, videoData.title);
+                    }
+                  }}
+                  disabled={isMerging || downloadingItag === currentSelectedTopFormat?.itag}
+                  className="w-full py-4 bg-emerald-600 hover:bg-emerald-700 active:scale-[0.99] text-white font-extrabold text-base rounded-2xl shadow-lg shadow-emerald-600/25 flex items-center justify-center gap-2 transition-all disabled:opacity-60 cursor-pointer"
                 >
-                  {downloadingItag === currentSelectedTopFormat?.itag ? (
+                  {isMerging ? (
+                    <>
+                      <Loader2 className="w-5 h-5 animate-spin" />
+                      <span>
+                        {mergeStatusText ||
+                          (lang === "hi"
+                            ? "HD शॉर्ट्स और ऑडियो जुड़ रहा है..."
+                            : "Combining HD Shorts & Audio...")}
+                      </span>
+                    </>
+                  ) : downloadingItag === currentSelectedTopFormat?.itag ? (
                     <>
                       <Loader2 className="w-5 h-5 animate-spin" />
                       <span>{lang === "hi" ? "डाउनलोड शुरू हो रहा है..." : "Starting Download..."}</span>
@@ -683,14 +692,68 @@ export function ShortsDownloaderTool({ lang, dict }: ShortsDownloaderToolProps) 
                       <Download className="w-5 h-5" />
                       <span>
                         {isAudioOnlySelected
-                          ? (lang === "hi" ? "Download Audio (MP3)" : "Download Audio (MP3)")
+                          ? (lang === "hi" ? "ऑडियो (MP3) डाउनलोड करें" : "Download Audio (MP3)")
                           : isVideoOnlySelected
-                          ? (lang === "hi" ? "Download Video (No Audio)" : "Download Video (No Audio)")
-                          : (lang === "hi" ? "Download Video (Video + Audio)" : "Download Video")}
+                          ? (lang === "hi"
+                              ? `Full HD शॉर्ट्स और ऑडियो डाउनलोड करें (${currentSelectedTopFormat.qualityLabel} + Sound)`
+                              : `Download Full HD (${currentSelectedTopFormat.qualityLabel} Video + Audio)`)
+                          : (lang === "hi"
+                              ? `शॉर्ट्स डाउनलोड करें (${currentSelectedTopFormat.qualityLabel} + Sound)`
+                              : `Download Shorts (${currentSelectedTopFormat.qualityLabel})`)}
                       </span>
                     </>
                   )}
                 </button>
+
+                {/* In-Place Merge Progress Bar (visible during HD Combine) */}
+                {isMerging && (
+                  <div className="p-4 rounded-2xl bg-emerald-50/50 dark:bg-emerald-950/30 border border-emerald-200 dark:border-emerald-800 space-y-2 animate-in fade-in">
+                    <div className="flex justify-between text-xs font-bold text-emerald-800 dark:text-emerald-300">
+                      <span>{mergeStatusText}</span>
+                      <span>{mergeProgress}%</span>
+                    </div>
+                    <div className="w-full bg-slate-200 dark:bg-slate-700 h-2.5 rounded-full overflow-hidden">
+                      <div
+                        className="bg-emerald-600 h-full rounded-full transition-all duration-300 ease-out"
+                        style={{ width: `${mergeProgress}%` }}
+                      />
+                    </div>
+                  </div>
+                )}
+
+                {/* In-Place Merge Success Box */}
+                {mergeSuccess && (
+                  <div className="p-3.5 rounded-2xl bg-emerald-100 dark:bg-emerald-950/60 border border-emerald-300 text-emerald-800 dark:text-emerald-200 text-xs font-bold flex items-center gap-2">
+                    <Check className="w-4 h-4 text-emerald-600 shrink-0" />
+                    <span>{mergeStatusText}</span>
+                  </div>
+                )}
+
+                {/* Merge Error Box */}
+                {mergeError && (
+                  <div className="p-3.5 rounded-2xl bg-rose-50 dark:bg-rose-950/40 border border-rose-200 text-rose-700 dark:text-rose-300 text-xs font-semibold">
+                    {mergeError}
+                  </div>
+                )}
+
+                {/* Optional: Silent video only link */}
+                {isVideoOnlySelected && !isMerging && (
+                  <p className="text-[11px] text-center text-slate-500 dark:text-slate-400">
+                    <button
+                      type="button"
+                      onClick={() =>
+                        currentSelectedTopFormat &&
+                        handleDownload(currentSelectedTopFormat, videoData.title)
+                      }
+                      className="underline hover:text-slate-800 dark:hover:text-slate-200"
+                    >
+                      {lang === "hi"
+                        ? "वैकल्पिक: बिना आवाज़ की वीडियो फ़ाइल डाउनलोड करें"
+                        : "Optional: Download silent video-only file"}
+                    </button>
+                  </p>
+                )}
+
                 <p className="text-[11px] text-center text-slate-400">
                   By downloading, you agree to our Terms of Service.
                 </p>

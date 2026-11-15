@@ -24,9 +24,23 @@ async function fetchWithProgress(
   endPct: number,
   onProgress?: MergeProgressCallback
 ): Promise<Uint8Array> {
-  const fetchUrl = urlOrEndpoint.startsWith("/api/")
-    ? urlOrEndpoint
-    : `/api/stream-proxy?url=${encodeURIComponent(urlOrEndpoint)}`;
+  let targetUrl = urlOrEndpoint;
+  if (urlOrEndpoint.includes("streamUrl=")) {
+    try {
+      const u = new URL(
+        urlOrEndpoint,
+        typeof window !== "undefined" ? window.location.origin : "http://localhost"
+      );
+      const s = u.searchParams.get("streamUrl");
+      if (s) targetUrl = s;
+    } catch {
+      // ignore
+    }
+  }
+
+  const fetchUrl = targetUrl.startsWith("/api/stream-proxy")
+    ? targetUrl
+    : `/api/stream-proxy?url=${encodeURIComponent(targetUrl)}`;
   const res = await fetch(fetchUrl);
 
   if (!res.ok) {

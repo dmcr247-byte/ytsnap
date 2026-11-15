@@ -65,14 +65,26 @@ export async function GET(req: NextRequest) {
     const fetchHeaders: Record<string, string> = {
       "User-Agent":
         "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36",
+      "Referer": "https://www.youtube.com/",
+      "Origin": "https://www.youtube.com",
     };
     if (range) {
       fetchHeaders["Range"] = range;
     }
 
-    const cdnRes = await fetch(streamUrl, {
+    let cdnRes = await fetch(streamUrl, {
       headers: fetchHeaders,
+      redirect: "manual",
     });
+
+    if (cdnRes.status === 301 || cdnRes.status === 302) {
+      const loc = cdnRes.headers.get("location");
+      if (loc) {
+        cdnRes = await fetch(loc, {
+          headers: fetchHeaders,
+        });
+      }
+    }
 
     const resHeaders = new Headers();
     resHeaders.set("Access-Control-Allow-Origin", "*");

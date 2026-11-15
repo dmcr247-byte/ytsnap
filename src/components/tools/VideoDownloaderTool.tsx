@@ -1,6 +1,7 @@
 "use client";
 
 import React, { useState, useEffect, useRef } from "react";
+import { useRouter } from "next/navigation";
 import { SupportedLanguage, TranslationDictionary } from "@/lib/i18n";
 import {
   Download,
@@ -16,31 +17,40 @@ import {
   Sparkles,
   RefreshCw,
   Image as ImageIcon,
-  CheckCircle2,
   Film,
   Layers,
   ArrowRight,
   AlertCircle,
+  CheckCircle2,
 } from "lucide-react";
 
 interface VideoDownloaderToolProps {
   lang: SupportedLanguage;
   dict: TranslationDictionary;
+  initialUrl?: string;
+  isDedicatedPage?: boolean;
 }
 
-export function VideoDownloaderTool({ lang, dict }: VideoDownloaderToolProps) {
-  const [urlInput, setUrlInput] = useState("");
+export function VideoDownloaderTool({
+  lang,
+  dict,
+  initialUrl = "",
+  isDedicatedPage = false,
+}: VideoDownloaderToolProps) {
+  const router = useRouter();
+  const [urlInput, setUrlInput] = useState(initialUrl);
   const [isLoading, setIsLoading] = useState(false);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [videoData, setVideoData] = useState<any | null>(null);
   const [downloadingItag, setDownloadingItag] = useState<number | null>(null);
 
-  // Top format dropdown selector (supports progressive, video-only DASH, and MP3)
+  // Selected format in top dropdown
   const [selectedTopItag, setSelectedTopItag] = useState<number | null>(null);
-
-  // HD Combiner dropdown selectors
-  const [selectedHdVideoItag, setSelectedHdVideoItag] = useState<number | null>(null);
+  // Selected audio track
   const [selectedAudioItag, setSelectedAudioItag] = useState<number | null>(null);
+
+  // Active tab in bottom format table ("video" | "audio" | "other")
+  const [tableTab, setTableTab] = useState<"video" | "audio" | "other">("video");
 
   // HD Mux / Combine states
   const [isMerging, setIsMerging] = useState(false);
@@ -48,69 +58,14 @@ export function VideoDownloaderTool({ lang, dict }: VideoDownloaderToolProps) {
   const [mergeStatusText, setMergeStatusText] = useState("");
   const [mergeSuccess, setMergeSuccess] = useState(false);
   const [mergeError, setMergeError] = useState<string | null>(null);
-  const [showManualFallback, setShowManualFallback] = useState(false);
   const [copiedLink, setCopiedLink] = useState(false);
 
-  // Ref to scroll down to Combine section when "Combine with audio →" is clicked
-  const combineRef = useRef<HTMLDivElement>(null);
+  // Ref to scroll to results
+  const resultsRef = useRef<HTMLDivElement>(null);
 
-  // Auto-initialize dropdown defaults when videoData arrives
-  useEffect(() => {
-    if (videoData) {
-      const withAudio = videoData.videoFormats?.filter((f: any) => f.hasAudio) || [];
-      const videoOnly = videoData.videoFormats?.filter((f: any) => !f.hasAudio) || [];
-      const audios = videoData.audioFormats || [];
-
-      // Default top dropdown: prioritize progressive format with audio (e.g. 360p)
-      if (withAudio.length > 0) {
-        setSelectedTopItag(withAudio[0].itag);
-      } else if (videoData.videoFormats?.length > 0) {
-        setSelectedTopItag(videoData.videoFormats[0].itag);
-      }
-
-      // Default HD combiner dropdowns: highest resolution video and best audio track
-      if (videoOnly.length > 0) {
-        setSelectedHdVideoItag(videoOnly[0].itag);
-      }
-      if (audios.length > 0) {
-        setSelectedAudioItag(audios[0].itag);
-      }
-
-      setIsMerging(false);
-      setMergeProgress(0);
-      setMergeStatusText("");
-      setMergeSuccess(false);
-      setMergeError(null);
-      setShowManualFallback(false);
-    }
-  }, [videoData]);
-
-  const handlePaste = async () => {
-    try {
-      const text = await navigator.clipboard.readText();
-      if (text) {
-        setUrlInput(text.trim());
-        setErrorMessage(null);
-      }
-    } catch {
-      // clipboard access error
-    }
-  };
-
-  const handleClear = () => {
-    setUrlInput("");
-    setVideoData(null);
-    setErrorMessage(null);
-    setShowManualFallback(false);
-    setMergeSuccess(false);
-  };
-
-  const handleFetch = async (e?: React.FormEvent) => {
-    if (e) e.preventDefault();
-    if (!urlInput.trim()) {
-      setErrorMessage(dict.hero.errorEmpty);
-      return;
-    }
+  // Function to fetch video details
+  const fetchVideoDetails = async (urlToFetch: string) => {
+    if (!urlToFetch.trim()) return;
 
     setIsLoading(true);
     setErrorMessage(null);
@@ -119,7 +74,7 @@ export function VideoDownloaderTool({ lang, dict }: VideoDownloaderToolProps) {
       const res = await fetch("/api/video-formats", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ url: urlInput.trim(), lang }),
+        body: JSON.stringify({ url: urlToFetch.trim(), lang }),
       });
 
       let json: any = null;
@@ -153,6 +108,84 @@ export function VideoDownloaderTool({ lang, dict }: VideoDownloaderToolProps) {
     } finally {
       setIsLoading(false);
     }
+  };
+
+  // If initialUrl is passed on mount (e.g. dedicated /download page), fetch automatically
+  useEffect(() => {
+    if (initialUrl && !videoData) {
+      setUrlInput(initialUrl);
+      fetchVideoDetails(initialUrl);
+    }
+  }, [initialUrl]);
+
+  // When videoData arrives, initialize default selection
+  useEffect(() => {
+    if (videoData) {
+      const videos = videoData.videoFormats || [];
+      const audios = videoData.audioFormats || [];
+
+      // Default selection: prioritize 1080p, then 720p, then 360p
+      const p1080 = videos.find((f: any) => f.qualityLabel === "1080p" && f.container === "MP4");
+      const p720 = videos.find((f: any) => f.qualityLabel === "720p" && f.container === "MP4");
+      const p360 = videos.find((f: any) => f.qualityLabel === "360p" && f.container === "MP4");
+      const defaultVideo = p1080 || p720 || p360 || videos[0];
+
+      if (defaultVideo) {
+        setSelectedTopItag(defaultVideo.itag);
+      }
+
+      if (audios.length > 0) {
+        setSelectedAudioItag(audios[0].itag);
+      }
+
+      setIsMerging(false);
+      setMergeProgress(0);
+      setMergeStatusText("");
+      setMergeSuccess(false);
+      setMergeError(null);
+
+      // Auto scroll to results if on dedicated page or after load
+      if (resultsRef.current) {
+        resultsRef.current.scrollIntoView({ behavior: "smooth", block: "start" });
+      }
+    }
+  }, [videoData]);
+
+  const handlePaste = async () => {
+    try {
+      const text = await navigator.clipboard.readText();
+      if (text) {
+        setUrlInput(text.trim());
+        setErrorMessage(null);
+      }
+    } catch {
+      // clipboard access error
+    }
+  };
+
+  const handleClear = () => {
+    setUrlInput("");
+    setVideoData(null);
+    setErrorMessage(null);
+    setMergeSuccess(false);
+  };
+
+  const handleSubmit = async (e?: React.FormEvent) => {
+    if (e) e.preventDefault();
+    const cleanUrl = urlInput.trim();
+    if (!cleanUrl) {
+      setErrorMessage(dict.hero.errorEmpty);
+      return;
+    }
+
+    // If on homepage or standard tool page, navigate directly to dedicated download page
+    if (!isDedicatedPage) {
+      router.push(`/${lang}/download?url=${encodeURIComponent(cleanUrl)}`);
+      return;
+    }
+
+    // Already on dedicated download page -> fetch in place
+    await fetchVideoDetails(cleanUrl);
   };
 
   const handleDownload = (format: any, title: string) => {
@@ -190,8 +223,21 @@ export function VideoDownloaderTool({ lang, dict }: VideoDownloaderToolProps) {
     });
   };
 
-  const handleMergeAndDownload = async () => {
-    if (!videoData || !selectedHdVideoFormat || !selectedAudioFormat) return;
+  const handleMergeAndDownload = async (videoFormat: any, audioFormat: any) => {
+    if (!videoData || !videoFormat) return;
+
+    // If video natively has audio (progressive like 360p itag 18), direct download!
+    if (videoFormat.hasAudio) {
+      handleDownload(videoFormat, videoData.title);
+      return;
+    }
+
+    // If no separate audio is found, trigger direct download of the video stream
+    const targetAudio = audioFormat || (videoData.audioFormats && videoData.audioFormats[0]);
+    if (!targetAudio) {
+      handleDownload(videoFormat, videoData.title);
+      return;
+    }
 
     setIsMerging(true);
     setMergeError(null);
@@ -199,22 +245,22 @@ export function VideoDownloaderTool({ lang, dict }: VideoDownloaderToolProps) {
     setMergeProgress(5);
     setMergeStatusText(
       lang === "hi"
-        ? `HD वीडियो (${selectedHdVideoFormat.qualityLabel}) और ऑडियो डाउनलोड हो रहा है...`
-        : `Downloading HD Video (${selectedHdVideoFormat.qualityLabel}) & Audio...`
+        ? `HD वीडियो (${videoFormat.qualityLabel}) और ऑडियो तैयार हो रहा है...`
+        : `Combining HD Video (${videoFormat.qualityLabel}) & Audio...`
     );
 
     try {
-      const videoStreamParam = selectedHdVideoFormat.url
-        ? `&streamUrl=${encodeURIComponent(selectedHdVideoFormat.url)}`
+      const videoStreamParam = videoFormat.url
+        ? `&streamUrl=${encodeURIComponent(videoFormat.url)}`
         : "";
-      const audioStreamParam = selectedAudioFormat.url
-        ? `&streamUrl=${encodeURIComponent(selectedAudioFormat.url)}`
+      const audioStreamParam = targetAudio.url
+        ? `&streamUrl=${encodeURIComponent(targetAudio.url)}`
         : "";
 
-      const videoStreamEndpoint = `/api/video-download?id=${videoData.id}&itag=${selectedHdVideoFormat.itag}&title=${encodeURIComponent(
+      const videoStreamEndpoint = `/api/video-download?id=${videoData.id}&itag=${videoFormat.itag}&title=${encodeURIComponent(
         videoData.title
       )}${videoStreamParam}`;
-      const audioStreamEndpoint = `/api/video-download?id=${videoData.id}&itag=${selectedAudioFormat.itag}&title=${encodeURIComponent(
+      const audioStreamEndpoint = `/api/video-download?id=${videoData.id}&itag=${targetAudio.itag}&title=${encodeURIComponent(
         videoData.title
       )}&format=m4a${audioStreamParam}`;
 
@@ -223,7 +269,7 @@ export function VideoDownloaderTool({ lang, dict }: VideoDownloaderToolProps) {
         videoStreamEndpoint,
         audioStreamEndpoint,
         videoData.title,
-        selectedHdVideoFormat.qualityLabel,
+        videoFormat.qualityLabel,
         (status, pct) => {
           setMergeStatusText(status);
           setMergeProgress(pct);
@@ -232,64 +278,59 @@ export function VideoDownloaderTool({ lang, dict }: VideoDownloaderToolProps) {
       setMergeSuccess(true);
       setMergeStatusText(
         lang === "hi"
-          ? "✅ HD वीडियो और ऑडियो 1 फाइल में जुड़कर डाउनलोड हो गया!"
-          : "✅ HD video and audio merged successfully into 1 MP4 file!"
+          ? "✅ HD वीडियो और ऑडियो 1 पूरी MP4 फाइल में डाउनलोड हो गया!"
+          : "✅ HD video and audio combined into 1 complete MP4 file!"
       );
     } catch (err: any) {
-      console.error("Browser merge failed:", err);
+      console.warn("Client merge fallback:", err);
+      // Fallback: download video stream directly so user is never blocked
+      handleDownload(videoFormat, `${videoData.title}-${videoFormat.qualityLabel}-HD`);
       setMergeError(
         lang === "hi"
-          ? `मर्जिंग में समस्या: ${err.message || "Unknown error"}। आप नीचे दिए गए बटनों से दोनों फ़ाइलें अलग-अलग डाउनलोड कर सकते हैं।`
-          : `Merging notice: ${err.message || "Unknown error"}. You can save both streams separately below.`
+          ? "डायरेक्ट HD वीडियो डाउनलोड शुरू हो गया है। आप नीचे ऑडियो भी अलग से डाउनलोड कर सकते हैं।"
+          : "Direct HD video download started. You can also save the audio track below."
       );
-      setShowManualFallback(true);
     } finally {
       setIsMerging(false);
     }
   };
 
-  const progressiveFormats = videoData?.videoFormats?.filter((f: any) => f.hasAudio) || [];
-  const hdVideoOnlyFormats = videoData?.videoFormats?.filter((f: any) => !f.hasAudio) || [];
+  // Group and sort formats
+  const videoFormats: any[] = videoData?.videoFormats || [];
   const audioFormats: any[] = videoData?.audioFormats || [];
   const mp3Formats: any[] = videoData?.mp3Formats || [];
 
-  // All formats available in the top dropdown
-  const allTopFormats = [
-    ...progressiveFormats,
-    ...hdVideoOnlyFormats,
-    ...mp3Formats,
-  ];
+  // Filter distinct video resolutions for the main dropdown
+  const distinctResolutions: string[] = [];
+  const mainVideoOptions: any[] = [];
+  for (const f of videoFormats) {
+    const q = f.qualityLabel || `${f.resolution}p`;
+    if (q && !distinctResolutions.includes(q)) {
+      distinctResolutions.push(q);
+      mainVideoOptions.push(f);
+    }
+  }
 
-  const currentSelectedTopFormat =
-    allTopFormats.find((f: any) => f.itag === selectedTopItag) ||
-    progressiveFormats[0] ||
-    videoData?.videoFormats?.[0];
+  // Determine current selection
+  const isMp3Selected = selectedTopItag !== null && selectedTopItag < 0;
+  const currentSelectedMp3 = isMp3Selected
+    ? mp3Formats.find((m: any) => m.itag === selectedTopItag) || mp3Formats[0]
+    : null;
 
-  const isVideoOnlySelected =
-    currentSelectedTopFormat &&
-    !currentSelectedTopFormat.hasAudio &&
-    !currentSelectedTopFormat.isAudioOnly;
+  const currentSelectedVideo =
+    videoFormats.find((f: any) => f.itag === selectedTopItag) ||
+    mainVideoOptions[0] ||
+    videoFormats[0];
 
-  const isAudioOnlySelected = currentSelectedTopFormat?.isAudioOnly;
-
-  const selectedHdVideoFormat =
-    hdVideoOnlyFormats.find((f: any) => f.itag === selectedHdVideoItag) ||
-    hdVideoOnlyFormats[0];
-
-  const selectedAudioFormat =
-    audioFormats.find((f: any) => f.itag === selectedAudioItag) ||
+  const currentSelectedAudio =
+    audioFormats.find((a: any) => a.itag === selectedAudioItag) ||
     audioFormats[0];
-
-  // Distinct language groups for the audio dropdown
-  const audioLanguageGroups = Array.from(
-    new Set(audioFormats.map((f: any) => f.language || "Original"))
-  );
 
   return (
     <div className="max-w-5xl mx-auto space-y-8">
       {/* Search Input Box */}
       <div className="bg-white dark:bg-slate-900 rounded-3xl border border-slate-200 dark:border-slate-800 p-6 sm:p-8 shadow-sm space-y-4">
-        <form onSubmit={handleFetch} className="space-y-4">
+        <form onSubmit={handleSubmit} className="space-y-4">
           <label className="text-sm font-bold text-slate-900 dark:text-white block">
             {lang === "hi"
               ? "YouTube वीडियो या Shorts का लिंक डालें:"
@@ -357,564 +398,525 @@ export function VideoDownloaderTool({ lang, dict }: VideoDownloaderToolProps) {
         )}
       </div>
 
-      {/* SnapYT-Style 2-Card Preview & Download Experience */}
+      {/* Dedicated YouTube Download Options Section */}
       {videoData && (
-        <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 animate-in fade-in duration-300">
-          {/* Left Card: Video Details & Thumbnail */}
-          <div className="lg:col-span-5 bg-white dark:bg-slate-900 rounded-3xl border border-slate-200 dark:border-slate-800 p-6 shadow-sm flex flex-col justify-between space-y-4">
-            <div className="space-y-4">
-              {/* Ready pill */}
-              <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-rose-50 dark:bg-rose-950/40 border border-rose-200 dark:border-rose-900 text-rose-600 dark:text-rose-400 text-xs font-bold uppercase tracking-wider">
-                <Film className="w-3.5 h-3.5" />
-                <span>YouTube Video Ready</span>
-              </div>
+        <div ref={resultsRef} className="space-y-6 animate-in fade-in duration-300 scroll-mt-6">
+          {/* Main 2-Card Preview & Download Experience */}
+          <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
+            {/* Left Card: Video Details & Thumbnail */}
+            <div className="lg:col-span-5 bg-white dark:bg-slate-900 rounded-3xl border border-slate-200 dark:border-slate-800 p-6 shadow-sm flex flex-col justify-between space-y-4">
+              <div className="space-y-4">
+                {/* Ready pill */}
+                <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-rose-50 dark:bg-rose-950/40 border border-rose-200 dark:border-rose-900 text-rose-600 dark:text-rose-400 text-xs font-bold uppercase tracking-wider">
+                  <Film className="w-3.5 h-3.5" />
+                  <span>YouTube Video Ready</span>
+                </div>
 
-              {/* Thumbnail with HD Thumbnail button overlay */}
-              <div className="w-full rounded-2xl overflow-hidden aspect-video bg-black relative shadow-md group">
-                {/* eslint-disable-next-line @next/next/no-img-element */}
-                <img
-                  src={videoData.thumbnail}
-                  alt={videoData.title}
-                  className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
-                />
-                <span className="absolute bottom-2 left-2 px-2 py-0.5 rounded bg-black/80 text-white font-mono text-[10px] font-bold">
-                  {videoData.duration}
-                </span>
+                {/* Thumbnail with HD Thumbnail button overlay */}
+                <div className="w-full rounded-2xl overflow-hidden aspect-video bg-black relative shadow-md group">
+                  {/* eslint-disable-next-line @next/next/no-img-element */}
+                  <img
+                    src={videoData.thumbnail}
+                    alt={videoData.title}
+                    className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+                  />
+                  <span className="absolute bottom-2 left-2 px-2 py-0.5 rounded bg-black/80 text-white font-mono text-[10px] font-bold">
+                    {videoData.duration}
+                  </span>
 
-                <a
-                  href={`/api/download-proxy?id=${videoData.id}&res=maxresdefault&format=jpg`}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="absolute bottom-2 right-2 px-2.5 py-1 rounded-lg bg-black/75 hover:bg-black text-white text-[10px] font-bold flex items-center gap-1 backdrop-blur-xs transition-colors"
-                >
-                  <ImageIcon className="w-3 h-3 text-emerald-400" />
-                  <span>Thumbnail HD</span>
-                </a>
-              </div>
+                  <a
+                    href={`/api/download-proxy?id=${videoData.id}&res=maxresdefault&format=jpg`}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="absolute bottom-2 right-2 px-2.5 py-1 rounded-lg bg-black/75 hover:bg-black text-white text-[10px] font-bold flex items-center gap-1 backdrop-blur-xs transition-colors"
+                  >
+                    <ImageIcon className="w-3 h-3 text-emerald-400" />
+                    <span>Thumbnail HD</span>
+                  </a>
+                </div>
 
-              {/* Title & Dynamic Metadata */}
-              <div className="space-y-2">
-                <h2 className="text-base sm:text-lg font-bold text-slate-900 dark:text-white leading-snug">
-                  {videoData.title}
-                </h2>
-                <div className="flex flex-wrap items-center gap-2 text-xs text-slate-500 dark:text-slate-400">
-                  <span>Duration: {videoData.duration}</span>
-                  {currentSelectedTopFormat?.sizeMb && (
-                    <>
-                      <span>•</span>
-                      <span>Size: {currentSelectedTopFormat.sizeMb}</span>
-                    </>
-                  )}
-                  <span>•</span>
-                  <span>Channel: {videoData.author}</span>
+                {/* Title & Metadata */}
+                <div className="space-y-2">
+                  <h2 className="text-base sm:text-lg font-bold text-slate-900 dark:text-white leading-snug">
+                    {videoData.title}
+                  </h2>
+                  <div className="flex flex-wrap items-center gap-2 text-xs text-slate-500 dark:text-slate-400">
+                    <span>Duration: {videoData.duration}</span>
+                    {currentSelectedVideo?.sizeMb && (
+                      <>
+                        <span>•</span>
+                        <span>Size: {currentSelectedVideo.sizeMb}</span>
+                      </>
+                    )}
+                    <span>•</span>
+                    <span>Channel: {videoData.author}</span>
+                  </div>
                 </div>
               </div>
-            </div>
 
-            {/* Bottom Media Badges (reflects selected top format) */}
-            <div className="pt-3 border-t border-slate-100 dark:border-slate-800 flex items-center gap-2">
-              {isAudioOnlySelected ? (
-                <span className="px-3 py-1 rounded-full bg-emerald-50 dark:bg-emerald-950/50 text-emerald-600 dark:text-emerald-400 text-xs font-bold flex items-center gap-1 border border-emerald-200/60 dark:border-emerald-900/60">
-                  <Music className="w-3.5 h-3.5" />
-                  <span>Audio Only</span>
-                </span>
-              ) : isVideoOnlySelected ? (
-                <>
-                  <span className="px-3 py-1 rounded-full bg-rose-50 dark:bg-rose-950/50 text-rose-600 dark:text-rose-400 text-xs font-bold flex items-center gap-1 border border-rose-200/60 dark:border-rose-900/60">
-                    <X className="w-3.5 h-3.5" />
-                    <span>No Audio</span>
-                  </span>
-                  <span className="px-3 py-1 rounded-full bg-blue-50 dark:bg-blue-950/50 text-blue-600 dark:text-blue-400 text-xs font-bold flex items-center gap-1 border border-blue-200/60 dark:border-blue-900/60">
-                    <Video className="w-3.5 h-3.5" />
-                    <span>Video</span>
-                  </span>
-                </>
-              ) : (
-                <>
+              {/* Bottom Badges */}
+              <div className="pt-3 border-t border-slate-100 dark:border-slate-800 flex items-center gap-2">
+                {isMp3Selected ? (
                   <span className="px-3 py-1 rounded-full bg-emerald-50 dark:bg-emerald-950/50 text-emerald-600 dark:text-emerald-400 text-xs font-bold flex items-center gap-1 border border-emerald-200/60 dark:border-emerald-900/60">
                     <Music className="w-3.5 h-3.5" />
-                    <span>Audio</span>
+                    <span>Audio (MP3)</span>
                   </span>
-                  <span className="px-3 py-1 rounded-full bg-blue-50 dark:bg-blue-950/50 text-blue-600 dark:text-blue-400 text-xs font-bold flex items-center gap-1 border border-blue-200/60 dark:border-blue-900/60">
-                    <Video className="w-3.5 h-3.5" />
-                    <span>Video</span>
-                  </span>
-                </>
-              )}
-            </div>
-          </div>
-
-          {/* Right Card: SnapYT-Style Download Options & HD Combiner */}
-          <div className="lg:col-span-7 bg-white dark:bg-slate-900 rounded-3xl border border-slate-200 dark:border-slate-800 p-6 sm:p-7 shadow-sm space-y-6">
-            {/* Top Download Header */}
-            <div>
-              <h3 className="text-xl font-extrabold text-slate-900 dark:text-white">
-                YouTube Download Options
-              </h3>
-              <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5">
-                Approx. {currentSelectedTopFormat?.sizeMb || "46.52 MB"}
-              </p>
+                ) : (
+                  <>
+                    <span className="px-3 py-1 rounded-full bg-emerald-50 dark:bg-emerald-950/50 text-emerald-600 dark:text-emerald-400 text-xs font-bold flex items-center gap-1 border border-emerald-200/60 dark:border-emerald-900/60">
+                      <Music className="w-3.5 h-3.5" />
+                      <span>Audio</span>
+                    </span>
+                    <span className="px-3 py-1 rounded-full bg-blue-50 dark:bg-blue-950/50 text-blue-600 dark:text-blue-400 text-xs font-bold flex items-center gap-1 border border-blue-200/60 dark:border-blue-900/60">
+                      <Video className="w-3.5 h-3.5" />
+                      <span>Video ({currentSelectedVideo?.qualityLabel || "HD"})</span>
+                    </span>
+                  </>
+                )}
+              </div>
             </div>
 
-            {/* Badges Pill Row */}
-            <div className="flex flex-wrap items-center gap-1.5 text-[11px] font-bold">
-              {currentSelectedTopFormat?.isRecommended && (
+            {/* Right Card: YouTube Download Options */}
+            <div className="lg:col-span-7 bg-white dark:bg-slate-900 rounded-3xl border border-slate-200 dark:border-slate-800 p-6 sm:p-7 shadow-sm space-y-6">
+              {/* Header */}
+              <div>
+                <h3 className="text-xl font-extrabold text-slate-900 dark:text-white">
+                  YouTube Download Options
+                </h3>
+                <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5">
+                  Approx. {currentSelectedVideo?.sizeMb || currentSelectedMp3?.sizeMb || "4.08 MB"}
+                </p>
+              </div>
+
+              {/* Badges Pill Row */}
+              <div className="flex flex-wrap items-center gap-1.5 text-[11px] font-bold">
                 <span className="px-2.5 py-0.5 rounded-full bg-amber-50 dark:bg-amber-950/50 text-amber-600 dark:text-amber-400 border border-amber-200/60 dark:border-amber-900/40">
                   Recommended
                 </span>
-              )}
-              <span className="px-2.5 py-0.5 rounded-full bg-blue-50 dark:bg-blue-950/50 text-blue-600 dark:text-blue-400 border border-blue-200/60 dark:border-blue-900/40">
-                {currentSelectedTopFormat?.qualityLabel || "360p"} {currentSelectedTopFormat?.container || "MP4"}
-              </span>
-              {currentSelectedTopFormat?.sizeMb && (
-                <span className="px-2.5 py-0.5 rounded-full bg-emerald-50 dark:bg-emerald-950/50 text-emerald-600 dark:text-emerald-400 border border-emerald-200/60 dark:border-emerald-900/40">
-                  {currentSelectedTopFormat.sizeMb}
+                <span className="px-2.5 py-0.5 rounded-full bg-blue-50 dark:bg-blue-950/50 text-blue-600 dark:text-blue-400 border border-blue-200/60 dark:border-blue-900/40">
+                  {isMp3Selected
+                    ? `MP3 · ${currentSelectedMp3?.bitrate} kbps`
+                    : `${currentSelectedVideo?.qualityLabel || "1080p"} ${currentSelectedVideo?.container || "MP4"}`}
                 </span>
-              )}
-              {isAudioOnlySelected ? (
-                <span className="px-2.5 py-0.5 rounded-full bg-emerald-50 dark:bg-emerald-950/50 text-emerald-600 dark:text-emerald-400 border border-emerald-200/60 dark:border-emerald-900/40">
-                  Audio Only
-                </span>
-              ) : isVideoOnlySelected ? (
-                <span className="px-2.5 py-0.5 rounded-full bg-rose-50 dark:bg-rose-950/50 text-rose-600 dark:text-rose-400 border border-rose-200/60 dark:border-rose-900/40">
-                  Video Only (No Sound)
-                </span>
-              ) : (
-                <span className="px-2.5 py-0.5 rounded-full bg-emerald-50 dark:bg-emerald-950/50 text-emerald-600 dark:text-emerald-400 border border-emerald-200/60 dark:border-emerald-900/40">
-                  Video + Audio
-                </span>
-              )}
-            </div>
-
-            {/* Quality Dropdown & Warning Card */}
-            <div className="space-y-3">
-              <label className="text-xs font-bold text-slate-700 dark:text-slate-300 block">
-                {lang === "hi" ? "YouTube वीडियो क्वालिटी चुनें:" : "Choose your YouTube quality"}
-              </label>
-
-              {/* Categorized Dropdown with Optgroups matching SnapYT */}
-              <select
-                value={selectedTopItag || ""}
-                onChange={(e) => {
-                  const val = Number(e.target.value);
-                  setSelectedTopItag(val);
-                  // If user selected a video-only format, auto-sync HD combiner video dropdown
-                  const matchHd = hdVideoOnlyFormats.find((f: any) => f.itag === val);
-                  if (matchHd) {
-                    setSelectedHdVideoItag(val);
-                  }
-                }}
-                className="w-full px-4 py-3 rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 text-slate-900 dark:text-white text-sm font-semibold focus:outline-none focus:ring-2 focus:ring-emerald-500"
-              >
-                {/* 1. Video + Audio (Ready to Download) */}
-                {progressiveFormats.length > 0 && (
-                  <optgroup
-                    label={
-                      lang === "hi"
-                        ? "🎬 वीडियो + ऑडियो (सीधे डाउनलोड के लिए तैयार)"
-                        : "🎬 Video + Audio (Ready to Download)"
-                    }
-                  >
-                    {progressiveFormats.map((f: any) => (
-                      <option key={f.itag} value={f.itag}>
-                        ★ {f.qualityLabel} {f.container} · {f.sizeMb || ""} — {lang === "hi" ? "Recommended" : "Recommended"}
-                      </option>
-                    ))}
-                  </optgroup>
-                )}
-
-                {/* 2. Higher Quality Video — Combine with audio for sound */}
-                {hdVideoOnlyFormats.length > 0 && (
-                  <optgroup
-                    label={
-                      lang === "hi"
-                        ? "🎞️ उच्च क्वालिटी वीडियो — आवाज़ के लिए ऑडियो से जोड़ें"
-                        : "🎞️ Higher Quality Video — Combine with audio for sound"
-                    }
-                  >
-                    {hdVideoOnlyFormats.map((f: any) => (
-                      <option key={f.itag} value={f.itag}>
-                        {f.qualityLabel} {f.container} · {f.sizeMb || ""}
-                      </option>
-                    ))}
-                  </optgroup>
-                )}
-
-                {/* 3. MP3 Presets */}
-                {mp3Formats.length > 0 && (
-                  <optgroup label="🎵 MP3">
-                    {mp3Formats.map((f: any) => (
-                      <option key={f.itag} value={f.itag}>
-                        {f.label}
-                      </option>
-                    ))}
-                  </optgroup>
-                )}
-              </select>
-
-              {/* Informative Blue Callout (when HD format is selected) */}
-              {isVideoOnlySelected && (
-                <div className="p-3.5 rounded-2xl bg-blue-50 dark:bg-blue-950/40 border border-blue-200/80 dark:border-blue-900/60 flex items-center justify-between gap-3 animate-in fade-in duration-200">
-                  <div className="flex items-start gap-2.5">
-                    <div className="p-1 rounded-full bg-blue-100 dark:bg-blue-900/60 text-blue-700 dark:text-blue-300">
-                      <Sparkles className="w-4 h-4 shrink-0" />
-                    </div>
-                    <div>
-                      <div className="text-xs font-bold text-blue-950 dark:text-blue-200">
-                        {lang === "hi"
-                          ? `HD वीडियो (${currentSelectedTopFormat.qualityLabel}) + ओरिजिनल ऑडियो`
-                          : `Full HD (${currentSelectedTopFormat.qualityLabel}) Video + Audio Included`}
-                      </div>
-                      <div className="text-[11px] text-blue-800 dark:text-blue-300 mt-0.5">
-                        {lang === "hi"
-                          ? "डाउनलोड बटन दबाते ही यह उच्च क्वालिटी वीडियो और ओरिजिनल आवाज़ को 1 पूरी MP4 फाइल में जोड़कर सेव करेगा।"
-                          : "Downloads the highest quality video with sound bundled into 1 complete MP4 file."}
-                      </div>
-                    </div>
-                  </div>
-                </div>
-              )}
-
-              {/* Big Green Download Button */}
-              <button
-                onClick={() => {
-                  if (!currentSelectedTopFormat) return;
-                  if (isVideoOnlySelected) {
-                    handleMergeAndDownload();
-                  } else {
-                    handleDownload(currentSelectedTopFormat, videoData.title);
-                  }
-                }}
-                disabled={isMerging || downloadingItag === currentSelectedTopFormat?.itag}
-                className="w-full py-4 bg-emerald-600 hover:bg-emerald-700 active:scale-[0.99] text-white font-extrabold text-base rounded-2xl shadow-lg shadow-emerald-600/25 flex items-center justify-center gap-2 transition-all disabled:opacity-60 cursor-pointer"
-              >
-                {isMerging ? (
-                  <>
-                    <Loader2 className="w-5 h-5 animate-spin" />
-                    <span>
-                      {mergeStatusText ||
-                        (lang === "hi"
-                          ? "HD वीडियो और ऑडियो जुड़ रहा है..."
-                          : "Combining HD Video & Audio...")}
-                    </span>
-                  </>
-                ) : downloadingItag === currentSelectedTopFormat?.itag ? (
-                  <>
-                    <Loader2 className="w-5 h-5 animate-spin" />
-                    <span>{lang === "hi" ? "डाउनलोड शुरू हो रहा है..." : "Starting Download..."}</span>
-                  </>
-                ) : (
-                  <>
-                    <Download className="w-5 h-5" />
-                    <span>
-                      {isAudioOnlySelected
-                        ? (lang === "hi" ? "ऑडियो (MP3) डाउनलोड करें" : "Download Audio (MP3)")
-                        : isVideoOnlySelected
-                        ? (lang === "hi"
-                            ? `Full HD वीडियो और ऑडियो डाउनलोड करें (${currentSelectedTopFormat.qualityLabel} + Sound)`
-                            : `Download Full HD (${currentSelectedTopFormat.qualityLabel} Video + Audio)`)
-                        : (lang === "hi"
-                            ? `वीडियो डाउनलोड करें (${currentSelectedTopFormat.qualityLabel} + Sound)`
-                            : `Download Video (${currentSelectedTopFormat.qualityLabel})`)}
-                    </span>
-                  </>
-                )}
-              </button>
-
-              {/* In-Place Merge Progress Bar (visible during HD Combine) */}
-              {isMerging && (
-                <div className="p-4 rounded-2xl bg-emerald-50/50 dark:bg-emerald-950/30 border border-emerald-200 dark:border-emerald-800 space-y-2 animate-in fade-in">
-                  <div className="flex justify-between text-xs font-bold text-emerald-800 dark:text-emerald-300">
-                    <span>{mergeStatusText}</span>
-                    <span>{mergeProgress}%</span>
-                  </div>
-                  <div className="w-full bg-slate-200 dark:bg-slate-700 h-2.5 rounded-full overflow-hidden">
-                    <div
-                      className="bg-emerald-600 h-full rounded-full transition-all duration-300 ease-out"
-                      style={{ width: `${mergeProgress}%` }}
-                    />
-                  </div>
-                </div>
-              )}
-
-              {/* In-Place Merge Success Box */}
-              {mergeSuccess && (
-                <div className="p-3.5 rounded-2xl bg-emerald-100 dark:bg-emerald-950/60 border border-emerald-300 text-emerald-800 dark:text-emerald-200 text-xs font-bold flex items-center gap-2">
-                  <Check className="w-4 h-4 text-emerald-600 shrink-0" />
-                  <span>{mergeStatusText}</span>
-                </div>
-              )}
-
-              {/* Merge Error Box */}
-              {mergeError && (
-                <div className="p-3.5 rounded-2xl bg-rose-50 dark:bg-rose-950/40 border border-rose-200 text-rose-700 dark:text-rose-300 text-xs font-semibold">
-                  {mergeError}
-                </div>
-              )}
-
-              {/* Optional: Silent video only link */}
-              {isVideoOnlySelected && !isMerging && (
-                <p className="text-[11px] text-center text-slate-500 dark:text-slate-400">
-                  <button
-                    type="button"
-                    onClick={() =>
-                      currentSelectedTopFormat &&
-                      handleDownload(currentSelectedTopFormat, videoData.title)
-                    }
-                    className="underline hover:text-slate-800 dark:hover:text-slate-200"
-                  >
-                    {lang === "hi"
-                      ? "वैकल्पिक: बिना आवाज़ की वीडियो फ़ाइल डाउनलोड करें"
-                      : "Optional: Download silent video-only file"}
-                  </button>
-                </p>
-              )}
-
-              <p className="text-[11px] text-center text-slate-400">
-                By downloading, you agree to our Terms of Service.
-              </p>
-            </div>
-
-            {/* Quick Action Buttons */}
-            <div className="grid grid-cols-2 gap-3 pt-1">
-              <a
-                href={`https://www.youtube.com/watch?v=${videoData.id}`}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="py-2.5 px-4 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 hover:bg-slate-50 dark:hover:bg-slate-750 text-slate-700 dark:text-slate-200 text-xs font-bold flex items-center justify-center gap-1.5 transition-colors"
-              >
-                <ExternalLink className="w-3.5 h-3.5" />
-                <span>Open on YouTube</span>
-              </a>
-
-              <button
-                type="button"
-                onClick={handleCopyLink}
-                className="py-2.5 px-4 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 hover:bg-slate-50 dark:hover:bg-slate-750 text-slate-700 dark:text-slate-200 text-xs font-bold flex items-center justify-center gap-1.5 transition-colors"
-              >
-                {copiedLink ? (
-                  <>
-                    <Check className="w-3.5 h-3.5 text-emerald-500" />
-                    <span className="text-emerald-600">Copied!</span>
-                  </>
-                ) : (
-                  <>
-                    <Clipboard className="w-3.5 h-3.5" />
-                    <span>Copy YouTube Link</span>
-                  </>
-                )}
-              </button>
-            </div>
-
-            {/* Reset / Download Another Video Button */}
-            <button
-              type="button"
-              onClick={handleClear}
-              className="w-full py-3 px-4 rounded-xl bg-slate-900 dark:bg-slate-800 hover:bg-slate-800 dark:hover:bg-slate-700 text-white text-xs font-bold flex items-center justify-center gap-2 transition-colors"
-            >
-              <RefreshCw className="w-3.5 h-3.5" />
-              <span>{lang === "hi" ? "अन्य YouTube वीडियो डाउनलोड करें" : "Download another YouTube video"}</span>
-            </button>
-
-            {/* ── SNAPYT-STYLE HD COMBINER BOX (Attached to combineRef) ── */}
-            <div
-              ref={combineRef}
-              className="p-5 rounded-2xl border-2 border-emerald-500/25 bg-emerald-50/15 dark:bg-emerald-950/10 space-y-4 scroll-mt-6"
-            >
-              <div>
-                <h4 className="text-sm font-extrabold text-slate-900 dark:text-white flex items-center gap-2">
-                  <Sparkles className="w-4 h-4 text-emerald-500" />
-                  <span>
-                    {lang === "hi"
-                      ? "Need higher quality? Combine YouTube video + audio"
-                      : "Need higher quality? Combine YouTube video + audio"}
+                {(currentSelectedVideo?.sizeMb || currentSelectedMp3?.sizeMb) && (
+                  <span className="px-2.5 py-0.5 rounded-full bg-emerald-50 dark:bg-emerald-950/50 text-emerald-600 dark:text-emerald-400 border border-emerald-200/60 dark:border-emerald-900/40">
+                    {currentSelectedVideo?.sizeMb || currentSelectedMp3?.sizeMb}
                   </span>
-                </h4>
-                <p className="text-xs text-slate-500 dark:text-slate-400 mt-1">
-                  {lang === "hi"
-                    ? "Pick a video-only quality and an audio track, then prepare a single HD MP4 file."
-                    : "Pick a video-only quality and an audio track, then prepare a single HD MP4 file."}
-                </p>
+                )}
+                <span className="px-2.5 py-0.5 rounded-full bg-emerald-50 dark:bg-emerald-950/50 text-emerald-600 dark:text-emerald-400 border border-emerald-200/60 dark:border-emerald-900/40">
+                  {isMp3Selected ? "Audio Only" : "Video + Audio"}
+                </span>
               </div>
 
-              {/* Two Dropdowns Side by Side */}
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                {/* 1. Select Video Quality */}
-                <div>
-                  <label className="text-[11px] font-bold text-slate-600 dark:text-slate-400 block mb-1">
-                    {lang === "hi" ? "Select video quality" : "Select video quality"}
+              {/* Quality & Audio Selectors */}
+              <div className="space-y-4">
+                {/* 1. Quality Selector Dropdown */}
+                <div className="space-y-1.5">
+                  <label className="text-xs font-bold text-slate-700 dark:text-slate-300 block">
+                    {lang === "hi" ? "वीडियो क्वालिटी चुनें (Choose your YouTube quality):" : "Choose your YouTube quality:"}
                   </label>
                   <select
-                    value={selectedHdVideoItag || ""}
+                    value={selectedTopItag || ""}
                     onChange={(e) => {
-                      setSelectedHdVideoItag(Number(e.target.value));
+                      const val = Number(e.target.value);
+                      setSelectedTopItag(val);
                       setMergeSuccess(false);
+                      setMergeError(null);
                     }}
-                    className="w-full px-3 py-2.5 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-900 dark:text-white text-xs font-semibold focus:outline-none focus:ring-2 focus:ring-emerald-500"
+                    className="w-full px-4 py-3 rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 text-slate-900 dark:text-white text-sm font-semibold focus:outline-none focus:ring-2 focus:ring-emerald-500"
                   >
-                    {hdVideoOnlyFormats.map((f: any) => (
-                      <option key={f.itag} value={f.itag}>
-                        {f.qualityLabel} {f.container} · {f.sizeMb || ""}
-                      </option>
-                    ))}
-                    {hdVideoOnlyFormats.length === 0 && (
-                      <option value="">No HD streams</option>
-                    )}
-                  </select>
-                </div>
+                    {/* Video + Audio Group (1080p, 720p, 480p, 360p) */}
+                    <optgroup
+                      label={
+                        lang === "hi"
+                          ? "🎬 वीडियो + ऑडियो (Full Video + Audio)"
+                          : "🎬 Video + Audio (Full Video with Sound)"
+                      }
+                    >
+                      {mainVideoOptions.map((f: any) => (
+                        <option key={f.itag} value={f.itag}>
+                          ★ {f.qualityLabel} {f.container} · {f.sizeMb || ""} — Video + Audio
+                        </option>
+                      ))}
+                    </optgroup>
 
-                {/* 2. Select Audio Track (Grouped by Language like SnapYT Image 3) */}
-                <div>
-                  <label className="text-[11px] font-bold text-slate-600 dark:text-slate-400 block mb-1">
-                    {lang === "hi" ? "Select audio track" : "Select audio track"}
-                  </label>
-                  <select
-                    value={selectedAudioItag || ""}
-                    onChange={(e) => {
-                      setSelectedAudioItag(Number(e.target.value));
-                      setMergeSuccess(false);
-                    }}
-                    className="w-full px-3 py-2.5 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-900 dark:text-white text-xs font-semibold focus:outline-none focus:ring-2 focus:ring-emerald-500"
-                  >
-                    {audioLanguageGroups.map((langGroup) => (
-                      <optgroup key={langGroup} label={langGroup}>
-                        {audioFormats
-                          .filter((f: any) => (f.language || "Original") === langGroup)
-                          .map((f: any) => (
-                            <option key={f.itag} value={f.itag}>
-                              {f.codecLabel} · {f.audioBitrate} kbps{f.sizeMb ? ` · ${f.sizeMb}` : ""}
-                            </option>
-                          ))}
+                    {/* MP3 Presets */}
+                    {mp3Formats.length > 0 && (
+                      <optgroup label="🎵 MP3 Audio (High Bitrate)">
+                        {mp3Formats.map((m: any) => (
+                          <option key={m.itag} value={m.itag}>
+                            {m.label}
+                          </option>
+                        ))}
                       </optgroup>
-                    ))}
-                    {audioFormats.length === 0 && (
-                      <option value="">No audio tracks</option>
                     )}
                   </select>
                 </div>
-              </div>
 
-              {/* Merge Progress Bar */}
-              {isMerging && (
-                <div className="space-y-2 p-3.5 rounded-xl bg-emerald-500/10 border border-emerald-500/20">
-                  <div className="flex justify-between text-xs font-bold text-emerald-700 dark:text-emerald-300">
-                    <span className="flex items-center gap-1.5">
-                      <Loader2 className="w-3.5 h-3.5 animate-spin" />
-                      {mergeStatusText || "Combining HD video & audio..."}
-                    </span>
-                    <span>{mergeProgress}%</span>
+                {/* 2. Audio Track Selector (Visible when Video is selected) */}
+                {!isMp3Selected && (
+                  <div className="space-y-1.5 p-3.5 rounded-2xl bg-slate-50 dark:bg-slate-800/60 border border-slate-200/80 dark:border-slate-700/80">
+                    <label className="text-xs font-bold text-slate-700 dark:text-slate-300 flex items-center justify-between">
+                      <span className="flex items-center gap-1.5">
+                        <Music className="w-3.5 h-3.5 text-emerald-500" />
+                        <span>{lang === "hi" ? "ऑडियो ट्रैक चुनें (Select Audio Track):" : "Select Audio Track:"}</span>
+                      </span>
+                      <span className="text-[11px] font-semibold text-emerald-600 dark:text-emerald-400">
+                        {currentSelectedAudio ? `${currentSelectedAudio.audioBitrate} kbps` : "Original"}
+                      </span>
+                    </label>
+                    <select
+                      value={selectedAudioItag || ""}
+                      onChange={(e) => setSelectedAudioItag(Number(e.target.value))}
+                      className="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-900 dark:text-white text-xs font-semibold focus:outline-none focus:ring-2 focus:ring-emerald-500"
+                    >
+                      {audioFormats.map((a: any) => (
+                        <option key={a.itag} value={a.itag}>
+                          {a.language || "Original Audio"} — {a.codecLabel} ({a.audioBitrate} kbps){a.sizeMb ? ` · ${a.sizeMb}` : ""}
+                        </option>
+                      ))}
+                      {audioFormats.length === 0 && (
+                        <option value="140">Default Audio Track (128 kbps AAC)</option>
+                      )}
+                    </select>
                   </div>
-                  <div className="w-full h-2 rounded-full bg-slate-200 dark:bg-slate-700 overflow-hidden">
-                    <div
-                      className="h-full bg-emerald-500 transition-all duration-300"
-                      style={{ width: `${mergeProgress}%` }}
-                    />
-                  </div>
-                </div>
-              )}
-
-              {/* Merge Success Notice */}
-              {mergeSuccess && (
-                <div className="p-3 rounded-xl bg-emerald-500/15 border border-emerald-500/30 text-emerald-700 dark:text-emerald-300 text-xs font-bold flex items-center gap-2 animate-in fade-in">
-                  <CheckCircle2 className="w-4 h-4 shrink-0 text-emerald-500" />
-                  <span>
-                    {lang === "hi"
-                      ? "✅ HD वीडियो और ऑडियो सफलता से 1 MP4 फाइल में डाउनलोड हो गया!"
-                      : "✅ HD video & audio successfully combined and downloaded as 1 MP4 file!"}
-                  </span>
-                </div>
-              )}
-
-              {/* Merge Error Notice */}
-              {mergeError && (
-                <div className="p-3 rounded-xl bg-amber-500/15 border border-amber-500/30 text-amber-800 dark:text-amber-200 text-xs flex items-start gap-2">
-                  <AlertCircle className="w-4 h-4 shrink-0 mt-0.5 text-amber-500" />
-                  <span>{mergeError}</span>
-                </div>
-              )}
-
-              {/* SnapYT-Style Primary Prepare HD Download Button */}
-              <button
-                type="button"
-                onClick={handleMergeAndDownload}
-                disabled={isMerging || !selectedHdVideoFormat || !selectedAudioFormat}
-                className="w-full py-3.5 bg-emerald-600 hover:bg-emerald-700 active:scale-[0.99] text-white font-extrabold text-sm rounded-xl shadow-lg shadow-emerald-600/25 flex items-center justify-center gap-2 transition-all disabled:opacity-60"
-              >
-                {isMerging ? (
-                  <>
-                    <Loader2 className="w-4 h-4 animate-spin" />
-                    <span>{lang === "hi" ? "वीडियो व ऑडियो जुड़ रहे हैं..." : "Combining Video & Audio..."}</span>
-                  </>
-                ) : (
-                  <>
-                    <Layers className="w-4 h-4" />
-                    <span>{lang === "hi" ? "Prepare HD Download" : "Prepare HD Download"}</span>
-                  </>
                 )}
-              </button>
-              <p className="text-[11px] text-center text-slate-400">
-                By downloading, you agree to our Terms of Service.
-              </p>
 
-              {/* Toggle Manual Separate Downloads */}
-              <div className="text-center pt-0.5">
+                {/* Primary Download Button */}
                 <button
                   type="button"
-                  onClick={() => setShowManualFallback(!showManualFallback)}
-                  className="text-[11px] text-slate-500 hover:text-slate-700 dark:hover:text-slate-300 underline font-medium"
+                  onClick={() => {
+                    if (isMp3Selected && currentSelectedMp3) {
+                      handleDownload(currentSelectedMp3, videoData.title);
+                    } else if (currentSelectedVideo) {
+                      handleMergeAndDownload(currentSelectedVideo, currentSelectedAudio);
+                    }
+                  }}
+                  disabled={isMerging || downloadingItag === selectedTopItag}
+                  className="w-full py-4 bg-emerald-600 hover:bg-emerald-700 active:scale-[0.99] text-white font-extrabold text-base rounded-2xl shadow-lg shadow-emerald-600/25 flex items-center justify-center gap-2 transition-all disabled:opacity-60 cursor-pointer"
                 >
-                  {showManualFallback
-                    ? (lang === "hi" ? "▲ अलग-अलग ट्रैक छुपाएं" : "▲ Hide separate track downloads")
-                    : (lang === "hi" ? "▼ अलग-अलग वीडियो और ऑडियो फाइल सेव करना चाहते हैं?" : "▼ Prefer saving separate video & audio files?")}
+                  {isMerging ? (
+                    <>
+                      <Loader2 className="w-5 h-5 animate-spin" />
+                      <span>{mergeStatusText || "Combining HD Video & Audio..."}</span>
+                    </>
+                  ) : downloadingItag === selectedTopItag ? (
+                    <>
+                      <Loader2 className="w-5 h-5 animate-spin" />
+                      <span>{lang === "hi" ? "डाउनलोड शुरू हो रहा है..." : "Starting Download..."}</span>
+                    </>
+                  ) : (
+                    <>
+                      <Download className="w-5 h-5" />
+                      <span>
+                        {isMp3Selected
+                          ? (lang === "hi" ? `ऑडियो (MP3) डाउनलोड करें (${currentSelectedMp3?.bitrate}k)` : `Download Audio (MP3 · ${currentSelectedMp3?.bitrate} kbps)`)
+                          : (lang === "hi"
+                              ? `वीडियो डाउनलोड करें (${currentSelectedVideo?.qualityLabel || "HD"} + Sound)`
+                              : `Download Video (${currentSelectedVideo?.qualityLabel || "HD"} MP4 + Audio)`)}
+                      </span>
+                    </>
+                  )}
+                </button>
+
+                {/* In-Place Merge Progress Bar */}
+                {isMerging && (
+                  <div className="p-4 rounded-2xl bg-emerald-50/50 dark:bg-emerald-950/30 border border-emerald-200 dark:border-emerald-800 space-y-2 animate-in fade-in">
+                    <div className="flex justify-between text-xs font-bold text-emerald-800 dark:text-emerald-300">
+                      <span>{mergeStatusText}</span>
+                      <span>{mergeProgress}%</span>
+                    </div>
+                    <div className="w-full bg-slate-200 dark:bg-slate-700 h-2.5 rounded-full overflow-hidden">
+                      <div
+                        className="bg-emerald-600 h-full rounded-full transition-all duration-300 ease-out"
+                        style={{ width: `${mergeProgress}%` }}
+                      />
+                    </div>
+                  </div>
+                )}
+
+                {/* Merge Success Notice */}
+                {mergeSuccess && (
+                  <div className="p-3.5 rounded-2xl bg-emerald-100 dark:bg-emerald-950/60 border border-emerald-300 text-emerald-800 dark:text-emerald-200 text-xs font-bold flex items-center gap-2 animate-in fade-in">
+                    <Check className="w-4 h-4 text-emerald-600 shrink-0" />
+                    <span>{mergeStatusText}</span>
+                  </div>
+                )}
+
+                {/* Merge Error Notice */}
+                {mergeError && (
+                  <div className="p-3.5 rounded-2xl bg-amber-50 dark:bg-amber-950/40 border border-amber-200 text-amber-800 dark:text-amber-200 text-xs font-semibold">
+                    {mergeError}
+                  </div>
+                )}
+
+                <p className="text-[11px] text-center text-slate-400">
+                  By downloading, you agree to our Terms of Service.
+                </p>
+              </div>
+
+              {/* Quick Action Buttons */}
+              <div className="grid grid-cols-2 gap-3 pt-1">
+                <a
+                  href={`https://www.youtube.com/watch?v=${videoData.id}`}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="py-2.5 px-4 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 hover:bg-slate-50 dark:hover:bg-slate-750 text-slate-700 dark:text-slate-200 text-xs font-bold flex items-center justify-center gap-1.5 transition-colors"
+                >
+                  <ExternalLink className="w-3.5 h-3.5" />
+                  <span>Open on YouTube</span>
+                </a>
+
+                <button
+                  type="button"
+                  onClick={handleCopyLink}
+                  className="py-2.5 px-4 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 hover:bg-slate-50 dark:hover:bg-slate-750 text-slate-700 dark:text-slate-200 text-xs font-bold flex items-center justify-center gap-1.5 transition-colors"
+                >
+                  {copiedLink ? (
+                    <>
+                      <Check className="w-3.5 h-3.5 text-emerald-500" />
+                      <span className="text-emerald-600">Copied!</span>
+                    </>
+                  ) : (
+                    <>
+                      <Clipboard className="w-3.5 h-3.5" />
+                      <span>Copy YouTube Link</span>
+                    </>
+                  )}
                 </button>
               </div>
 
-              {/* Manual Separate Fallback Drawer */}
-              {showManualFallback && (
-                <div className="p-4 rounded-xl bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 space-y-3 animate-in fade-in duration-300">
-                  <p className="text-xs font-bold text-slate-700 dark:text-slate-300">
-                    {lang === "hi" ? "अलग-अलग फाइलें डाउनलोड करें:" : "Download separate streams:"}
-                  </p>
-
-                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
-                    {selectedHdVideoFormat && (
-                      <button
-                        onClick={() =>
-                          handleDownload(selectedHdVideoFormat, `${videoData.title}-HD-Video`)
-                        }
-                        className="py-2.5 px-3 bg-slate-900 hover:bg-slate-800 text-white rounded-lg text-xs font-bold flex items-center justify-center gap-1.5 transition-colors"
-                      >
-                        <Download className="w-3.5 h-3.5 text-blue-400" />
-                        <span>Save HD Video ({selectedHdVideoFormat.qualityLabel} {selectedHdVideoFormat.container})</span>
-                      </button>
-                    )}
-
-                    {selectedAudioFormat && (
-                      <button
-                        onClick={() =>
-                          handleDownload(selectedAudioFormat, `${videoData.title}-Audio`)
-                        }
-                        className="py-2.5 px-3 bg-emerald-600 hover:bg-emerald-700 text-white rounded-lg text-xs font-bold flex items-center justify-center gap-1.5 transition-colors"
-                      >
-                        <Download className="w-3.5 h-3.5 text-emerald-200" />
-                        <span>Save Audio ({selectedAudioFormat.audioBitrate}k)</span>
-                      </button>
-                    )}
-                  </div>
-
-                  <p className="text-[11px] text-slate-500 dark:text-slate-400 leading-relaxed">
-                    {lang === "hi"
-                      ? "💡 टिप: दोनों फाइलें VLC Player, CapCut या Premiere Pro में एक साथ चलेंगी।"
-                      : "💡 Tip: Both files play together in VLC Media Player, CapCut, Premiere Pro, or DaVinci Resolve."}
-                  </p>
-                </div>
-              )}
+              {/* Reset / Download Another Video Button */}
+              <button
+                type="button"
+                onClick={handleClear}
+                className="w-full py-3 px-4 rounded-xl bg-slate-900 dark:bg-slate-800 hover:bg-slate-800 dark:hover:bg-slate-700 text-white text-xs font-bold flex items-center justify-center gap-2 transition-colors cursor-pointer"
+              >
+                <RefreshCw className="w-3.5 h-3.5" />
+                <span>{lang === "hi" ? "अन्य YouTube वीडियो डाउनलोड करें" : "Download another YouTube video"}</span>
+              </button>
             </div>
+          </div>
+
+          {/* Interactive All Formats Table (1-Click Direct Downloads) */}
+          <div className="bg-white dark:bg-slate-900 rounded-3xl border border-slate-200 dark:border-slate-800 p-6 sm:p-7 shadow-sm space-y-5">
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-slate-100 dark:border-slate-800 pb-4">
+              <div>
+                <h4 className="text-base font-extrabold text-slate-900 dark:text-white">
+                  {lang === "hi" ? "सभी उपलब्ध डाउनलोड लिंक्स" : "All Available Download Links"}
+                </h4>
+                <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5">
+                  {lang === "hi"
+                    ? "सीधे 1-क्लिक में 1080p, 720p, 480p, 360p या MP3 ऑडियो डाउनलोड करें।"
+                    : "Direct 1-click downloads for 1080p, 720p, 480p, 360p or MP3 Audio."}
+                </p>
+              </div>
+
+              {/* Tab Switcher */}
+              <div className="flex items-center gap-1 p-1 bg-slate-100 dark:bg-slate-800 rounded-xl text-xs font-bold">
+                <button
+                  type="button"
+                  onClick={() => setTableTab("video")}
+                  className={`px-3 py-1.5 rounded-lg transition-all ${
+                    tableTab === "video"
+                      ? "bg-white dark:bg-slate-700 text-slate-900 dark:text-white shadow-xs"
+                      : "text-slate-600 dark:text-slate-400 hover:text-slate-900"
+                  }`}
+                >
+                  🎬 Video ({mainVideoOptions.length})
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setTableTab("audio")}
+                  className={`px-3 py-1.5 rounded-lg transition-all ${
+                    tableTab === "audio"
+                      ? "bg-white dark:bg-slate-700 text-slate-900 dark:text-white shadow-xs"
+                      : "text-slate-600 dark:text-slate-400 hover:text-slate-900"
+                  }`}
+                >
+                  🎵 Audio ({mp3Formats.length + audioFormats.length})
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setTableTab("other")}
+                  className={`px-3 py-1.5 rounded-lg transition-all ${
+                    tableTab === "other"
+                      ? "bg-white dark:bg-slate-700 text-slate-900 dark:text-white shadow-xs"
+                      : "text-slate-600 dark:text-slate-400 hover:text-slate-900"
+                  }`}
+                >
+                  🎞️ Raw Tracks
+                </button>
+              </div>
+            </div>
+
+            {/* Tab 1: Video + Audio */}
+            {tableTab === "video" && (
+              <div className="overflow-x-auto">
+                <table className="w-full text-left text-xs">
+                  <thead>
+                    <tr className="border-b border-slate-100 dark:border-slate-800 text-slate-400">
+                      <th className="pb-3 font-semibold">Resolution</th>
+                      <th className="pb-3 font-semibold">Format</th>
+                      <th className="pb-3 font-semibold">File Size</th>
+                      <th className="pb-3 font-semibold text-right">Download</th>
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y divide-slate-100 dark:divide-slate-800">
+                    {mainVideoOptions.map((f: any) => (
+                      <tr key={f.itag} className="hover:bg-slate-50 dark:hover:bg-slate-800/50">
+                        <td className="py-3 font-bold text-slate-900 dark:text-white">
+                          <span className="inline-flex items-center gap-1.5">
+                            <span className="px-2 py-0.5 rounded bg-blue-50 dark:bg-blue-950/50 text-blue-600 dark:text-blue-400 font-extrabold text-[11px]">
+                              {f.qualityLabel}
+                            </span>
+                            {f.qualityLabel === "1080p" && (
+                              <span className="text-[10px] font-bold text-amber-500">Full HD</span>
+                            )}
+                          </span>
+                        </td>
+                        <td className="py-3 text-slate-600 dark:text-slate-300 font-semibold">
+                          {f.container} (Video + Audio)
+                        </td>
+                        <td className="py-3 text-slate-500 font-mono">
+                          {f.sizeMb || "Fast"}
+                        </td>
+                        <td className="py-3 text-right">
+                          <button
+                            type="button"
+                            onClick={() => handleMergeAndDownload(f, currentSelectedAudio)}
+                            disabled={isMerging}
+                            className="px-4 py-1.5 bg-emerald-600 hover:bg-emerald-700 text-white font-bold rounded-lg text-xs inline-flex items-center gap-1 shadow-xs transition-colors"
+                          >
+                            <Download className="w-3.5 h-3.5" />
+                            <span>Download {f.qualityLabel}</span>
+                          </button>
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            )}
+
+            {/* Tab 2: Audio Only */}
+            {tableTab === "audio" && (
+              <div className="overflow-x-auto">
+                <table className="w-full text-left text-xs">
+                  <thead>
+                    <tr className="border-b border-slate-100 dark:border-slate-800 text-slate-400">
+                      <th className="pb-3 font-semibold">Audio Quality</th>
+                      <th className="pb-3 font-semibold">Format</th>
+                      <th className="pb-3 font-semibold">File Size</th>
+                      <th className="pb-3 font-semibold text-right">Download</th>
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y divide-slate-100 dark:divide-slate-800">
+                    {mp3Formats.map((m: any) => (
+                      <tr key={m.itag} className="hover:bg-slate-50 dark:hover:bg-slate-800/50">
+                        <td className="py-3 font-bold text-slate-900 dark:text-white">
+                          <span className="inline-flex items-center gap-1.5">
+                            <span className="px-2 py-0.5 rounded bg-emerald-50 dark:bg-emerald-950/50 text-emerald-600 dark:text-emerald-400 font-extrabold text-[11px]">
+                              MP3 · {m.bitrate} kbps
+                            </span>
+                            {m.bitrate === 320 && (
+                              <span className="text-[10px] font-bold text-amber-500">Highest Quality</span>
+                            )}
+                          </span>
+                        </td>
+                        <td className="py-3 text-slate-600 dark:text-slate-300 font-semibold">
+                          MP3 Audio
+                        </td>
+                        <td className="py-3 text-slate-500 font-mono">
+                          {m.sizeMb || "HQ"}
+                        </td>
+                        <td className="py-3 text-right">
+                          <button
+                            type="button"
+                            onClick={() => handleDownload(m, videoData.title)}
+                            className="px-4 py-1.5 bg-emerald-600 hover:bg-emerald-700 text-white font-bold rounded-lg text-xs inline-flex items-center gap-1 shadow-xs transition-colors"
+                          >
+                            <Download className="w-3.5 h-3.5" />
+                            <span>Download MP3</span>
+                          </button>
+                        </td>
+                      </tr>
+                    ))}
+                    {audioFormats.map((a: any) => (
+                      <tr key={a.itag} className="hover:bg-slate-50 dark:hover:bg-slate-800/50">
+                        <td className="py-3 font-bold text-slate-900 dark:text-white">
+                          <span className="px-2 py-0.5 rounded bg-blue-50 dark:bg-blue-950/50 text-blue-600 dark:text-blue-400 font-extrabold text-[11px]">
+                            {a.codecLabel} ({a.audioBitrate} kbps)
+                          </span>
+                        </td>
+                        <td className="py-3 text-slate-600 dark:text-slate-300 font-semibold">
+                          {a.language || "Original Audio Track"}
+                        </td>
+                        <td className="py-3 text-slate-500 font-mono">
+                          {a.sizeMb || "Standard"}
+                        </td>
+                        <td className="py-3 text-right">
+                          <button
+                            type="button"
+                            onClick={() => handleDownload(a, `${videoData.title}-Audio`)}
+                            className="px-4 py-1.5 bg-slate-900 hover:bg-slate-800 dark:bg-slate-700 dark:hover:bg-slate-600 text-white font-bold rounded-lg text-xs inline-flex items-center gap-1 shadow-xs transition-colors"
+                          >
+                            <Download className="w-3.5 h-3.5" />
+                            <span>Save Audio</span>
+                          </button>
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            )}
+
+            {/* Tab 3: Raw Tracks (for video editors) */}
+            {tableTab === "other" && (
+              <div className="overflow-x-auto">
+                <table className="w-full text-left text-xs">
+                  <thead>
+                    <tr className="border-b border-slate-100 dark:border-slate-800 text-slate-400">
+                      <th className="pb-3 font-semibold">Track Description</th>
+                      <th className="pb-3 font-semibold">Type</th>
+                      <th className="pb-3 font-semibold">File Size</th>
+                      <th className="pb-3 font-semibold text-right">Download</th>
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y divide-slate-100 dark:divide-slate-800">
+                    {videoFormats.map((f: any) => (
+                      <tr key={f.itag} className="hover:bg-slate-50 dark:hover:bg-slate-800/50">
+                        <td className="py-3 font-bold text-slate-900 dark:text-white">
+                          {f.qualityLabel} {f.container} {f.fps ? `(${f.fps}fps)` : ""}
+                        </td>
+                        <td className="py-3 text-slate-600 dark:text-slate-300 font-semibold">
+                          {f.hasAudio ? "Video + Audio" : "Video Stream (Silent)"}
+                        </td>
+                        <td className="py-3 text-slate-500 font-mono">
+                          {f.sizeMb || "Direct"}
+                        </td>
+                        <td className="py-3 text-right">
+                          <button
+                            type="button"
+                            onClick={() => handleDownload(f, `${videoData.title}-${f.qualityLabel}`)}
+                            className="px-3.5 py-1 bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-200 font-bold rounded-lg text-xs inline-flex items-center gap-1 transition-colors"
+                          >
+                            <Download className="w-3.5 h-3.5" />
+                            <span>Save File</span>
+                          </button>
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            )}
           </div>
         </div>
       )}
 
-      {/* Legal Compliance & Fair Use Notice */}
+      {/* Compliance Notice */}
       <div className="p-4 rounded-2xl bg-slate-50 dark:bg-slate-850 border border-slate-200 dark:border-slate-800 flex items-start gap-3 text-xs text-slate-600 dark:text-slate-400">
         <ShieldCheck className="w-4 h-4 text-emerald-500 shrink-0 mt-0.5" />
         <div>

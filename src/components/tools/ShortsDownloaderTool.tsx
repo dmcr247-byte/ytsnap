@@ -1,6 +1,7 @@
 "use client";
 
 import React, { useState, useEffect, useRef } from "react";
+import { useRouter } from "next/navigation";
 import { SupportedLanguage, TranslationDictionary } from "@/lib/i18n";
 import {
   Download,
@@ -43,6 +44,7 @@ interface ShortsDownloaderToolProps {
 }
 
 export function ShortsDownloaderTool({ lang, dict }: ShortsDownloaderToolProps) {
+  const router = useRouter();
   const [urlInput, setUrlInput] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
@@ -116,7 +118,8 @@ export function ShortsDownloaderTool({ lang, dict }: ShortsDownloaderToolProps) 
 
   const handleFetch = async (e?: React.FormEvent) => {
     if (e) e.preventDefault();
-    if (!urlInput.trim()) {
+    const cleanUrl = urlInput.trim();
+    if (!cleanUrl) {
       setErrorMessage(
         lang === "hi"
           ? "कृपया एक वैध यूट्यूब शॉर्ट्स लिंक दर्ज करें।"
@@ -125,47 +128,7 @@ export function ShortsDownloaderTool({ lang, dict }: ShortsDownloaderToolProps) 
       return;
     }
 
-    setIsLoading(true);
-    setErrorMessage(null);
-
-    try {
-      const res = await fetch("/api/video-formats", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ url: urlInput.trim(), lang }),
-      });
-
-      let json: any = null;
-      try {
-        json = await res.json();
-      } catch {
-        // response was not JSON
-      }
-
-      if (!res.ok) {
-        setErrorMessage(
-          json?.error ||
-          (res.status === 429
-            ? "Too many requests. Please wait a moment."
-            : `Server returned error (${res.status}). Please try again.`)
-        );
-        setVideoData(null);
-      } else if (!json?.data) {
-        setErrorMessage("Invalid response from video server.");
-        setVideoData(null);
-      } else {
-        setVideoData(json.data);
-      }
-    } catch (err: any) {
-      console.error("Fetch error:", err);
-      setErrorMessage(
-        err?.message?.includes("Failed to fetch")
-          ? "Network connection error. Please verify your connection or try again."
-          : (err?.message || "Error while communicating with video server.")
-      );
-    } finally {
-      setIsLoading(false);
-    }
+    router.push(`/${lang}/download?url=${encodeURIComponent(cleanUrl)}`);
   };
 
   const handleDownload = (format: any, title: string) => {

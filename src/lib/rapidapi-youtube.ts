@@ -170,14 +170,25 @@ export async function fetchFromRapidAPI(
     for (const f of allFormats) {
       const itag = parseInt(String(f.itag), 10) || 0;
       const mime = (f.mimeType || f.type || "").toLowerCase();
-      const isVideo =
-        f.hasVideo !== undefined
-          ? Boolean(f.hasVideo)
-          : mime.includes("video") || Boolean(f.qualityLabel || f.quality || f.height);
-      const isAudio =
-        f.hasAudio !== undefined
-          ? Boolean(f.hasAudio)
-          : mime.includes("audio") || Boolean(f.audioBitrate || f.audioQuality);
+      const isExplicitAudio = mime.includes("audio/");
+      const isExplicitVideo = mime.includes("video/");
+
+      let isVideo: boolean;
+      let isAudio: boolean;
+
+      if (isExplicitAudio) {
+        isVideo = false;
+        isAudio = true;
+      } else if (isExplicitVideo) {
+        isVideo = true;
+        isAudio =
+          f.hasAudio !== undefined
+            ? Boolean(f.hasAudio)
+            : Boolean(f.audioBitrate || f.audioQuality);
+      } else {
+        isVideo = Boolean(f.qualityLabel || f.height);
+        isAudio = Boolean(f.audioBitrate || f.audioQuality);
+      }
 
       const lengthBytes = parseInt(String(f.contentLength || f.size || 0), 10);
       const sizeMb =
@@ -251,17 +262,17 @@ export async function fetchFromRapidAPI(
       }
     }
 
-    // Sort video formats (with audio first, resolution desc)
+    // Sort video formats (resolution desc, MP4 first)
     videoFormats.sort((a, b) => {
-      if (a.hasAudio && !b.hasAudio) return -1;
-      if (!a.hasAudio && b.hasAudio) return 1;
-
       const aRes = parseInt(a.qualityLabel, 10) || 0;
       const bRes = parseInt(b.qualityLabel, 10) || 0;
       if (bRes !== aRes) return bRes - aRes;
 
-      if (a.container === "WEBM" && b.container !== "WEBM") return -1;
-      if (a.container !== "WEBM" && b.container === "WEBM") return 1;
+      if (a.container === "MP4" && b.container !== "MP4") return -1;
+      if (a.container !== "MP4" && b.container === "MP4") return 1;
+
+      if (a.hasAudio && !b.hasAudio) return -1;
+      if (!a.hasAudio && b.hasAudio) return 1;
       return 0;
     });
 

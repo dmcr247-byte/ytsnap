@@ -232,6 +232,26 @@ export function VideoDownloaderTool({
       return;
     }
 
+    // If custom worker (e.g. Render/VPS) is configured, route 1080p/720p directly to it
+    const workerUrl = process.env.NEXT_PUBLIC_WORKER_URL;
+    if (workerUrl) {
+      const resNumber = parseInt(videoFormat.qualityLabel, 10) || 1080;
+      const targetUrl = `${workerUrl.replace(/\/$/, "")}/api/download?id=${videoData.id}&res=${resNumber}`;
+      const a = document.createElement("a");
+      a.href = targetUrl;
+      a.setAttribute("download", "");
+      document.body.appendChild(a);
+      a.click();
+      a.remove();
+      setMergeSuccess(true);
+      setMergeStatusText(
+        lang === "hi"
+          ? `✅ 1080p Full HD वीडियो और ऑडियो जुड़कर डाउनलोड हो रहा है!`
+          : `✅ 1080p Full HD video & audio combined download started!`
+      );
+      return;
+    }
+
     // If no separate audio is found, trigger direct download of the video stream
     const targetAudio = audioFormat || (videoData.audioFormats && videoData.audioFormats[0]);
     if (!targetAudio) {

@@ -1,8 +1,9 @@
 FROM python:3.12-slim
 
-# Install ffmpeg, curl, and build tools
+# Install ffmpeg, nodejs, curl, and build tools
 RUN apt-get update && apt-get install -y --no-install-recommends \
     ffmpeg \
+    nodejs \
     curl \
     && rm -rf /var/lib/apt/lists/*
 

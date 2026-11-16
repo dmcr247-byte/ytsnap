@@ -233,7 +233,7 @@ export function VideoDownloaderTool({
     }
 
     // If custom worker (e.g. Render/VPS) is configured, route 1080p/720p directly to it
-    const workerUrl = process.env.NEXT_PUBLIC_WORKER_URL;
+    const workerUrl = process.env.NEXT_PUBLIC_WORKER_URL || "https://ytsnap-worker.onrender.com";
     if (workerUrl) {
       const resNumber = parseInt(videoFormat.qualityLabel, 10) || 1080;
       const targetUrl = `${workerUrl.replace(/\/$/, "")}/api/download?id=${videoData.id}&res=${resNumber}`;

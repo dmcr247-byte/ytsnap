@@ -4,37 +4,6 @@ import { Ytdl } from "@distube/ytdl-core";
 export const dynamic = "force-dynamic";
 export const maxDuration = 60;
 
-function streamResponse(
-  cdnRes: Response,
-  filename: string,
-  isAudio: boolean
-): Response {
-  const resHeaders = new Headers();
-  const contentType = isAudio
-    ? "audio/mpeg"
-    : cdnRes.headers.get("content-type") || "video/mp4";
-
-  resHeaders.set("Content-Type", contentType);
-  resHeaders.set(
-    "Content-Disposition",
-    `attachment; filename="${encodeURIComponent(filename)}"; filename*=UTF-8''${encodeURIComponent(filename)}`
-  );
-  resHeaders.set("Accept-Ranges", "bytes");
-  resHeaders.set("Cache-Control", "public, max-age=3600");
-
-  if (cdnRes.headers.get("content-length")) {
-    resHeaders.set("Content-Length", cdnRes.headers.get("content-length")!);
-  }
-  if (cdnRes.headers.get("content-range")) {
-    resHeaders.set("Content-Range", cdnRes.headers.get("content-range")!);
-  }
-
-  return new Response(cdnRes.body, {
-    status: cdnRes.status === 206 ? 206 : 200,
-    headers: resHeaders,
-  });
-}
-
 export async function GET(req: NextRequest) {
   try {
     const { searchParams } = new URL(req.url);
@@ -51,36 +20,54 @@ export async function GET(req: NextRequest) {
         .trim()
         .slice(0, 80) || "video";
 
-    const isAudioOnly = formatParam === "mp3" || formatParam === "m4a";
-    const defaultExtension = isAudioOnly ? "mp3" : "mp4";
-    const defaultFilename = `${cleanTitle}.${defaultExtension}`;
-
-    const fetchHeaders: Record<string, string> = {
-      "User-Agent":
-        "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36",
-    };
-    const range = req.headers.get("range");
-    if (range) {
-      fetchHeaders["Range"] = range;
-    }
-
-    // Attempt 1: Stream directly from streamUrl if provided and reachable
+    // Priority 1: Direct CDN Redirect with native &title= (Google CDN sets attachment filename automatically)
     if (streamUrl && streamUrl.startsWith("http")) {
-      try {
-        const cdnRes = await fetch(streamUrl, { headers: fetchHeaders });
-        if (cdnRes.ok || cdnRes.status === 206) {
-          return streamResponse(cdnRes, defaultFilename, isAudioOnly);
-        }
-      } catch (streamErr) {
-        console.warn("Direct streamUrl fetch note, falling back to fresh extraction:", streamErr);
-      }
+      const finalUrl = streamUrl.includes("&title=")
+        ? streamUrl
+        : `${streamUrl}&title=${encodeURIComponent(cleanTitle)}`;
+
+      return NextResponse.redirect(finalUrl, 302);
     }
 
     if (!id || !/^[a-zA-Z0-9_-]{11}$/.test(id)) {
       return new NextResponse("Invalid video ID", { status: 400 });
     }
 
-    // Attempt 2: Fresh extraction on the same server instance (guarantees identical IP matching)
+    // Priority 2: RapidAPI URL Resolution if key configured
+    if (
+      process.env.RAPIDAPI_KEY ||
+      process.env.RAPID_API_KEY ||
+      process.env.YOUTUBE_RAPIDAPI_KEY
+    ) {
+      try {
+        const { fetchFromRapidAPI } = await import("@/lib/rapidapi-youtube");
+        const rapid = await fetchFromRapidAPI(id);
+        if (rapid) {
+          const all = [
+            ...rapid.videoFormats,
+            ...rapid.audioFormats,
+            ...rapid.mp3Formats,
+          ];
+          const itagNum = itagParam ? parseInt(itagParam, 10) : null;
+          const match =
+            (itagNum && all.find((f: any) => f.itag === itagNum)) ||
+            (formatParam === "mp3" && rapid.audioFormats[0]) ||
+            rapid.videoFormats[0];
+
+          if (match && match.url) {
+            const finalUrl = match.url.includes("&title=")
+              ? match.url
+              : `${match.url}&title=${encodeURIComponent(cleanTitle)}`;
+
+            return NextResponse.redirect(finalUrl, 302);
+          }
+        }
+      } catch (rErr) {
+        console.warn("RapidAPI download resolve note:", rErr);
+      }
+    }
+
+    // Priority 3: Fresh Ytdl format resolution -> 302 redirect to stream
     let info: any = null;
     const clientCandidates: (string[] | undefined)[] = [
       ["mweb", "web_embedded"],
@@ -109,6 +96,7 @@ export async function GET(req: NextRequest) {
     }
 
     const itag = itagParam ? parseInt(itagParam, 10) : null;
+    const isAudioOnly = formatParam === "mp3" || formatParam === "m4a";
 
     let targetFormat: any = null;
     if (isAudioOnly) {
@@ -132,24 +120,15 @@ export async function GET(req: NextRequest) {
       return new NextResponse("Requested format stream not available", { status: 404 });
     }
 
-    const cdnRes = await fetch(targetFormat.url, { headers: fetchHeaders });
-    if (!cdnRes.ok && cdnRes.status !== 206) {
-      return new NextResponse(
-        `Failed to retrieve media stream from source (HTTP ${cdnRes.status})`,
-        { status: cdnRes.status }
-      );
-    }
+    const finalUrl = targetFormat.url.includes("&title=")
+      ? targetFormat.url
+      : `${targetFormat.url}&title=${encodeURIComponent(cleanTitle)}`;
 
-    const targetExt = isAudioOnly
-      ? "mp3"
-      : (targetFormat.container || "mp4").toLowerCase();
-    const finalFilename = `${cleanTitle}.${targetExt}`;
-
-    return streamResponse(cdnRes, finalFilename, isAudioOnly);
+    return NextResponse.redirect(finalUrl, 302);
   } catch (error: any) {
-    console.error("Video download streaming error:", error);
+    console.error("Video download redirect error:", error);
     return new NextResponse(
-      "Failed to stream video: " + (error?.message || "Unknown server error"),
+      "Failed to retrieve video link: " + (error?.message || "Unknown error"),
       { status: 500 }
     );
   }

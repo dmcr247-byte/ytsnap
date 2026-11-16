@@ -206,6 +206,8 @@ export function VideoDownloaderTool({
 
     const a = document.createElement("a");
     a.href = targetUrl;
+    a.target = "_blank";
+    a.rel = "noopener noreferrer";
     a.setAttribute("download", "");
     document.body.appendChild(a);
     a.click();

@@ -37,6 +37,23 @@ def home():
 def health():
     return {"status": "ok"}
 
+@app.get("/debug")
+def debug():
+    info = {"status": "ok"}
+    try:
+        info["yt_dlp"] = subprocess.run(["yt-dlp", "--version"], stdout=subprocess.PIPE, text=True).stdout.strip()
+    except Exception as e:
+        info["yt_dlp"] = str(e)
+    try:
+        info["node"] = subprocess.run(["node", "--version"], stdout=subprocess.PIPE, text=True).stdout.strip()
+    except Exception as e:
+        info["node"] = str(e)
+    try:
+        info["ffmpeg"] = subprocess.run(["ffmpeg", "-version"], stdout=subprocess.PIPE, text=True).stdout.split("\n")[0]
+    except Exception as e:
+        info["ffmpeg"] = str(e)
+    return info
+
 @app.get("/api/download")
 def download_merged_video(
     id: str = Query(..., regex="^[a-zA-Z0-9_-]{11}$"),

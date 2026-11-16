@@ -22,6 +22,7 @@ import {
   ArrowRight,
   AlertCircle,
   CheckCircle2,
+  Zap,
 } from "lucide-react";
 
 interface VideoDownloaderToolProps {
@@ -374,519 +375,353 @@ export function VideoDownloaderTool({
       {/* Dedicated YouTube Download Options Section */}
       {videoData && (
         <div ref={resultsRef} className="space-y-6 animate-in fade-in duration-300 scroll-mt-6">
-          {/* Main 2-Card Preview & Download Experience */}
-          <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
-            {/* Left Card: Video Details & Thumbnail */}
-            <div className="lg:col-span-5 bg-white dark:bg-slate-900 rounded-3xl border border-slate-200 dark:border-slate-800 p-6 shadow-sm flex flex-col justify-between space-y-4">
-              <div className="space-y-4">
-                {/* Ready pill */}
-                <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-rose-50 dark:bg-rose-950/40 border border-rose-200 dark:border-rose-900 text-rose-600 dark:text-rose-400 text-xs font-bold uppercase tracking-wider">
-                  <Film className="w-3.5 h-3.5" />
-                  <span>YouTube Video Ready</span>
-                </div>
-
-                {/* Thumbnail with HD Thumbnail button overlay */}
-                <div className="w-full rounded-2xl overflow-hidden aspect-video bg-black relative shadow-md group">
-                  {/* eslint-disable-next-line @next/next/no-img-element */}
-                  <img
-                    src={videoData.thumbnail}
-                    alt={videoData.title}
-                    className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
-                  />
-                  <span className="absolute bottom-2 left-2 px-2 py-0.5 rounded bg-black/80 text-white font-mono text-[10px] font-bold">
-                    {videoData.duration}
-                  </span>
-
-                  <a
-                    href={`/api/download-proxy?id=${videoData.id}&res=maxresdefault&format=jpg`}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="absolute bottom-2 right-2 px-2.5 py-1 rounded-lg bg-black/75 hover:bg-black text-white text-[10px] font-bold flex items-center gap-1 backdrop-blur-xs transition-colors"
-                  >
-                    <ImageIcon className="w-3 h-3 text-emerald-400" />
-                    <span>Thumbnail HD</span>
-                  </a>
-                </div>
-
-                {/* Title & Metadata */}
-                <div className="space-y-2">
-                  <h2 className="text-base sm:text-lg font-bold text-slate-900 dark:text-white leading-snug">
-                    {videoData.title}
-                  </h2>
-                  <div className="flex flex-wrap items-center gap-2 text-xs text-slate-500 dark:text-slate-400">
-                    <span>Duration: {videoData.duration}</span>
-                    {currentSelectedVideo?.sizeMb && (
-                      <>
-                        <span>•</span>
-                        <span>Size: {currentSelectedVideo.sizeMb}</span>
-                      </>
-                    )}
-                    <span>•</span>
-                    <span>Channel: {videoData.author}</span>
-                  </div>
-                </div>
-              </div>
-
-              {/* Bottom Badges */}
-              <div className="pt-3 border-t border-slate-100 dark:border-slate-800 flex items-center gap-2">
-                {isMp3Selected ? (
-                  <span className="px-3 py-1 rounded-full bg-emerald-50 dark:bg-emerald-950/50 text-emerald-600 dark:text-emerald-400 text-xs font-bold flex items-center gap-1 border border-emerald-200/60 dark:border-emerald-900/60">
-                    <Music className="w-3.5 h-3.5" />
-                    <span>Audio (MP3)</span>
-                  </span>
-                ) : (
-                  <>
-                    <span className="px-3 py-1 rounded-full bg-emerald-50 dark:bg-emerald-950/50 text-emerald-600 dark:text-emerald-400 text-xs font-bold flex items-center gap-1 border border-emerald-200/60 dark:border-emerald-900/60">
-                      <Music className="w-3.5 h-3.5" />
-                      <span>Audio</span>
-                    </span>
-                    <span className="px-3 py-1 rounded-full bg-blue-50 dark:bg-blue-950/50 text-blue-600 dark:text-blue-400 text-xs font-bold flex items-center gap-1 border border-blue-200/60 dark:border-blue-900/60">
-                      <Video className="w-3.5 h-3.5" />
-                      <span>Video ({currentSelectedVideo?.qualityLabel || "HD"})</span>
-                    </span>
-                  </>
-                )}
-              </div>
-            </div>
-
-            {/* Right Card: YouTube Download Options */}
-            <div className="lg:col-span-7 bg-white dark:bg-slate-900 rounded-3xl border border-slate-200 dark:border-slate-800 p-6 sm:p-7 shadow-sm space-y-6">
-              {/* Header */}
-              <div>
-                <h3 className="text-xl font-extrabold text-slate-900 dark:text-white">
-                  YouTube Download Options
-                </h3>
-                <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5">
-                  Approx. {currentSelectedVideo?.sizeMb || currentSelectedMp3?.sizeMb || "4.08 MB"}
-                </p>
-              </div>
-
-              {/* Badges Pill Row */}
-              <div className="flex flex-wrap items-center gap-1.5 text-[11px] font-bold">
-                <span className="px-2.5 py-0.5 rounded-full bg-amber-50 dark:bg-amber-950/50 text-amber-600 dark:text-amber-400 border border-amber-200/60 dark:border-amber-900/40">
-                  Recommended
+          {/* 1. Video Summary Card (Vidssave Banner Style) */}
+          <div className="bg-white dark:bg-slate-900 rounded-3xl border border-slate-200 dark:border-slate-800 p-6 sm:p-7 shadow-sm">
+            <div className="flex flex-col md:flex-row gap-6 items-start">
+              {/* Thumbnail with HD Button */}
+              <div className="w-full md:w-72 shrink-0 rounded-2xl overflow-hidden aspect-video bg-black relative shadow-md group">
+                {/* eslint-disable-next-line @next/next/no-img-element */}
+                <img
+                  src={videoData.thumbnail}
+                  alt={videoData.title}
+                  className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+                />
+                <span className="absolute bottom-2 left-2 px-2 py-0.5 rounded bg-black/80 text-white font-mono text-[10px] font-bold">
+                  {videoData.duration}
                 </span>
-                <span className="px-2.5 py-0.5 rounded-full bg-blue-50 dark:bg-blue-950/50 text-blue-600 dark:text-blue-400 border border-blue-200/60 dark:border-blue-900/40">
-                  {isMp3Selected
-                    ? `MP3 · ${currentSelectedMp3?.bitrate} kbps`
-                    : `${currentSelectedVideo?.qualityLabel || "1080p"} ${currentSelectedVideo?.container || "MP4"}`}
-                </span>
-                {(currentSelectedVideo?.sizeMb || currentSelectedMp3?.sizeMb) && (
-                  <span className="px-2.5 py-0.5 rounded-full bg-emerald-50 dark:bg-emerald-950/50 text-emerald-600 dark:text-emerald-400 border border-emerald-200/60 dark:border-emerald-900/40">
-                    {currentSelectedVideo?.sizeMb || currentSelectedMp3?.sizeMb}
-                  </span>
-                )}
-                <span className="px-2.5 py-0.5 rounded-full bg-emerald-50 dark:bg-emerald-950/50 text-emerald-600 dark:text-emerald-400 border border-emerald-200/60 dark:border-emerald-900/40">
-                  {isMp3Selected
-                    ? "Audio (MP3)"
-                    : currentSelectedVideo?.hasAudio
-                    ? "Video + Audio (1 File Ready)"
-                    : "HD Video + Audio Track"}
-                </span>
-              </div>
 
-              {/* Quality & Audio Selectors */}
-              <div className="space-y-4">
-                {/* 1. Quality Selector Dropdown */}
-                <div className="space-y-1.5">
-                  <label className="text-xs font-bold text-slate-700 dark:text-slate-300 block">
-                    {lang === "hi" ? "वीडियो क्वालिटी चुनें (Choose your YouTube quality):" : "Choose your YouTube quality:"}
-                  </label>
-                  <select
-                    value={selectedTopItag || ""}
-                    onChange={(e) => {
-                      const val = Number(e.target.value);
-                      setSelectedTopItag(val);
-                      setMergeSuccess(false);
-                      setMergeError(null);
-                    }}
-                    className="w-full px-4 py-3 rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 text-slate-900 dark:text-white text-sm font-semibold focus:outline-none focus:ring-2 focus:ring-emerald-500"
-                  >
-                    {/* Video + Audio Group (1080p, 720p, 480p, 360p) */}
-                    <optgroup
-                      label={
-                        lang === "hi"
-                          ? "🎬 वीडियो + ऑडियो (Full Video + Audio)"
-                          : "🎬 Video + Audio (Full Video with Sound)"
-                      }
-                    >
-                      {mainVideoOptions.map((f: any) => (
-                        <option key={f.itag} value={f.itag}>
-                          ★ {f.qualityLabel} {f.container} · {f.sizeMb || ""} {f.hasAudio ? "— Video + Audio (1 File Ready)" : "— HD Video + Audio Track"}
-                        </option>
-                      ))}
-                    </optgroup>
-
-                    {/* MP3 Presets */}
-                    {mp3Formats.length > 0 && (
-                      <optgroup label="🎵 MP3 Audio (High Bitrate)">
-                        {mp3Formats.map((m: any) => (
-                          <option key={m.itag} value={m.itag}>
-                            {m.label}
-                          </option>
-                        ))}
-                      </optgroup>
-                    )}
-                  </select>
-                </div>
-
-                {/* 2. Audio Track Selector (Visible when DASH HD Video is selected) */}
-                {!isMp3Selected && !currentSelectedVideo?.hasAudio && (
-                  <div className="space-y-1.5 p-3.5 rounded-2xl bg-slate-50 dark:bg-slate-800/60 border border-slate-200/80 dark:border-slate-700/80">
-                    <label className="text-xs font-bold text-slate-700 dark:text-slate-300 flex items-center justify-between">
-                      <span className="flex items-center gap-1.5">
-                        <Music className="w-3.5 h-3.5 text-emerald-500" />
-                        <span>{lang === "hi" ? "ऑडियो ट्रैक (Audio Track to Download):" : "Audio Track to Download:"}</span>
-                      </span>
-                      <span className="text-[11px] font-semibold text-emerald-600 dark:text-emerald-400">
-                        {currentSelectedAudio ? `${currentSelectedAudio.audioBitrate} kbps` : "Original"}
-                      </span>
-                    </label>
-                    <select
-                      value={selectedAudioItag || ""}
-                      onChange={(e) => setSelectedAudioItag(Number(e.target.value))}
-                      className="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-900 dark:text-white text-xs font-semibold focus:outline-none focus:ring-2 focus:ring-emerald-500"
-                    >
-                      {audioFormats.map((a: any) => (
-                        <option key={a.itag} value={a.itag}>
-                          {a.language || "Original Audio"} — {a.codecLabel} ({a.audioBitrate} kbps){a.sizeMb ? ` · ${a.sizeMb}` : ""}
-                        </option>
-                      ))}
-                      {audioFormats.length === 0 && (
-                        <option value="140">Default Audio Track (128 kbps AAC)</option>
-                      )}
-                    </select>
-                  </div>
-                )}
-
-                {/* Primary Download Button */}
-                <button
-                  type="button"
-                  onClick={() => {
-                    if (isMp3Selected && currentSelectedMp3) {
-                      handleDownload(currentSelectedMp3, videoData.title);
-                    } else if (currentSelectedVideo) {
-                      handleMergeAndDownload(currentSelectedVideo, currentSelectedAudio);
-                    }
-                  }}
-                  disabled={isMerging || downloadingItag === selectedTopItag}
-                  className="w-full py-4 bg-emerald-600 hover:bg-emerald-700 active:scale-[0.99] text-white font-extrabold text-base rounded-2xl shadow-lg shadow-emerald-600/25 flex items-center justify-center gap-2 transition-all disabled:opacity-60 cursor-pointer"
-                >
-                  {isMerging ? (
-                    <>
-                      <Loader2 className="w-5 h-5 animate-spin" />
-                      <span>{mergeStatusText || "Combining HD Video & Audio..."}</span>
-                    </>
-                  ) : downloadingItag === selectedTopItag ? (
-                    <>
-                      <Loader2 className="w-5 h-5 animate-spin" />
-                      <span>{lang === "hi" ? "डाउनलोड शुरू हो रहा है..." : "Starting Download..."}</span>
-                    </>
-                  ) : (
-                    <>
-                      <Download className="w-5 h-5" />
-                      <span>
-                        {isMp3Selected
-                          ? (lang === "hi" ? `ऑडियो (MP3) डाउनलोड करें (${currentSelectedMp3?.bitrate}k)` : `Download Audio (MP3 · ${currentSelectedMp3?.bitrate} kbps)`)
-                          : (lang === "hi"
-                              ? `वीडियो डाउनलोड करें (${currentSelectedVideo?.qualityLabel || "HD"} + Sound)`
-                              : `Download Video (${currentSelectedVideo?.qualityLabel || "HD"} MP4 + Audio)`)}
-                      </span>
-                    </>
-                  )}
-                </button>
-
-                {/* In-Place Merge Progress Bar */}
-                {isMerging && (
-                  <div className="p-4 rounded-2xl bg-emerald-50/50 dark:bg-emerald-950/30 border border-emerald-200 dark:border-emerald-800 space-y-2 animate-in fade-in">
-                    <div className="flex justify-between text-xs font-bold text-emerald-800 dark:text-emerald-300">
-                      <span>{mergeStatusText}</span>
-                      <span>{mergeProgress}%</span>
-                    </div>
-                    <div className="w-full bg-slate-200 dark:bg-slate-700 h-2.5 rounded-full overflow-hidden">
-                      <div
-                        className="bg-emerald-600 h-full rounded-full transition-all duration-300 ease-out"
-                        style={{ width: `${mergeProgress}%` }}
-                      />
-                    </div>
-                  </div>
-                )}
-
-                {/* Merge Success Notice */}
-                {mergeSuccess && (
-                  <div className="p-3.5 rounded-2xl bg-emerald-100 dark:bg-emerald-950/60 border border-emerald-300 text-emerald-800 dark:text-emerald-200 text-xs font-bold flex items-center gap-2 animate-in fade-in">
-                    <Check className="w-4 h-4 text-emerald-600 shrink-0" />
-                    <span>{mergeStatusText}</span>
-                  </div>
-                )}
-
-                {/* Merge Error Notice */}
-                {mergeError && (
-                  <div className="p-3.5 rounded-2xl bg-amber-50 dark:bg-amber-950/40 border border-amber-200 text-amber-800 dark:text-amber-200 text-xs font-semibold">
-                    {mergeError}
-                  </div>
-                )}
-
-                <p className="text-[11px] text-center text-slate-400">
-                  By downloading, you agree to our Terms of Service.
-                </p>
-              </div>
-
-              {/* Quick Action Buttons */}
-              <div className="grid grid-cols-2 gap-3 pt-1">
                 <a
-                  href={`https://www.youtube.com/watch?v=${videoData.id}`}
+                  href={`/api/download-proxy?id=${videoData.id}&res=maxresdefault&format=jpg`}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="py-2.5 px-4 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 hover:bg-slate-50 dark:hover:bg-slate-750 text-slate-700 dark:text-slate-200 text-xs font-bold flex items-center justify-center gap-1.5 transition-colors"
+                  className="absolute bottom-2 right-2 px-2.5 py-1 rounded-lg bg-black/75 hover:bg-black text-white text-[10px] font-bold flex items-center gap-1 backdrop-blur-xs transition-colors"
                 >
-                  <ExternalLink className="w-3.5 h-3.5" />
-                  <span>Open on YouTube</span>
+                  <ImageIcon className="w-3 h-3 text-emerald-400" />
+                  <span>Thumbnail HD</span>
                 </a>
-
-                <button
-                  type="button"
-                  onClick={handleCopyLink}
-                  className="py-2.5 px-4 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 hover:bg-slate-50 dark:hover:bg-slate-750 text-slate-700 dark:text-slate-200 text-xs font-bold flex items-center justify-center gap-1.5 transition-colors"
-                >
-                  {copiedLink ? (
-                    <>
-                      <Check className="w-3.5 h-3.5 text-emerald-500" />
-                      <span className="text-emerald-600">Copied!</span>
-                    </>
-                  ) : (
-                    <>
-                      <Clipboard className="w-3.5 h-3.5" />
-                      <span>Copy YouTube Link</span>
-                    </>
-                  )}
-                </button>
               </div>
 
-              {/* Reset / Download Another Video Button */}
-              <button
-                type="button"
-                onClick={handleClear}
-                className="w-full py-3 px-4 rounded-xl bg-slate-900 dark:bg-slate-800 hover:bg-slate-800 dark:hover:bg-slate-700 text-white text-xs font-bold flex items-center justify-center gap-2 transition-colors cursor-pointer"
-              >
-                <RefreshCw className="w-3.5 h-3.5" />
-                <span>{lang === "hi" ? "अन्य YouTube वीडियो डाउनलोड करें" : "Download another YouTube video"}</span>
-              </button>
+              {/* Title & Info */}
+              <div className="flex-1 space-y-3">
+                <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-emerald-50 dark:bg-emerald-950/40 border border-emerald-200 dark:border-emerald-900 text-emerald-600 dark:text-emerald-400 text-xs font-bold">
+                  <Film className="w-3.5 h-3.5" />
+                  <span>{lang === "hi" ? "डाउनलोड के लिए तैयार" : "Ready to Download"}</span>
+                </div>
+
+                <h2 className="text-lg sm:text-xl font-bold text-slate-900 dark:text-white leading-snug">
+                  {videoData.title}
+                </h2>
+
+                <div className="flex flex-wrap items-center gap-3 text-xs text-slate-500 dark:text-slate-400 font-medium">
+                  <span>⏱️ {videoData.duration}</span>
+                  <span>•</span>
+                  <span>📺 {videoData.author}</span>
+                  {videoData.views && (
+                    <>
+                      <span>•</span>
+                      <span>👁️ {videoData.views} views</span>
+                    </>
+                  )}
+                </div>
+
+                {/* Quick Action Buttons */}
+                <div className="flex flex-wrap items-center gap-2 pt-1">
+                  <a
+                    href={`https://www.youtube.com/watch?v=${videoData.id}`}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="py-1.5 px-3 rounded-lg border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 hover:bg-slate-100 dark:hover:bg-slate-750 text-slate-700 dark:text-slate-200 text-xs font-semibold flex items-center gap-1 transition-colors"
+                  >
+                    <ExternalLink className="w-3.5 h-3.5" />
+                    <span>YouTube</span>
+                  </a>
+
+                  <button
+                    type="button"
+                    onClick={handleCopyLink}
+                    className="py-1.5 px-3 rounded-lg border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 hover:bg-slate-100 dark:hover:bg-slate-750 text-slate-700 dark:text-slate-200 text-xs font-semibold flex items-center gap-1 transition-colors cursor-pointer"
+                  >
+                    {copiedLink ? (
+                      <>
+                        <Check className="w-3.5 h-3.5 text-emerald-500" />
+                        <span className="text-emerald-600">Copied!</span>
+                      </>
+                    ) : (
+                      <>
+                        <Clipboard className="w-3.5 h-3.5" />
+                        <span>Copy Link</span>
+                      </>
+                    )}
+                  </button>
+
+                  <button
+                    type="button"
+                    onClick={handleClear}
+                    className="py-1.5 px-3 rounded-lg border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 hover:bg-slate-100 dark:hover:bg-slate-750 text-slate-700 dark:text-slate-200 text-xs font-semibold flex items-center gap-1 transition-colors cursor-pointer"
+                  >
+                    <RefreshCw className="w-3.5 h-3.5" />
+                    <span>{lang === "hi" ? "नया वीडियो" : "New Video"}</span>
+                  </button>
+                </div>
+              </div>
             </div>
           </div>
 
-          {/* Interactive All Formats Table (1-Click Direct Downloads) */}
-          <div className="bg-white dark:bg-slate-900 rounded-3xl border border-slate-200 dark:border-slate-800 p-6 sm:p-7 shadow-sm space-y-5">
-            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-slate-100 dark:border-slate-800 pb-4">
+          {/* 2. Success / Toast Status Notice */}
+          {mergeSuccess && (
+            <div className="p-4 rounded-2xl bg-emerald-50 dark:bg-emerald-950/60 border border-emerald-300 text-emerald-800 dark:text-emerald-200 text-xs font-bold flex items-center gap-2 animate-in fade-in">
+              <CheckCircle2 className="w-4 h-4 text-emerald-600 shrink-0" />
+              <span>{mergeStatusText}</span>
+            </div>
+          )}
+
+          {mergeError && (
+            <div className="p-4 rounded-2xl bg-amber-50 dark:bg-amber-950/40 border border-amber-200 text-amber-800 dark:text-amber-200 text-xs font-semibold">
+              {mergeError}
+            </div>
+          )}
+
+          {/* 3. Vidssave Style Formats & Download Cards */}
+          <div className="bg-white dark:bg-slate-900 rounded-3xl border border-slate-200 dark:border-slate-800 p-6 sm:p-7 shadow-sm space-y-6">
+            {/* Header & Tabs */}
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-slate-100 dark:border-slate-800 pb-4">
               <div>
-                <h4 className="text-base font-extrabold text-slate-900 dark:text-white">
-                  {lang === "hi" ? "सभी उपलब्ध डाउनलोड लिंक्स" : "All Available Download Links"}
-                </h4>
+                <h3 className="text-xl font-extrabold text-slate-900 dark:text-white flex items-center gap-2">
+                  <Zap className="w-5 h-5 text-emerald-500 fill-emerald-500" />
+                  <span>{lang === "hi" ? "डाउनलोड विकल्प (Download Options)" : "Download Options"}</span>
+                </h3>
                 <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5">
                   {lang === "hi"
-                    ? "सीधे 1-क्लिक में 1080p, 720p, 480p, 360p या MP3 ऑडियो डाउनलोड करें।"
-                    : "Direct 1-click downloads for 1080p, 720p, 480p, 360p or MP3 Audio."}
+                    ? "सीधे 1-क्लिक में वीडियो (MP4) या ऑडियो (MP3) डाउनलोड करें।"
+                    : "Direct 1-click downloads for MP4 Video and MP3 Audio."}
                 </p>
               </div>
 
-              {/* Tab Switcher */}
-              <div className="flex items-center gap-1 p-1 bg-slate-100 dark:bg-slate-800 rounded-xl text-xs font-bold">
+              {/* Vidssave Tabs Switcher */}
+              <div className="flex items-center gap-1.5 p-1 bg-slate-100 dark:bg-slate-800 rounded-2xl text-xs font-bold">
                 <button
                   type="button"
                   onClick={() => setTableTab("video")}
-                  className={`px-3 py-1.5 rounded-lg transition-all ${
+                  className={`px-4 py-2 rounded-xl transition-all cursor-pointer flex items-center gap-1.5 ${
                     tableTab === "video"
-                      ? "bg-white dark:bg-slate-700 text-slate-900 dark:text-white shadow-xs"
+                      ? "bg-white dark:bg-slate-700 text-emerald-600 dark:text-emerald-400 shadow-sm"
                       : "text-slate-600 dark:text-slate-400 hover:text-slate-900"
                   }`}
                 >
-                  🎬 Video ({mainVideoOptions.length})
+                  <Video className="w-4 h-4" />
+                  <span>Video (MP4) · {mainVideoOptions.length}</span>
                 </button>
                 <button
                   type="button"
                   onClick={() => setTableTab("audio")}
-                  className={`px-3 py-1.5 rounded-lg transition-all ${
+                  className={`px-4 py-2 rounded-xl transition-all cursor-pointer flex items-center gap-1.5 ${
                     tableTab === "audio"
-                      ? "bg-white dark:bg-slate-700 text-slate-900 dark:text-white shadow-xs"
+                      ? "bg-white dark:bg-slate-700 text-emerald-600 dark:text-emerald-400 shadow-sm"
                       : "text-slate-600 dark:text-slate-400 hover:text-slate-900"
                   }`}
                 >
-                  🎵 Audio ({mp3Formats.length + audioFormats.length})
-                </button>
-                <button
-                  type="button"
-                  onClick={() => setTableTab("other")}
-                  className={`px-3 py-1.5 rounded-lg transition-all ${
-                    tableTab === "other"
-                      ? "bg-white dark:bg-slate-700 text-slate-900 dark:text-white shadow-xs"
-                      : "text-slate-600 dark:text-slate-400 hover:text-slate-900"
-                  }`}
-                >
-                  🎞️ Raw Tracks
+                  <Music className="w-4 h-4" />
+                  <span>Music (MP3) · {mp3Formats.length + audioFormats.length}</span>
                 </button>
               </div>
             </div>
 
-            {/* Tab 1: Video + Audio */}
+            {/* TAB 1: VIDEO (MP4) - Vidssave Row List */}
             {tableTab === "video" && (
-              <div className="overflow-x-auto">
-                <table className="w-full text-left text-xs">
-                  <thead>
-                    <tr className="border-b border-slate-100 dark:border-slate-800 text-slate-400">
-                      <th className="pb-3 font-semibold">Resolution</th>
-                      <th className="pb-3 font-semibold">Format</th>
-                      <th className="pb-3 font-semibold">File Size</th>
-                      <th className="pb-3 font-semibold text-right">Download</th>
-                    </tr>
-                  </thead>
-                  <tbody className="divide-y divide-slate-100 dark:divide-slate-800">
-                    {mainVideoOptions.map((f: any) => (
-                      <tr key={f.itag} className="hover:bg-slate-50 dark:hover:bg-slate-800/50">
-                        <td className="py-3 font-bold text-slate-900 dark:text-white">
-                          <span className="inline-flex items-center gap-1.5">
-                            <span className="px-2 py-0.5 rounded bg-blue-50 dark:bg-blue-950/50 text-blue-600 dark:text-blue-400 font-extrabold text-[11px]">
+              <div className="space-y-3">
+                {mainVideoOptions.map((f: any) => {
+                  const is1080 = f.qualityLabel === "1080p";
+                  const is720 = f.qualityLabel === "720p";
+                  const isReady1File = f.hasAudio;
+                  const isCurrentDownloading = downloadingItag === f.itag;
+
+                  return (
+                    <div
+                      key={f.itag}
+                      className="p-4 sm:p-5 rounded-2xl border border-slate-200/90 dark:border-slate-800 hover:border-emerald-500/50 dark:hover:border-emerald-500/50 bg-slate-50/60 dark:bg-slate-800/40 hover:bg-white dark:hover:bg-slate-800 flex flex-col sm:flex-row sm:items-center justify-between gap-4 transition-all shadow-xs"
+                    >
+                      {/* Left: Format Badge + Quality Info */}
+                      <div className="flex items-center gap-3">
+                        <span className="px-3 py-1.5 rounded-xl bg-blue-500/10 text-blue-600 dark:text-blue-400 font-extrabold text-xs tracking-wider border border-blue-500/20">
+                          {f.container || "MP4"}
+                        </span>
+
+                        <div className="space-y-0.5">
+                          <div className="flex items-center gap-2">
+                            <span className="text-base font-extrabold text-slate-900 dark:text-white">
                               {f.qualityLabel}
                             </span>
-                            {f.qualityLabel === "1080p" && (
-                              <span className="text-[10px] font-bold text-amber-500">Full HD</span>
+                            {is1080 && (
+                              <span className="px-2 py-0.5 rounded-md bg-amber-500/10 text-amber-600 dark:text-amber-400 text-[10px] font-bold border border-amber-500/20">
+                                Full HD
+                              </span>
                             )}
-                          </span>
-                        </td>
-                        <td className="py-3 text-slate-600 dark:text-slate-300 font-semibold">
-                          {f.container} {f.hasAudio ? "— 🎬 1-File (Video + Audio)" : "— 🎞️ HD Video + Audio Track"}
-                        </td>
-                        <td className="py-3 text-slate-500 font-mono">
-                          {f.sizeMb || "Fast"}
-                        </td>
-                        <td className="py-3 text-right">
-                          <button
-                            type="button"
-                            onClick={() => handleMergeAndDownload(f, currentSelectedAudio)}
-                            disabled={isMerging}
-                            className="px-4 py-1.5 bg-emerald-600 hover:bg-emerald-700 text-white font-bold rounded-lg text-xs inline-flex items-center gap-1 shadow-xs transition-colors cursor-pointer"
-                          >
-                            <Download className="w-3.5 h-3.5" />
-                            <span>{f.hasAudio ? `Download ${f.qualityLabel}` : `Download ${f.qualityLabel}`}</span>
-                          </button>
-                        </td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
+                            {is720 && (
+                              <span className="px-2 py-0.5 rounded-md bg-blue-500/10 text-blue-600 dark:text-blue-400 text-[10px] font-bold border border-blue-200/60">
+                                HD
+                              </span>
+                            )}
+                            {isReady1File && (
+                              <span className="px-2 py-0.5 rounded-md bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 text-[10px] font-bold border border-emerald-500/20">
+                                🎬 1-File Ready
+                              </span>
+                            )}
+                          </div>
+                          <p className="text-xs text-slate-500 dark:text-slate-400">
+                            {isReady1File
+                              ? (lang === "hi" ? "वीडियो + ऑडियो (1 पूरी फाइल तैयार)" : "Video + Audio (1 Complete File)")
+                              : (lang === "hi" ? "Ultra HD वीडियो + ऑडियो ट्रैक" : "Ultra HD Video + Audio Track")}
+                          </p>
+                        </div>
+                      </div>
+
+                      {/* Right: File Size + Fast Download Button */}
+                      <div className="flex items-center justify-between sm:justify-end gap-4 w-full sm:w-auto">
+                        <span className="text-xs font-mono font-semibold text-slate-500 dark:text-slate-400">
+                          {f.sizeMb ? `~${f.sizeMb}` : "Fast Download"}
+                        </span>
+
+                        <button
+                          type="button"
+                          onClick={() => handleMergeAndDownload(f, currentSelectedAudio)}
+                          disabled={isCurrentDownloading}
+                          className="px-5 py-2.5 bg-emerald-600 hover:bg-emerald-700 active:scale-[0.98] text-white font-bold text-xs rounded-xl shadow-md shadow-emerald-600/20 flex items-center gap-1.5 transition-all cursor-pointer disabled:opacity-60"
+                        >
+                          {isCurrentDownloading ? (
+                            <>
+                              <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                              <span>{lang === "hi" ? "डाउनलोड शुरू..." : "Starting..."}</span>
+                            </>
+                          ) : (
+                            <>
+                              <Zap className="w-3.5 h-3.5 fill-current" />
+                              <span>⚡ Fast Download</span>
+                            </>
+                          )}
+                        </button>
+                      </div>
+                    </div>
+                  );
+                })}
               </div>
             )}
 
-            {/* Tab 2: Audio Only */}
+            {/* TAB 2: AUDIO / MUSIC (MP3) - Vidssave Row List */}
             {tableTab === "audio" && (
-              <div className="overflow-x-auto">
-                <table className="w-full text-left text-xs">
-                  <thead>
-                    <tr className="border-b border-slate-100 dark:border-slate-800 text-slate-400">
-                      <th className="pb-3 font-semibold">Audio Quality</th>
-                      <th className="pb-3 font-semibold">Format</th>
-                      <th className="pb-3 font-semibold">File Size</th>
-                      <th className="pb-3 font-semibold text-right">Download</th>
-                    </tr>
-                  </thead>
-                  <tbody className="divide-y divide-slate-100 dark:divide-slate-800">
-                    {mp3Formats.map((m: any) => (
-                      <tr key={m.itag} className="hover:bg-slate-50 dark:hover:bg-slate-800/50">
-                        <td className="py-3 font-bold text-slate-900 dark:text-white">
-                          <span className="inline-flex items-center gap-1.5">
-                            <span className="px-2 py-0.5 rounded bg-emerald-50 dark:bg-emerald-950/50 text-emerald-600 dark:text-emerald-400 font-extrabold text-[11px]">
-                              MP3 · {m.bitrate} kbps
+              <div className="space-y-3">
+                {/* MP3 High-Bitrate Formats */}
+                {mp3Formats.map((m: any) => {
+                  const isCurrentDownloading = downloadingItag === m.itag;
+                  const is320 = m.bitrate === 320;
+
+                  return (
+                    <div
+                      key={m.itag}
+                      className="p-4 sm:p-5 rounded-2xl border border-slate-200/90 dark:border-slate-800 hover:border-emerald-500/50 dark:hover:border-emerald-500/50 bg-slate-50/60 dark:bg-slate-800/40 hover:bg-white dark:hover:bg-slate-800 flex flex-col sm:flex-row sm:items-center justify-between gap-4 transition-all shadow-xs"
+                    >
+                      <div className="flex items-center gap-3">
+                        <span className="px-3 py-1.5 rounded-xl bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 font-extrabold text-xs tracking-wider border border-emerald-500/20">
+                          MP3
+                        </span>
+
+                        <div className="space-y-0.5">
+                          <div className="flex items-center gap-2">
+                            <span className="text-base font-extrabold text-slate-900 dark:text-white">
+                              {m.bitrate} KBPS
                             </span>
-                            {m.bitrate === 320 && (
-                              <span className="text-[10px] font-bold text-amber-500">Highest Quality</span>
+                            {is320 && (
+                              <span className="px-2 py-0.5 rounded-md bg-amber-500/10 text-amber-600 dark:text-amber-400 text-[10px] font-bold border border-amber-500/20">
+                                Highest Quality
+                              </span>
                             )}
-                          </span>
-                        </td>
-                        <td className="py-3 text-slate-600 dark:text-slate-300 font-semibold">
-                          MP3 Audio
-                        </td>
-                        <td className="py-3 text-slate-500 font-mono">
-                          {m.sizeMb || "HQ"}
-                        </td>
-                        <td className="py-3 text-right">
-                          <button
-                            type="button"
-                            onClick={() => handleDownload(m, videoData.title)}
-                            className="px-4 py-1.5 bg-emerald-600 hover:bg-emerald-700 text-white font-bold rounded-lg text-xs inline-flex items-center gap-1 shadow-xs transition-colors"
-                          >
-                            <Download className="w-3.5 h-3.5" />
-                            <span>Download MP3</span>
-                          </button>
-                        </td>
-                      </tr>
-                    ))}
-                    {audioFormats.map((a: any) => (
-                      <tr key={a.itag} className="hover:bg-slate-50 dark:hover:bg-slate-800/50">
-                        <td className="py-3 font-bold text-slate-900 dark:text-white">
-                          <span className="px-2 py-0.5 rounded bg-blue-50 dark:bg-blue-950/50 text-blue-600 dark:text-blue-400 font-extrabold text-[11px]">
+                          </div>
+                          <p className="text-xs text-slate-500 dark:text-slate-400">
+                            {is320
+                              ? (lang === "hi" ? "320 kbps शुद्ध HD साउंड" : "320 kbps Crystal Clear HD Audio")
+                              : (lang === "hi" ? "MP3 ऑडियो फाइल" : "MP3 Audio File")}
+                          </p>
+                        </div>
+                      </div>
+
+                      <div className="flex items-center justify-between sm:justify-end gap-4 w-full sm:w-auto">
+                        <span className="text-xs font-mono font-semibold text-slate-500 dark:text-slate-400">
+                          {m.sizeMb || "Fast Audio"}
+                        </span>
+
+                        <button
+                          type="button"
+                          onClick={() => handleDownload(m, videoData.title)}
+                          disabled={isCurrentDownloading}
+                          className="px-5 py-2.5 bg-emerald-600 hover:bg-emerald-700 active:scale-[0.98] text-white font-bold text-xs rounded-xl shadow-md shadow-emerald-600/20 flex items-center gap-1.5 transition-all cursor-pointer disabled:opacity-60"
+                        >
+                          {isCurrentDownloading ? (
+                            <>
+                              <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                              <span>{lang === "hi" ? "डाउनलोड शुरू..." : "Starting..."}</span>
+                            </>
+                          ) : (
+                            <>
+                              <Zap className="w-3.5 h-3.5 fill-current" />
+                              <span>⚡ Fast Download</span>
+                            </>
+                          )}
+                        </button>
+                      </div>
+                    </div>
+                  );
+                })}
+
+                {/* Original Audio Tracks (M4A AAC, Opus) */}
+                {audioFormats.map((a: any) => {
+                  const isCurrentDownloading = downloadingItag === a.itag;
+
+                  return (
+                    <div
+                      key={a.itag}
+                      className="p-4 sm:p-5 rounded-2xl border border-slate-200/90 dark:border-slate-800 hover:border-blue-500/50 dark:hover:border-blue-500/50 bg-slate-50/60 dark:bg-slate-800/40 hover:bg-white dark:hover:bg-slate-800 flex flex-col sm:flex-row sm:items-center justify-between gap-4 transition-all shadow-xs"
+                    >
+                      <div className="flex items-center gap-3">
+                        <span className="px-3 py-1.5 rounded-xl bg-blue-500/10 text-blue-600 dark:text-blue-400 font-extrabold text-xs tracking-wider border border-blue-500/20">
+                          {a.container?.toUpperCase() || "M4A"}
+                        </span>
+
+                        <div className="space-y-0.5">
+                          <span className="text-base font-extrabold text-slate-900 dark:text-white">
                             {a.codecLabel} ({a.audioBitrate} kbps)
                           </span>
-                        </td>
-                        <td className="py-3 text-slate-600 dark:text-slate-300 font-semibold">
-                          {a.language || "Original Audio Track"}
-                        </td>
-                        <td className="py-3 text-slate-500 font-mono">
-                          {a.sizeMb || "Standard"}
-                        </td>
-                        <td className="py-3 text-right">
-                          <button
-                            type="button"
-                            onClick={() => handleDownload(a, `${videoData.title}-Audio`)}
-                            className="px-4 py-1.5 bg-slate-900 hover:bg-slate-800 dark:bg-slate-700 dark:hover:bg-slate-600 text-white font-bold rounded-lg text-xs inline-flex items-center gap-1 shadow-xs transition-colors"
-                          >
-                            <Download className="w-3.5 h-3.5" />
-                            <span>Save Audio</span>
-                          </button>
-                        </td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
-              </div>
-            )}
+                          <p className="text-xs text-slate-500 dark:text-slate-400">
+                            {a.language || "Original Master Audio"}
+                          </p>
+                        </div>
+                      </div>
 
-            {/* Tab 3: Raw Tracks (for video editors) */}
-            {tableTab === "other" && (
-              <div className="overflow-x-auto">
-                <table className="w-full text-left text-xs">
-                  <thead>
-                    <tr className="border-b border-slate-100 dark:border-slate-800 text-slate-400">
-                      <th className="pb-3 font-semibold">Track Description</th>
-                      <th className="pb-3 font-semibold">Type</th>
-                      <th className="pb-3 font-semibold">File Size</th>
-                      <th className="pb-3 font-semibold text-right">Download</th>
-                    </tr>
-                  </thead>
-                  <tbody className="divide-y divide-slate-100 dark:divide-slate-800">
-                    {videoFormats.map((f: any) => (
-                      <tr key={f.itag} className="hover:bg-slate-50 dark:hover:bg-slate-800/50">
-                        <td className="py-3 font-bold text-slate-900 dark:text-white">
-                          {f.qualityLabel} {f.container} {f.fps ? `(${f.fps}fps)` : ""}
-                        </td>
-                        <td className="py-3 text-slate-600 dark:text-slate-300 font-semibold">
-                          {f.hasAudio ? "Video + Audio" : "Video Stream (Silent)"}
-                        </td>
-                        <td className="py-3 text-slate-500 font-mono">
-                          {f.sizeMb || "Direct"}
-                        </td>
-                        <td className="py-3 text-right">
-                          <button
-                            type="button"
-                            onClick={() => handleDownload(f, `${videoData.title}-${f.qualityLabel}`)}
-                            className="px-3.5 py-1 bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-200 font-bold rounded-lg text-xs inline-flex items-center gap-1 transition-colors"
-                          >
-                            <Download className="w-3.5 h-3.5" />
-                            <span>Save File</span>
-                          </button>
-                        </td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
+                      <div className="flex items-center justify-between sm:justify-end gap-4 w-full sm:w-auto">
+                        <span className="text-xs font-mono font-semibold text-slate-500 dark:text-slate-400">
+                          {a.sizeMb || "Standard"}
+                        </span>
+
+                        <button
+                          type="button"
+                          onClick={() => handleDownload(a, `${videoData.title}-Original-Audio`)}
+                          disabled={isCurrentDownloading}
+                          className="px-5 py-2.5 bg-slate-900 hover:bg-slate-800 dark:bg-slate-700 dark:hover:bg-slate-600 active:scale-[0.98] text-white font-bold text-xs rounded-xl shadow-md flex items-center gap-1.5 transition-all cursor-pointer disabled:opacity-60"
+                        >
+                          {isCurrentDownloading ? (
+                            <>
+                              <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                              <span>Starting...</span>
+                            </>
+                          ) : (
+                            <>
+                              <Download className="w-3.5 h-3.5" />
+                              <span>Download Track</span>
+                            </>
+                          )}
+                        </button>
+                      </div>
+                    </div>
+                  );
+                })}
               </div>
             )}
           </div>

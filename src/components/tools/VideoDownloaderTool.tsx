@@ -223,109 +223,47 @@ export function VideoDownloaderTool({
     });
   };
 
-  const handleMergeAndDownload = async (videoFormat: any, audioFormat: any) => {
+  const handleMergeAndDownload = (videoFormat: any, audioFormat: any) => {
     if (!videoData || !videoFormat) return;
 
-    // If video natively has audio (progressive like 360p itag 18), direct download!
-    if (videoFormat.hasAudio) {
-      handleDownload(videoFormat, videoData.title);
-      return;
-    }
-
-    // If custom worker (e.g. Render/VPS) is configured, route 1080p/720p directly to it
-    const workerUrl = process.env.NEXT_PUBLIC_WORKER_URL || "https://ytsnap-worker.onrender.com";
-    if (workerUrl) {
-      const resNumber = parseInt(videoFormat.qualityLabel, 10) || 1080;
-      const targetUrl = `${workerUrl.replace(/\/$/, "")}/api/download?id=${videoData.id}&res=${resNumber}`;
-      const a = document.createElement("a");
-      a.href = targetUrl;
-      a.setAttribute("download", "");
-      document.body.appendChild(a);
-      a.click();
-      a.remove();
-      setMergeSuccess(true);
-      setMergeStatusText(
-        lang === "hi"
-          ? `✅ 1080p Full HD वीडियो और ऑडियो जुड़कर डाउनलोड हो रहा है!`
-          : `✅ 1080p Full HD video & audio combined download started!`
-      );
-      return;
-    }
-
-    // If no separate audio is found, trigger direct download of the video stream
-    const targetAudio = audioFormat || (videoData.audioFormats && videoData.audioFormats[0]);
-    if (!targetAudio) {
-      handleDownload(videoFormat, videoData.title);
-      return;
-    }
-
-    setIsMerging(true);
     setMergeError(null);
     setMergeSuccess(false);
-    setMergeProgress(5);
+
+    // If video natively has audio (progressive like 360p itag 18), direct 1-file download!
+    if (videoFormat.hasAudio) {
+      handleDownload(videoFormat, videoData.title);
+      setMergeSuccess(true);
+      setMergeStatusText(
+        lang === "hi"
+          ? `✅ ${videoFormat.qualityLabel} वीडियो और ऑडियो (1 File Ready) डाउनलोड शुरू हो गया!`
+          : `✅ ${videoFormat.qualityLabel} Video & Audio (1 File Ready) download started!`
+      );
+      return;
+    }
+
+    // DASH formats (1080p Full HD, 720p HD, etc.):
+    // 1. Download HD video stream directly from Google CDN
+    handleDownload(videoFormat, `${videoData.title}-${videoFormat.qualityLabel}-HD-Video`);
+
+    // 2. Download original audio track directly from Google CDN
+    const targetAudio = audioFormat || (videoData.audioFormats && videoData.audioFormats[0]);
+    if (targetAudio) {
+      setTimeout(() => {
+        handleDownload(targetAudio, `${videoData.title}-Original-Audio`);
+      }, 1000);
+    }
+
+    setMergeSuccess(true);
     setMergeStatusText(
       lang === "hi"
-        ? `HD वीडियो (${videoFormat.qualityLabel}) और ऑडियो तैयार हो रहा है...`
-        : `Combining HD Video (${videoFormat.qualityLabel}) & Audio...`
+        ? `✅ ${videoFormat.qualityLabel} HD वीडियो और ओरिजिनल ऑडियो दोनों डाउनलोड हो रहे हैं!`
+        : `✅ ${videoFormat.qualityLabel} HD Video and Original Audio Track downloading!`
     );
-
-    try {
-      const videoStreamParam = videoFormat.url
-        ? `&streamUrl=${encodeURIComponent(videoFormat.url)}`
-        : "";
-      const audioStreamParam = targetAudio.url
-        ? `&streamUrl=${encodeURIComponent(targetAudio.url)}`
-        : "";
-
-      const videoStreamEndpoint = `/api/video-download?id=${videoData.id}&itag=${videoFormat.itag}&title=${encodeURIComponent(
-        videoData.title
-      )}${videoStreamParam}`;
-      const audioStreamEndpoint = `/api/video-download?id=${videoData.id}&itag=${targetAudio.itag}&title=${encodeURIComponent(
-        videoData.title
-      )}&format=m4a${audioStreamParam}`;
-
-      const { mergeVideoAndAudioInBrowser } = await import("@/lib/client-muxer");
-      await mergeVideoAndAudioInBrowser(
-        videoStreamEndpoint,
-        audioStreamEndpoint,
-        videoData.title,
-        videoFormat.qualityLabel,
-        (status, pct) => {
-          setMergeStatusText(status);
-          setMergeProgress(pct);
-        }
-      );
-      setMergeSuccess(true);
-      setMergeStatusText(
-        lang === "hi"
-          ? "✅ HD वीडियो और ऑडियो 1 पूरी MP4 फाइल में डाउनलोड हो गया!"
-          : "✅ HD video and audio combined into 1 complete MP4 file!"
-      );
-    } catch (err: any) {
-      console.warn("Client merge fallback:", err);
-      // Fallback: download video stream and audio stream sequentially so user has both
-      handleDownload(videoFormat, `${videoData.title}-${videoFormat.qualityLabel}-HD-Video`);
-      
-      if (targetAudio) {
-        setTimeout(() => {
-          handleDownload(targetAudio, `${videoData.title}-AudioTrack`);
-        }, 1200);
-      }
-
-      setMergeSuccess(true);
-      setMergeStatusText(
-        lang === "hi"
-          ? `✅ ${videoFormat.qualityLabel} HD वीडियो और ऑडियो ट्रैक दोनों डाउनलोड हो गए!`
-          : `✅ ${videoFormat.qualityLabel} HD Video & Audio track downloaded!`
-      );
-      setMergeError(
-        lang === "hi"
-          ? "नोट: YouTube 1080p को दो अलग-अलग फाइलों (HD वीडियो + ऑडियो) में रखता है। आपके फोन/PC में 1080p वीडियो और ऑडियो दोनों फाइलें डाउनलोड हो गई हैं। अगर आपको 1 ही फाइल में तुरंत वीडियो+ऑडियो चाहिए, तो नीचे 360p (Instant Video+Audio) चुनें।"
-          : "Notice: YouTube stores 1080p as separate DASH video & audio files. Both HD video and audio have been downloaded. For a single instant combined file, select 360p (Ready-to-watch)."
-      );
-    } finally {
-      setIsMerging(false);
-    }
+    setMergeError(
+      lang === "hi"
+        ? "💡 टिप: YouTube 1080p को दो अलग-अलग फाइलों (HD Video + Audio Track) में रखता है। दोनों फाइलें सीधे Google के हाई-स्पीड CDN से आपके डिवाइस में डाउनलोड हो रही हैं। अगर आपको 1 ही फाइल में तुरंत तैयार वीडियो+ऑडियो चाहिए, तो ऊपर 360p (1 File Ready) चुनें।"
+        : "💡 Tip: YouTube delivers 1080p as separate DASH video & audio streams. Both files are downloading at maximum speed directly from Google CDN. For an instant 1-file video+audio, choose 360p (1 File Ready)."
+    );
   };
 
   // Group and sort formats
@@ -537,7 +475,11 @@ export function VideoDownloaderTool({
                   </span>
                 )}
                 <span className="px-2.5 py-0.5 rounded-full bg-emerald-50 dark:bg-emerald-950/50 text-emerald-600 dark:text-emerald-400 border border-emerald-200/60 dark:border-emerald-900/40">
-                  {isMp3Selected ? "Audio Only" : "Video + Audio"}
+                  {isMp3Selected
+                    ? "Audio (MP3)"
+                    : currentSelectedVideo?.hasAudio
+                    ? "Video + Audio (1 File Ready)"
+                    : "HD Video + Audio Track"}
                 </span>
               </div>
 
@@ -586,13 +528,13 @@ export function VideoDownloaderTool({
                   </select>
                 </div>
 
-                {/* 2. Audio Track Selector (Visible when Video is selected) */}
-                {!isMp3Selected && (
+                {/* 2. Audio Track Selector (Visible when DASH HD Video is selected) */}
+                {!isMp3Selected && !currentSelectedVideo?.hasAudio && (
                   <div className="space-y-1.5 p-3.5 rounded-2xl bg-slate-50 dark:bg-slate-800/60 border border-slate-200/80 dark:border-slate-700/80">
                     <label className="text-xs font-bold text-slate-700 dark:text-slate-300 flex items-center justify-between">
                       <span className="flex items-center gap-1.5">
                         <Music className="w-3.5 h-3.5 text-emerald-500" />
-                        <span>{lang === "hi" ? "ऑडियो ट्रैक चुनें (Select Audio Track):" : "Select Audio Track:"}</span>
+                        <span>{lang === "hi" ? "ऑडियो ट्रैक (Audio Track to Download):" : "Audio Track to Download:"}</span>
                       </span>
                       <span className="text-[11px] font-semibold text-emerald-600 dark:text-emerald-400">
                         {currentSelectedAudio ? `${currentSelectedAudio.audioBitrate} kbps` : "Original"}
@@ -809,7 +751,7 @@ export function VideoDownloaderTool({
                           </span>
                         </td>
                         <td className="py-3 text-slate-600 dark:text-slate-300 font-semibold">
-                          {f.container} {f.hasAudio ? "(Video + Audio 1-File)" : "(HD Video + Audio)"}
+                          {f.container} {f.hasAudio ? "— 🎬 1-File (Video + Audio)" : "— 🎞️ HD Video + Audio Track"}
                         </td>
                         <td className="py-3 text-slate-500 font-mono">
                           {f.sizeMb || "Fast"}
@@ -819,10 +761,10 @@ export function VideoDownloaderTool({
                             type="button"
                             onClick={() => handleMergeAndDownload(f, currentSelectedAudio)}
                             disabled={isMerging}
-                            className="px-4 py-1.5 bg-emerald-600 hover:bg-emerald-700 text-white font-bold rounded-lg text-xs inline-flex items-center gap-1 shadow-xs transition-colors"
+                            className="px-4 py-1.5 bg-emerald-600 hover:bg-emerald-700 text-white font-bold rounded-lg text-xs inline-flex items-center gap-1 shadow-xs transition-colors cursor-pointer"
                           >
                             <Download className="w-3.5 h-3.5" />
-                            <span>Download {f.qualityLabel}</span>
+                            <span>{f.hasAudio ? `Download ${f.qualityLabel}` : `Download ${f.qualityLabel}`}</span>
                           </button>
                         </td>
                       </tr>

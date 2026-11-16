@@ -199,32 +199,24 @@ export function VideoDownloaderTool({
       .trim()
       .slice(0, 80);
 
-    let targetUrl: string;
+    const isAudioOnly =
+      format.isAudioOnly ||
+      format.isMp3 ||
+      format.container === "MP3" ||
+      format.container === "M4A";
+    const formatType = isAudioOnly ? "mp3" : "mp4";
+    const streamParam = format.url
+      ? `&streamUrl=${encodeURIComponent(format.url)}`
+      : "";
 
-    if (format.url && format.url.startsWith("http")) {
-      // Direct CDN download with Google's native &title= parameter
-      // Google CDN automatically returns Content-Disposition: attachment; filename="<title>.mp4"
-      targetUrl = format.url.includes("&title=")
-        ? format.url
-        : `${format.url}&title=${encodeURIComponent(cleanTitle)}`;
-    } else {
-      const streamParam = format.url ? `&streamUrl=${encodeURIComponent(format.url)}` : "";
-      if (format.isAudioOnly || format.isMp3 || format.container === "MP3") {
-        targetUrl = `/api/video-download?id=${videoData.id}&itag=${format.itag || 140}&title=${encodeURIComponent(
-          cleanTitle
-        )}&format=mp3${streamParam}`;
-      } else {
-        targetUrl = `/api/video-download?id=${videoData.id}&itag=${format.itag}&title=${encodeURIComponent(
-          cleanTitle
-        )}${streamParam}`;
-      }
-    }
+    const targetUrl = `/api/video-download?id=${videoData.id}&itag=${
+      format.itag || 18
+    }&title=${encodeURIComponent(cleanTitle)}&format=${formatType}${streamParam}`;
 
     const a = document.createElement("a");
     a.href = targetUrl;
     a.target = "_blank";
     a.rel = "noopener noreferrer";
-    a.setAttribute("download", `${cleanTitle}.${format.container?.toLowerCase() || "mp4"}`);
     document.body.appendChild(a);
     a.click();
     a.remove();

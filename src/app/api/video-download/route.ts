@@ -70,22 +70,38 @@ export async function GET(req: NextRequest) {
 
     // 1. If streamUrl is provided, attempt direct streaming through matching proxy
     if (streamUrl && streamUrl.startsWith("http")) {
+      let proxyStatus = 0;
+      let proxyErr = "";
       try {
         const cdnRes = await fetchWithProxy(streamUrl, { headers: fetchHeaders });
+        proxyStatus = cdnRes.status;
         if (cdnRes.ok || cdnRes.status === 206) {
           return streamResponse(cdnRes, defaultFilename, isAudioOnly);
         }
-      } catch (streamErr) {
-        console.warn("Proxy streamUrl fetch note, trying direct fallback:", streamErr);
+      } catch (streamErr: any) {
+        proxyErr = streamErr?.message || String(streamErr);
       }
+
+      let directStatus = 0;
+      let directErr = "";
       try {
         const directRes = await fetch(streamUrl, { headers: fetchHeaders });
+        directStatus = directRes.status;
         if (directRes.ok || directRes.status === 206) {
           return streamResponse(directRes, defaultFilename, isAudioOnly);
         }
-      } catch (dirErr) {
-        console.warn("Direct stream fetch note:", dirErr);
+      } catch (dirErr: any) {
+        directErr = dirErr?.message || String(dirErr);
       }
+
+      return NextResponse.json({
+        streamFailed: true,
+        proxyStatus,
+        proxyErr,
+        directStatus,
+        directErr,
+        streamUrlPrefix: streamUrl.substring(0, 80)
+      }, { status: 502 });
     }
 
     if (!id || !/^[a-zA-Z0-9_-]{11}$/.test(id)) {

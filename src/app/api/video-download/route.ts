@@ -75,8 +75,16 @@ export async function GET(req: NextRequest) {
         if (cdnRes.ok || cdnRes.status === 206) {
           return streamResponse(cdnRes, defaultFilename, isAudioOnly);
         }
-      } catch (streamErr) {
-        console.warn("Direct streamUrl fetch note, falling back to id resolution:", streamErr);
+        const errText = await cdnRes.text().catch(() => "");
+        return new NextResponse(
+          `CDN_NOT_OK: status=${cdnRes.status}, body=${errText.substring(0, 200)}`,
+          { status: 502 }
+        );
+      } catch (streamErr: any) {
+        return new NextResponse(
+          `STREAM_ERR: ${streamErr?.message || streamErr}`,
+          { status: 502 }
+        );
       }
     }
 

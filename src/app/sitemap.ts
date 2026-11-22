@@ -7,7 +7,7 @@ export const dynamic = "force-dynamic";
 
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   const configuredBase = await getSetting("sitemap_base_url", "");
-  const baseUrl = (configuredBase || process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3000").replace(/\/$/, "");
+  const baseUrl = (configuredBase || process.env.NEXT_PUBLIC_APP_URL || "https://www.ytsnap.tech").replace(/\/$/, "");
 
   const staticRoutes = [
     "",

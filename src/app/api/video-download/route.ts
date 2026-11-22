@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { Ytdl } from "@distube/ytdl-core";
-import { fetchWithProxy, createProxyFetch } from "@/lib/youtube-proxy";
+import { fetchWithProxy, createProxyFetch, getProxyForUrl } from "@/lib/youtube-proxy";
 
 export const dynamic = "force-dynamic";
 export const maxDuration = 60;
@@ -67,14 +67,19 @@ export async function GET(req: NextRequest) {
       fetchHeaders["Range"] = range;
     }
 
+    let debugInfo = "";
     // Priority 1: Direct stream fetch through residential proxy (prevents 403 Forbidden IP check)
     if (streamUrl && streamUrl.startsWith("http")) {
       try {
+        const targetProxy = getProxyForUrl(streamUrl);
+        debugInfo += `proxy=${targetProxy.replace(/:[^:@]+@/, ":***@")}; `;
         const cdnRes = await fetchWithProxy(streamUrl, { headers: fetchHeaders });
+        debugInfo += `status=${cdnRes.status}; ok=${cdnRes.ok}; `;
         if (cdnRes.ok || cdnRes.status === 206) {
           return streamResponse(cdnRes, defaultFilename, isAudioOnly);
         }
-      } catch (streamErr) {
+      } catch (streamErr: any) {
+        debugInfo += `err=${streamErr?.message || streamErr}; `;
         console.warn("Proxy streamUrl fetch note, trying direct fallback:", streamErr);
         try {
           const directRes = await fetch(streamUrl, { headers: fetchHeaders });
@@ -218,7 +223,7 @@ export async function GET(req: NextRequest) {
     }
 
     return new NextResponse(
-      "Unable to stream video content from CDN. Please refresh and try again.",
+      `Unable to stream video content from CDN (${debugInfo || "no debug info"}). Please refresh and try again.`,
       { status: 502 }
     );
   } catch (error: any) {

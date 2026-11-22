@@ -3,9 +3,7 @@ import { Ytdl, createPoTokenProvider } from "@distube/ytdl-core";
 import { extractYouTubeVideoId } from "@/lib/youtube";
 import { checkRateLimit, hashIp } from "@/lib/security";
 import prisma from "@/lib/prisma";
-import { ProxyAgent } from "undici";
-import fs from "fs";
-import path from "path";
+import { createProxyFetch, getRandomProxy } from "@/lib/youtube-proxy";
 
 export const dynamic = "force-dynamic";
 
@@ -27,43 +25,6 @@ async function getPoTokenProvider() {
       });
   }
   return poTokenProviderPromise;
-}
-
-function getProxyDispatcher(): ProxyAgent | undefined {
-  let proxyUrl =
-    process.env.YOUTUBE_PROXY ||
-    process.env.HTTP_PROXY ||
-    process.env.HTTPS_PROXY;
-
-  if (!proxyUrl) {
-    try {
-      const pPath = path.join(process.cwd(), "proxies.txt");
-      if (fs.existsSync(pPath)) {
-        const lines = fs
-          .readFileSync(pPath, "utf8")
-          .split("\n")
-          .map((l) => l.trim())
-          .filter(Boolean);
-        if (lines.length > 0) {
-          const randomLine = lines[Math.floor(Math.random() * lines.length)];
-          proxyUrl = randomLine.startsWith("http")
-            ? randomLine
-            : `http://${randomLine}`;
-        }
-      }
-    } catch {
-      // ignore
-    }
-  }
-
-  if (proxyUrl) {
-    try {
-      return new ProxyAgent(proxyUrl);
-    } catch (e) {
-      console.warn("Invalid proxy configuration:", e);
-    }
-  }
-  return undefined;
 }
 
 export async function POST(req: NextRequest) {
@@ -138,10 +99,7 @@ export async function POST(req: NextRequest) {
     let lastError: any = null;
 
     const poTokenProvider = await getPoTokenProvider();
-    const dispatcher = getProxyDispatcher();
-    const customFetch = dispatcher
-      ? ((url: any, init: any) => fetch(url, { ...init, dispatcher }))
-      : undefined;
+    const customFetch = createProxyFetch();
 
     // Strategic fallback client candidates:
     // 1. ["mweb", "web_embedded"]: Lowest bot detection, public streams

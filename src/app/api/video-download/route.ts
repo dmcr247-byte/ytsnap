@@ -1,18 +1,19 @@
 import { NextRequest, NextResponse } from "next/server";
 import { Ytdl } from "@distube/ytdl-core";
+import { fetchWithProxy, createProxyFetch } from "@/lib/youtube-proxy";
 
 export const dynamic = "force-dynamic";
 export const maxDuration = 60;
 
 function streamResponse(
-  cdnRes: Response,
+  cdnRes: any,
   filename: string,
   isAudio: boolean
 ): Response {
   const resHeaders = new Headers();
   const contentType = isAudio
     ? "audio/mpeg"
-    : cdnRes.headers.get("content-type") || "video/mp4";
+    : cdnRes.headers?.get?.("content-type") || "video/mp4";
 
   resHeaders.set("Content-Type", contentType);
   resHeaders.set(
@@ -22,11 +23,11 @@ function streamResponse(
   resHeaders.set("Accept-Ranges", "bytes");
   resHeaders.set("Cache-Control", "public, max-age=3600");
 
-  const contentLength = cdnRes.headers.get("content-length");
+  const contentLength = cdnRes.headers?.get?.("content-length");
   if (contentLength) {
     resHeaders.set("Content-Length", contentLength);
   }
-  const contentRange = cdnRes.headers.get("content-range");
+  const contentRange = cdnRes.headers?.get?.("content-range");
   if (contentRange) {
     resHeaders.set("Content-Range", contentRange);
   }
@@ -66,15 +67,23 @@ export async function GET(req: NextRequest) {
       fetchHeaders["Range"] = range;
     }
 
-    // Priority 1: Direct stream fetch from streamUrl with Attachment header
+    // Priority 1: Direct stream fetch through residential proxy (prevents 403 Forbidden IP check)
     if (streamUrl && streamUrl.startsWith("http")) {
       try {
-        const cdnRes = await fetch(streamUrl, { headers: fetchHeaders });
+        const cdnRes = await fetchWithProxy(streamUrl, { headers: fetchHeaders });
         if (cdnRes.ok || cdnRes.status === 206) {
           return streamResponse(cdnRes, defaultFilename, isAudioOnly);
         }
       } catch (streamErr) {
-        console.warn("Direct streamUrl fetch note, falling back:", streamErr);
+        console.warn("Proxy streamUrl fetch note, trying direct fallback:", streamErr);
+        try {
+          const directRes = await fetch(streamUrl, { headers: fetchHeaders });
+          if (directRes.ok || directRes.status === 206) {
+            return streamResponse(directRes, defaultFilename, isAudioOnly);
+          }
+        } catch (dirErr) {
+          console.warn("Direct streamUrl fetch note:", dirErr);
+        }
       }
     }
 
@@ -105,20 +114,23 @@ export async function GET(req: NextRequest) {
 
           if (match && match.url) {
             try {
-              const cdnRes = await fetch(match.url, { headers: fetchHeaders });
+              const cdnRes = await fetchWithProxy(match.url, { headers: fetchHeaders });
               if (cdnRes.ok || cdnRes.status === 206) {
                 const ext = isAudioOnly ? "mp3" : (match.container || "mp4").toLowerCase();
                 return streamResponse(cdnRes, `${cleanTitle}.${ext}`, isAudioOnly);
               }
             } catch (rapidFetchErr) {
-              console.warn("Rapid stream fetch note:", rapidFetchErr);
+              console.warn("Rapid proxy stream fetch note, trying direct:", rapidFetchErr);
+              try {
+                const directRes = await fetch(match.url, { headers: fetchHeaders });
+                if (directRes.ok || directRes.status === 206) {
+                  const ext = isAudioOnly ? "mp3" : (match.container || "mp4").toLowerCase();
+                  return streamResponse(directRes, `${cleanTitle}.${ext}`, isAudioOnly);
+                }
+              } catch (dErr) {
+                console.warn("Rapid direct fetch note:", dErr);
+              }
             }
-
-            const finalUrl = match.url.includes("&title=")
-              ? match.url
-              : `${match.url}&title=${encodeURIComponent(cleanTitle)}`;
-
-            return NextResponse.redirect(finalUrl, 302);
           }
         }
       } catch (rErr) {
@@ -126,7 +138,7 @@ export async function GET(req: NextRequest) {
       }
     }
 
-    // Priority 3: Fresh Ytdl format resolution -> stream
+    // Priority 3: Fresh Ytdl format resolution with proxy -> stream
     let info: any = null;
     const clientCandidates: (string[] | undefined)[] = [
       ["mweb", "web_embedded"],
@@ -135,9 +147,13 @@ export async function GET(req: NextRequest) {
       undefined,
     ];
 
+    const proxyFetch = createProxyFetch();
     for (const clients of clientCandidates) {
       try {
-        const ytdl = new Ytdl(clients ? { clients: clients as any } : {});
+        const ytdl = new Ytdl({
+          fetch: proxyFetch as any,
+          ...(clients ? { clients: clients as any } : {}),
+        });
         const res = await ytdl.getInfo(`https://www.youtube.com/watch?v=${id}`);
         if (res && res.formats && res.formats.length > 0) {
           info = res;
@@ -179,7 +195,7 @@ export async function GET(req: NextRequest) {
     }
 
     try {
-      const cdnRes = await fetch(targetFormat.url, { headers: fetchHeaders });
+      const cdnRes = await fetchWithProxy(targetFormat.url, { headers: fetchHeaders });
       if (cdnRes.ok || cdnRes.status === 206) {
         const targetExt = isAudioOnly
           ? "mp3"
@@ -187,14 +203,24 @@ export async function GET(req: NextRequest) {
         return streamResponse(cdnRes, `${cleanTitle}.${targetExt}`, isAudioOnly);
       }
     } catch (e) {
-      console.warn("Ytdl stream fetch note:", e);
+      console.warn("Proxy Ytdl stream fetch note, trying direct:", e);
+      try {
+        const directRes = await fetch(targetFormat.url, { headers: fetchHeaders });
+        if (directRes.ok || directRes.status === 206) {
+          const targetExt = isAudioOnly
+            ? "mp3"
+            : (targetFormat.container || "mp4").toLowerCase();
+          return streamResponse(directRes, `${cleanTitle}.${targetExt}`, isAudioOnly);
+        }
+      } catch (dErr) {
+        console.warn("Direct stream fetch note:", dErr);
+      }
     }
 
-    const finalUrl = targetFormat.url.includes("&title=")
-      ? targetFormat.url
-      : `${targetFormat.url}&title=${encodeURIComponent(cleanTitle)}`;
-
-    return NextResponse.redirect(finalUrl, 302);
+    return new NextResponse(
+      "Unable to stream video content from CDN. Please refresh and try again.",
+      { status: 502 }
+    );
   } catch (error: any) {
     console.error("Video download streaming error:", error);
     return new NextResponse(

@@ -1,5 +1,6 @@
 import React from "react";
 import { Metadata } from "next";
+import Link from "next/link";
 import { notFound } from "next/navigation";
 import {
   isValidLanguage,
@@ -7,6 +8,7 @@ import {
   SUPPORTED_LANGUAGES,
   SupportedLanguage,
 } from "@/lib/i18n";
+import { getToolSeoMeta } from "@/lib/seo-metadata";
 import { Breadcrumbs } from "@/components/Breadcrumbs";
 import { JsonLd } from "@/components/JsonLd";
 import { ThumbnailHero } from "@/components/ThumbnailHero";
@@ -62,89 +64,69 @@ export async function generateMetadata({ params }: ToolPageProps): Promise<Metad
   if (!isValidLanguage(lang) || !VALID_TOOLS.includes(toolSlug)) return {};
 
   const dict = getDictionary(lang);
-  const baseUrl = process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3000";
+  const baseUrl = (process.env.NEXT_PUBLIC_APP_URL || "https://www.ytsnap.tech").replace(/\/$/, "");
 
-  let title = "Creator Tool";
-  let description = "Free YouTube Creator Utility on YTSnap.";
+  let fallbackTitle = "Creator Tool";
+  let fallbackDesc = "Free YouTube Creator Utility on YTSnap.";
 
   switch (toolSlug) {
     case "youtube-video-downloader":
-      title =
-        lang === "hi"
-          ? "यूट्यूब वीडियो डाउनलोडर (1080p Full HD & MP3)"
-          : "YouTube Video Downloader (1080p Full HD & MP3)";
-      description =
-        lang === "hi"
-          ? "यूट्यूब वीडियो और शॉर्ट्स को 1080p, 720p HD MP4 और 320kbps MP3 ऑडियो में तेज़ स्पीड से डाउनलोड करें। ऑडियो और वीडियो एक साथ।"
-          : "Download YouTube videos and Shorts in MP4 1080p, 720p HD, 480p, and MP3 audio with instant high-speed streaming.";
+      fallbackTitle = "YouTube Video Downloader (1080p Full HD & MP3)";
+      fallbackDesc = "Download YouTube videos and Shorts in MP4 1080p, 720p HD, 480p, and MP3 audio with instant high-speed streaming.";
       break;
     case "youtube-shorts-downloader":
-      title =
-        lang === "hi"
-          ? "यूट्यूब शॉर्ट्स डाउनलोडर बिना वॉटरमार्क (1080p HD)"
-          : "YouTube Shorts Downloader (No Watermark 1080p HD)";
-      description =
-        lang === "hi"
-          ? "बिना वॉटरमार्क के 1080p, 720p HD MP4 और MP3 ऑडियो में यूट्यूब शॉर्ट्स तुरंत डाउनलोड करें।"
-          : "Download YouTube Shorts in MP4 1080p, 720p HD and MP3 audio instantly without any app or watermark.";
+      fallbackTitle = "YouTube Shorts Downloader (No Watermark 1080p HD)";
+      fallbackDesc = "Download YouTube Shorts in MP4 1080p, 720p HD and MP3 audio instantly without any app or watermark.";
       break;
     case "youtube-banner-downloader":
-      title =
-        lang === "hi"
-          ? "यूट्यूब चैनल बैनर डाउनलोडर (2560x1440 4K HD)"
-          : "YouTube Channel Banner Downloader (2560x1440 HD)";
-      description =
-        lang === "hi"
-          ? "2560x1440 HD में यूट्यूब चैनल बैनर, चैनल आर्ट और अवतार डाउनलोड करें।"
-          : "Download YouTube channel banners, channel art, and avatars in 2560x1440 HD.";
+      fallbackTitle = "YouTube Channel Banner Downloader (2560x1440 HD)";
+      fallbackDesc = "Download YouTube channel banners, channel art, and avatars in 2560x1440 HD.";
       break;
     case "youtube-thumbnail-downloader":
-      title =
-        lang === "hi"
-          ? "यूट्यूब थंबनेल डाउनलोडर (Full HD 1280x720)"
-          : "YouTube Thumbnail Downloader (Full HD 1280x720)";
-      description =
-        lang === "hi"
-          ? "सभी उपलब्ध रेजोल्यूशन (1280x720, 640x480) में यूट्यूब थंबनेल देखें और बिना वॉटरमार्क डाउनलोड करें।"
-          : "Inspect and download YouTube thumbnails in full HD (1280x720 maxresdefault) without watermarks.";
+      fallbackTitle = "YouTube Thumbnail Downloader (Full HD 1280x720)";
+      fallbackDesc = "Inspect and download YouTube thumbnails in full HD (1280x720 maxresdefault) without watermarks.";
       break;
     case "youtube-video-information":
-      title = dict.videoInfo.title;
-      description = dict.videoInfo.subtitle;
+      fallbackTitle = dict.videoInfo.title;
+      fallbackDesc = dict.videoInfo.subtitle;
       break;
     case "thumbnail-resizer":
-      title = dict.resizerTool.title;
-      description = dict.resizerTool.subtitle;
+      fallbackTitle = dict.resizerTool.title;
+      fallbackDesc = dict.resizerTool.subtitle;
       break;
     case "image-compressor":
-      title = dict.compressorTool.title;
-      description = dict.compressorTool.subtitle;
+      fallbackTitle = dict.compressorTool.title;
+      fallbackDesc = dict.compressorTool.subtitle;
       break;
     case "image-converter":
-      title = dict.converterTool.title;
-      description = dict.converterTool.subtitle;
+      fallbackTitle = dict.converterTool.title;
+      fallbackDesc = dict.converterTool.subtitle;
       break;
     case "youtube-title-generator":
-      title = dict.titleTool.title;
-      description = dict.titleTool.subtitle;
+      fallbackTitle = dict.titleTool.title;
+      fallbackDesc = dict.titleTool.subtitle;
       break;
     case "youtube-description-generator":
-      title = dict.descTool.title;
-      description = dict.descTool.subtitle;
+      fallbackTitle = dict.descTool.title;
+      fallbackDesc = dict.descTool.subtitle;
       break;
     case "youtube-tags-generator":
-      title = dict.tagsTool.title;
-      description = dict.tagsTool.subtitle;
+      fallbackTitle = dict.tagsTool.title;
+      fallbackDesc = dict.tagsTool.subtitle;
       break;
     case "youtube-hashtag-generator":
-      title = dict.hashtagTool.title;
-      description = dict.hashtagTool.subtitle;
+      fallbackTitle = dict.hashtagTool.title;
+      fallbackDesc = dict.hashtagTool.subtitle;
       break;
     case "video-aspect-ratio-calculator":
-      title = dict.ratioTool.title;
-      description = dict.ratioTool.subtitle;
+      fallbackTitle = dict.ratioTool.title;
+      fallbackDesc = dict.ratioTool.subtitle;
       break;
   }
+
+  const seo = getToolSeoMeta(toolSlug, lang as SupportedLanguage, fallbackTitle, fallbackDesc);
+  const title = seo.title.includes("YTSnap") ? seo.title : `${seo.title} | YTSnap`;
+  const description = seo.description;
 
   const alternatesLanguages: Record<string, string> = {};
   for (const l of SUPPORTED_LANGUAGES) {
@@ -152,18 +134,23 @@ export async function generateMetadata({ params }: ToolPageProps): Promise<Metad
   }
 
   return {
-    title: `${title} | YTSnap`,
+    title,
     description,
     alternates: {
       canonical: `${baseUrl}/${lang}/tools/${toolSlug}`,
       languages: alternatesLanguages,
     },
     openGraph: {
-      title: `${title} | YTSnap`,
+      title,
       description,
       url: `${baseUrl}/${lang}/tools/${toolSlug}`,
       siteName: "YTSnap",
       type: "website",
+    },
+    twitter: {
+      card: "summary_large_image",
+      title,
+      description,
     },
   };
 }
@@ -482,6 +469,51 @@ export default function ToolPage({ params, searchParams }: ToolPageProps) {
 
         {/* Render Interactive Tool */}
         <div className="mt-6">{toolComponent}</div>
+
+        {/* High-Conversion Cross-Promotion Banner */}
+        <div className="my-8 p-4 sm:p-6 rounded-2xl bg-gradient-to-r from-red-500/10 via-amber-500/10 to-red-600/10 border border-red-500/20 flex flex-col sm:flex-row items-center justify-between gap-4">
+          <div className="flex items-center gap-3 text-left">
+            <span className="text-2xl sm:text-3xl">⚡</span>
+            <div>
+              <h3 className="text-base sm:text-lg font-bold text-slate-900 dark:text-white">
+                {lang === "hi"
+                  ? "यूट्यूब वीडियो और शॉर्ट्स डाउनलोड करना चाहते हैं?"
+                  : "Need to Download YouTube Videos & Shorts in HD?"}
+              </h3>
+              <p className="text-xs sm:text-sm text-slate-600 dark:text-slate-300">
+                {lang === "hi"
+                  ? "1080p Full HD वीडियो और 320kbps MP3 ऑडियो बिना वॉटरमार्क तुरंत 1-क्लिक में डाउनलोड करें।"
+                  : "Save any video or Shorts in 1080p Full HD MP4 and crystal-clear 320kbps MP3 audio with zero watermarks."}
+              </p>
+            </div>
+          </div>
+          <div className="flex items-center gap-2 w-full sm:w-auto shrink-0">
+            {toolSlug !== "youtube-shorts-downloader" && (
+              <Link
+                href={`/${lang}/tools/youtube-shorts-downloader`}
+                className="flex-1 sm:flex-none text-center px-4 py-2 text-xs sm:text-sm font-semibold text-white bg-red-600 hover:bg-red-700 rounded-xl transition shadow-sm"
+              >
+                {lang === "hi" ? "शॉर्ट्स डाउनलोडर" : "Shorts Downloader"}
+              </Link>
+            )}
+            {toolSlug !== "youtube-video-downloader" && (
+              <Link
+                href={`/${lang}/tools/youtube-video-downloader`}
+                className="flex-1 sm:flex-none text-center px-4 py-2 text-xs sm:text-sm font-semibold text-slate-700 dark:text-slate-200 bg-white dark:bg-slate-800 hover:bg-slate-100 dark:hover:bg-slate-700 rounded-xl transition border border-slate-200 dark:border-slate-700"
+              >
+                {lang === "hi" ? "वीडियो डाउनलोडर" : "Video Downloader"}
+              </Link>
+            )}
+            {toolSlug === "youtube-video-downloader" && (
+              <Link
+                href={`/${lang}/tools/youtube-thumbnail-downloader`}
+                className="flex-1 sm:flex-none text-center px-4 py-2 text-xs sm:text-sm font-semibold text-slate-700 dark:text-slate-200 bg-white dark:bg-slate-800 hover:bg-slate-100 dark:hover:bg-slate-700 rounded-xl transition border border-slate-200 dark:border-slate-700"
+              >
+                {lang === "hi" ? "थंबनेल डाउनलोडर" : "Thumbnail Downloader"}
+              </Link>
+            )}
+          </div>
+        </div>
 
         {/* E-E-A-T Multilingual Editorial Article & Specifications */}
         <ToolContentSection toolSlug={toolSlug} lang={lang as SupportedLanguage} />

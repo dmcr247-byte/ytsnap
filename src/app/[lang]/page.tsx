@@ -22,6 +22,8 @@ import { ToolContentSection } from "@/components/ToolContentSection";
 import prisma from "@/lib/prisma";
 import { ArrowRight, BookOpen, Calendar, Clock } from "lucide-react";
 
+import { HOME_SEO_META } from "@/lib/seo-metadata";
+
 interface PageProps {
   params: { lang: string };
   searchParams?: { v?: string };
@@ -32,20 +34,16 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
   if (!isValidLanguage(lang)) return {};
 
   const dict = getDictionary(lang);
-  const baseUrl = process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3000";
+  const baseUrl = (process.env.NEXT_PUBLIC_APP_URL || "https://www.ytsnap.tech").replace(/\/$/, "");
 
   const alternatesLanguages: Record<string, string> = {};
   for (const l of SUPPORTED_LANGUAGES) {
     alternatesLanguages[l.code] = `${baseUrl}/${l.code}`;
   }
 
-  const isHi = lang === "hi";
-  const title = isHi
-    ? "यूट्यूब वीडियो और शॉर्ट्स डाउनलोडर - 1080p HD और MP3 | YTSnap"
-    : "YouTube Video Downloader - Download 1080p Full HD, Shorts & MP3 | YTSnap";
-  const description = isHi
-    ? "यूट्यूब वीडियो और शॉर्ट्स को 1080p, 720p HD MP4 और MP3 ऑडियो में तेज़ स्पीड से डाउनलोड करें। ऑडियो और वीडियो एक साथ बिना वॉटरमार्क।"
-    : "Download YouTube videos, Shorts and MP3 audio in 1080p, 720p HD with combined audio tracks at high speed without watermarks.";
+  const meta = HOME_SEO_META[lang as SupportedLanguage] || HOME_SEO_META.en;
+  const title = meta.title;
+  const description = meta.description;
 
   return {
     title,

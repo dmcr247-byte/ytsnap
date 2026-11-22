@@ -30,7 +30,7 @@ export async function generateMetadata({ params }: ArticlePageProps): Promise<Me
   const { lang, slug } = params;
   if (!isValidLanguage(lang)) return {};
 
-  const baseUrl = process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3000";
+  const baseUrl = (process.env.NEXT_PUBLIC_APP_URL || "https://www.ytsnap.tech").replace(/\/$/, "");
   const post = await prisma.blogPost.findFirst({
     where: { slug, isPublished: true },
   });
@@ -67,7 +67,7 @@ export default async function BlogPostDetailPage({ params }: ArticlePageProps) {
   if (!isValidLanguage(lang)) notFound();
 
   const dict = getDictionary(lang);
-  const baseUrl = process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3000";
+  const baseUrl = (process.env.NEXT_PUBLIC_APP_URL || "https://www.ytsnap.tech").replace(/\/$/, "");
 
   // Try finding post in user's language, fallback to English version
   let post = await prisma.blogPost.findUnique({

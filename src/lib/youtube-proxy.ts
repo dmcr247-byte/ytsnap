@@ -5,13 +5,7 @@ import path from "path";
 // Primary 100% verified unblocked residential proxy (Frankfurt, Germany)
 export const PRIMARY_PROXY = "http://kmyglkum:yjymuvjpxgct@64.137.10.153:5803";
 
-// Verified fallback pool from Webshare account
-export const DEFAULT_PROXIES = [
-  PRIMARY_PROXY,
-  "http://kmyglkum:yjymuvjpxgct@104.164.49.38:7693",
-  "http://kmyglkum:yjymuvjpxgct@23.26.71.145:5628",
-  "http://kmyglkum:yjymuvjpxgct@45.38.107.97:6014",
-];
+export const DEFAULT_PROXIES = [PRIMARY_PROXY];
 
 const agentCache = new Map<string, ProxyAgent>();
 

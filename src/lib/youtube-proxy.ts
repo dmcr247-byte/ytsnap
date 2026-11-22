@@ -73,6 +73,25 @@ export function getRandomProxy(): string {
 }
 
 /**
+ * Resolves the matching proxy for a given URL.
+ * YouTube's videoplayback URLs include an "&ip=X.X.X.X" parameter that must match the fetching proxy.
+ */
+export function getProxyForUrl(url: string | URL): string {
+  try {
+    const urlObj = typeof url === "string" ? new URL(url) : url;
+    const boundIp = urlObj.searchParams.get("ip");
+    if (boundIp) {
+      const list = getProxyList();
+      const match = list.find((p) => p.includes(boundIp));
+      if (match) return match;
+    }
+  } catch {
+    // ignore
+  }
+  return getRandomProxy();
+}
+
+/**
  * Returns a cached ProxyAgent instance for the given proxy URL (or random proxy).
  */
 export function getProxyAgent(proxyUrl?: string): ProxyAgent {
@@ -100,14 +119,15 @@ export function createProxyFetch(preferredProxyUrl?: string) {
 }
 
 /**
- * Fetches an external URL (e.g. googlevideo.com CDN) through the residential proxy.
+ * Fetches an external URL (e.g. googlevideo.com CDN) through the matching residential proxy.
  */
 export async function fetchWithProxy(
   url: string | URL | any,
   init: any = {},
   preferredProxyUrl?: string
 ) {
-  const agent = getProxyAgent(preferredProxyUrl);
+  const targetProxy = preferredProxyUrl || getProxyForUrl(url);
+  const agent = getProxyAgent(targetProxy);
   return undiciFetch(url, {
     ...init,
     dispatcher: agent,

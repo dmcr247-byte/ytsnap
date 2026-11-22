@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { Ytdl } from "@distube/ytdl-core";
-import { fetchWithProxy, createProxyFetch, getProxyForUrl } from "@/lib/youtube-proxy";
+import { getProxyAgent, getRandomProxy, getProxyList, fetchWithProxy } from "@/lib/youtube-proxy";
+import { fetch as undiciFetch } from "undici";
 
 export const dynamic = "force-dynamic";
 export const maxDuration = 60;
@@ -40,7 +41,7 @@ function streamResponse(
 
 export async function GET(req: NextRequest) {
   try {
-    const { searchParams } = new URL(req.url);
+    const searchParams = req.nextUrl.searchParams;
     const id = searchParams.get("id");
     const itagParam = searchParams.get("itag");
     const formatParam = (searchParams.get("format") || "").toLowerCase();
@@ -67,28 +68,15 @@ export async function GET(req: NextRequest) {
       fetchHeaders["Range"] = range;
     }
 
-    let debugInfo = "";
-    // Priority 1: Direct stream fetch through residential proxy (prevents 403 Forbidden IP check)
+    // 1. If streamUrl is provided, attempt direct streaming through matching proxy
     if (streamUrl && streamUrl.startsWith("http")) {
       try {
-        const targetProxy = getProxyForUrl(streamUrl);
-        debugInfo += `proxy=${targetProxy.replace(/:[^:@]+@/, ":***@")}; `;
         const cdnRes = await fetchWithProxy(streamUrl, { headers: fetchHeaders });
-        debugInfo += `status=${cdnRes.status}; ok=${cdnRes.ok}; `;
         if (cdnRes.ok || cdnRes.status === 206) {
           return streamResponse(cdnRes, defaultFilename, isAudioOnly);
         }
-      } catch (streamErr: any) {
-        debugInfo += `err=${streamErr?.message || streamErr}; `;
-        console.warn("Proxy streamUrl fetch note, trying direct fallback:", streamErr);
-        try {
-          const directRes = await fetch(streamUrl, { headers: fetchHeaders });
-          if (directRes.ok || directRes.status === 206) {
-            return streamResponse(directRes, defaultFilename, isAudioOnly);
-          }
-        } catch (dirErr) {
-          console.warn("Direct streamUrl fetch note:", dirErr);
-        }
+      } catch (streamErr) {
+        console.warn("Direct streamUrl fetch note, falling back to id resolution:", streamErr);
       }
     }
 
@@ -96,134 +84,89 @@ export async function GET(req: NextRequest) {
       return new NextResponse("Invalid video ID", { status: 400 });
     }
 
-    // Priority 2: RapidAPI URL Resolution if key configured
-    if (
-      process.env.RAPIDAPI_KEY ||
-      process.env.RAPID_API_KEY ||
-      process.env.YOUTUBE_RAPIDAPI_KEY
-    ) {
-      try {
-        const { fetchFromRapidAPI } = await import("@/lib/rapidapi-youtube");
-        const rapid = await fetchFromRapidAPI(id);
-        if (rapid) {
-          const all = [
-            ...rapid.videoFormats,
-            ...rapid.audioFormats,
-            ...rapid.mp3Formats,
-          ];
-          const itagNum = itagParam ? parseInt(itagParam, 10) : null;
-          const match =
-            (itagNum && all.find((f: any) => f.itag === itagNum)) ||
-            (formatParam === "mp3" && rapid.audioFormats[0]) ||
-            rapid.videoFormats[0];
-
-          if (match && match.url) {
-            try {
-              const cdnRes = await fetchWithProxy(match.url, { headers: fetchHeaders });
-              if (cdnRes.ok || cdnRes.status === 206) {
-                const ext = isAudioOnly ? "mp3" : (match.container || "mp4").toLowerCase();
-                return streamResponse(cdnRes, `${cleanTitle}.${ext}`, isAudioOnly);
-              }
-            } catch (rapidFetchErr) {
-              console.warn("Rapid proxy stream fetch note, trying direct:", rapidFetchErr);
-              try {
-                const directRes = await fetch(match.url, { headers: fetchHeaders });
-                if (directRes.ok || directRes.status === 206) {
-                  const ext = isAudioOnly ? "mp3" : (match.container || "mp4").toLowerCase();
-                  return streamResponse(directRes, `${cleanTitle}.${ext}`, isAudioOnly);
-                }
-              } catch (dErr) {
-                console.warn("Rapid direct fetch note:", dErr);
-              }
-            }
-          }
-        }
-      } catch (rErr) {
-        console.warn("RapidAPI download resolve note:", rErr);
-      }
-    }
-
-    // Priority 3: Fresh Ytdl format resolution with proxy -> stream
-    let info: any = null;
+    // 2. High-performance format resolution and streaming via unified residential proxy
+    const proxyList = getProxyList();
     const clientCandidates: (string[] | undefined)[] = [
       ["mweb", "web_embedded"],
-      ["tv", "visionos"],
+      ["tv"],
+      ["visionos"],
       ["web_embedded"],
       undefined,
     ];
 
-    const proxyFetch = createProxyFetch();
-    for (const clients of clientCandidates) {
+    let lastError: any = null;
+
+    for (const proxyUrl of proxyList) {
       try {
-        const ytdl = new Ytdl({
-          fetch: proxyFetch as any,
-          ...(clients ? { clients: clients as any } : {}),
-        });
-        const res = await ytdl.getInfo(`https://www.youtube.com/watch?v=${id}`);
-        if (res && res.formats && res.formats.length > 0) {
-          info = res;
-          break;
+        const proxyAgent = getProxyAgent(proxyUrl);
+        const proxyFetch = (url: any, init: any) =>
+          undiciFetch(url, { ...init, dispatcher: proxyAgent });
+
+        let info: any = null;
+        for (const clients of clientCandidates) {
+          try {
+            const ytdl = new Ytdl({
+              fetch: proxyFetch as any,
+              ...(clients ? { clients: clients as any } : {}),
+            });
+            const res = await ytdl.getInfo(id);
+            if (res && res.formats && res.formats.length > 0) {
+              info = res;
+              break;
+            }
+          } catch (cErr) {
+            // try next client candidate
+          }
         }
-      } catch (err) {
-        // continue
-      }
-    }
 
-    if (!info || !info.formats || info.formats.length === 0) {
-      return new NextResponse("Unable to load video stream info. Please try again.", {
-        status: 502,
-      });
-    }
+        if (!info || !info.formats || info.formats.length === 0) {
+          continue;
+        }
 
-    const itag = itagParam ? parseInt(itagParam, 10) : null;
+        const itag = itagParam ? parseInt(itagParam, 10) : null;
+        let targetFormat: any = null;
 
-    let targetFormat: any = null;
-    if (isAudioOnly) {
-      targetFormat =
-        info.formats.find((f: any) => f.itag === 140) ||
-        info.formats
-          .filter((f: any) => !f.hasVideo && f.hasAudio)
-          .sort((a: any, b: any) => (b.audioBitrate || 0) - (a.audioBitrate || 0))[0];
-    } else if (itag) {
-      targetFormat = info.formats.find((f: any) => f.itag === itag);
-    }
+        if (isAudioOnly) {
+          targetFormat =
+            info.formats.find((f: any) => f.itag === 140) ||
+            info.formats
+              .filter((f: any) => !f.hasVideo && f.hasAudio)
+              .sort((a: any, b: any) => (b.audioBitrate || 0) - (a.audioBitrate || 0))[0];
+        } else if (itag) {
+          targetFormat = info.formats.find((f: any) => f.itag === itag);
+        }
 
-    if (!targetFormat) {
-      targetFormat =
-        info.formats.find((f: any) => f.hasVideo && f.hasAudio) ||
-        info.formats.find((f: any) => f.hasVideo) ||
-        info.formats[0];
-    }
+        if (!targetFormat) {
+          targetFormat =
+            info.formats.find((f: any) => f.hasVideo && f.hasAudio) ||
+            info.formats.find((f: any) => f.hasVideo) ||
+            info.formats[0];
+        }
 
-    if (!targetFormat || !targetFormat.url) {
-      return new NextResponse("Requested format stream not available", { status: 404 });
-    }
+        if (!targetFormat || !targetFormat.url) {
+          continue;
+        }
 
-    try {
-      const cdnRes = await fetchWithProxy(targetFormat.url, { headers: fetchHeaders });
-      if (cdnRes.ok || cdnRes.status === 206) {
-        const targetExt = isAudioOnly
-          ? "mp3"
-          : (targetFormat.container || "mp4").toLowerCase();
-        return streamResponse(cdnRes, `${cleanTitle}.${targetExt}`, isAudioOnly);
-      }
-    } catch (e) {
-      console.warn("Proxy Ytdl stream fetch note, trying direct:", e);
-      try {
-        const directRes = await fetch(targetFormat.url, { headers: fetchHeaders });
-        if (directRes.ok || directRes.status === 206) {
+        // Fetch stream through the EXACT SAME proxy agent that resolved it (IP match guaranteed)
+        const cdnRes = await undiciFetch(targetFormat.url, {
+          dispatcher: proxyAgent,
+          headers: fetchHeaders,
+        });
+
+        if (cdnRes.ok || cdnRes.status === 206) {
           const targetExt = isAudioOnly
             ? "mp3"
             : (targetFormat.container || "mp4").toLowerCase();
-          return streamResponse(directRes, `${cleanTitle}.${targetExt}`, isAudioOnly);
+          return streamResponse(cdnRes, `${cleanTitle}.${targetExt}`, isAudioOnly);
         }
-      } catch (dErr) {
-        console.warn("Direct stream fetch note:", dErr);
+      } catch (proxyLoopErr) {
+        lastError = proxyLoopErr;
+        console.warn("Proxy resolution cycle note:", proxyLoopErr);
       }
     }
 
     return new NextResponse(
-      `Unable to stream video content from CDN (${debugInfo || "no debug info"}). Please refresh and try again.`,
+      "Unable to stream video content from CDN. Please refresh and try again.",
       { status: 502 }
     );
   } catch (error: any) {

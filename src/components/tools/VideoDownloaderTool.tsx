@@ -205,9 +205,13 @@ export function VideoDownloaderTool({
       format.container === "MP3" ||
       format.container === "M4A";
     const formatType = isAudioOnly ? "mp3" : "mp4";
+    const streamParam = format.url
+      ? `&streamUrl=${encodeURIComponent(format.url)}`
+      : "";
+
     const targetUrl = `/api/video-download?id=${videoData.id}&itag=${
       format.itag || 18
-    }&title=${encodeURIComponent(cleanTitle)}&format=${formatType}`;
+    }&title=${encodeURIComponent(cleanTitle)}&format=${formatType}${streamParam}`;
 
     const a = document.createElement("a");
     a.href = targetUrl;

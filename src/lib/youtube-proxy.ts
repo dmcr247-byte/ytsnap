@@ -2,9 +2,12 @@ import { ProxyAgent, fetch as undiciFetch } from "undici";
 import fs from "fs";
 import path from "path";
 
-// 100% Free Verified Webshare Proxies
+// Primary 100% verified unblocked residential proxy (Frankfurt, Germany)
+export const PRIMARY_PROXY = "http://kmyglkum:yjymuvjpxgct@64.137.10.153:5803";
+
+// Verified fallback pool from Webshare account
 export const DEFAULT_PROXIES = [
-  "http://kmyglkum:yjymuvjpxgct@64.137.10.153:5803",
+  PRIMARY_PROXY,
   "http://kmyglkum:yjymuvjpxgct@104.164.49.38:7693",
   "http://kmyglkum:yjymuvjpxgct@23.26.71.145:5628",
   "http://kmyglkum:yjymuvjpxgct@45.38.107.97:6014",
@@ -55,7 +58,7 @@ export function getProxyList(): string[] {
     // Ignore in edge/serverless runtimes where fs might be limited
   }
 
-  // 3. Fallback to default verified Webshare proxies
+  // 3. Ensure primary and verified Webshare proxies are present
   for (const def of DEFAULT_PROXIES) {
     if (!proxies.includes(def)) proxies.push(def);
   }
@@ -64,12 +67,13 @@ export function getProxyList(): string[] {
 }
 
 /**
- * Returns a random proxy URL from the pool.
+ * Returns the primary verified proxy URL.
  */
 export function getRandomProxy(): string {
+  // Always prioritize the primary unblocked Frankfurt proxy
   const list = getProxyList();
-  if (list.length === 0) return DEFAULT_PROXIES[0];
-  return list[Math.floor(Math.random() * list.length)];
+  if (list.includes(PRIMARY_PROXY)) return PRIMARY_PROXY;
+  return list[0] || PRIMARY_PROXY;
 }
 
 /**
@@ -88,14 +92,14 @@ export function getProxyForUrl(url: string | URL): string {
   } catch {
     // ignore
   }
-  return getRandomProxy();
+  return PRIMARY_PROXY;
 }
 
 /**
- * Returns a cached ProxyAgent instance for the given proxy URL (or random proxy).
+ * Returns a cached ProxyAgent instance for the given proxy URL.
  */
 export function getProxyAgent(proxyUrl?: string): ProxyAgent {
-  const targetUrl = proxyUrl || getRandomProxy();
+  const targetUrl = proxyUrl || PRIMARY_PROXY;
   let agent = agentCache.get(targetUrl);
   if (!agent) {
     agent = new ProxyAgent(targetUrl);

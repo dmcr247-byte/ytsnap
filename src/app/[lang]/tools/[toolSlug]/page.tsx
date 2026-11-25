@@ -1,7 +1,7 @@
 import React from "react";
 import { Metadata } from "next";
 import Link from "next/link";
-import { notFound } from "next/navigation";
+import { notFound, redirect } from "next/navigation";
 import {
   isValidLanguage,
   getDictionary,
@@ -49,6 +49,13 @@ const VALID_TOOLS = [
   "video-aspect-ratio-calculator",
 ];
 
+const TOOL_ALIASES: Record<string, string> = {
+  "youtube-video-download": "youtube-video-downloader",
+  "youtube-shorts-download": "youtube-shorts-downloader",
+  "youtube-thumbnail-download": "youtube-thumbnail-downloader",
+  "youtube-banner-download": "youtube-banner-downloader",
+};
+
 export async function generateStaticParams() {
   const params: Array<{ lang: string; toolSlug: string }> = [];
   for (const lang of SUPPORTED_LANGUAGES) {
@@ -61,6 +68,9 @@ export async function generateStaticParams() {
 
 export async function generateMetadata({ params }: ToolPageProps): Promise<Metadata> {
   const { lang, toolSlug } = params;
+  if (TOOL_ALIASES[toolSlug]) {
+    redirect(`/${lang}/tools/${TOOL_ALIASES[toolSlug]}`);
+  }
   if (!isValidLanguage(lang) || !VALID_TOOLS.includes(toolSlug)) return {};
 
   const dict = getDictionary(lang);
@@ -157,6 +167,10 @@ export async function generateMetadata({ params }: ToolPageProps): Promise<Metad
 
 export default function ToolPage({ params, searchParams }: ToolPageProps) {
   const { lang, toolSlug } = params;
+
+  if (TOOL_ALIASES[toolSlug]) {
+    redirect(`/${lang}/tools/${TOOL_ALIASES[toolSlug]}`);
+  }
 
   if (!isValidLanguage(lang) || !VALID_TOOLS.includes(toolSlug)) {
     notFound();

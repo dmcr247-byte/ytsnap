@@ -35,6 +35,26 @@ const nextConfig = {
         destination: "https://www.ytsnap.tech/:path*",
         permanent: true,
       },
+      {
+        source: "/:lang/tools/youtube-video-download",
+        destination: "/:lang/tools/youtube-video-downloader",
+        permanent: true,
+      },
+      {
+        source: "/:lang/tools/youtube-shorts-download",
+        destination: "/:lang/tools/youtube-shorts-downloader",
+        permanent: true,
+      },
+      {
+        source: "/:lang/tools/youtube-thumbnail-download",
+        destination: "/:lang/tools/youtube-thumbnail-downloader",
+        permanent: true,
+      },
+      {
+        source: "/:lang/tools/youtube-banner-download",
+        destination: "/:lang/tools/youtube-banner-downloader",
+        permanent: true,
+      },
     ];
   },
   webpack: (config, { isServer }) => {

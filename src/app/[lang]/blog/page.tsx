@@ -21,7 +21,7 @@ export async function generateMetadata({ params }: BlogPageProps): Promise<Metad
   const { lang } = params;
   if (!isValidLanguage(lang)) return {};
 
-  const baseUrl = (process.env.NEXT_PUBLIC_APP_URL || "https://www.ytsnap.tech").replace(/\/$/, "");
+  const baseUrl = "https://www.ytsnap.tech";
   const alternatesLanguages: Record<string, string> = {};
   for (const l of SUPPORTED_LANGUAGES) {
     alternatesLanguages[l.code] = `${baseUrl}/${l.code}/blog`;

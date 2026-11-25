@@ -12,7 +12,7 @@ export async function generateMetadata(): Promise<Metadata> {
   const googleVerification = settings.google_site_verification;
 
   return {
-    metadataBase: new URL(process.env.NEXT_PUBLIC_APP_URL || "https://www.ytsnap.tech"),
+    metadataBase: new URL("https://www.ytsnap.tech"),
     title: {
       template: "%s",
       default: `${siteName} - ${siteTagline}`,

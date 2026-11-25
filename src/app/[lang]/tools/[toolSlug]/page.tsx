@@ -64,7 +64,7 @@ export async function generateMetadata({ params }: ToolPageProps): Promise<Metad
   if (!isValidLanguage(lang) || !VALID_TOOLS.includes(toolSlug)) return {};
 
   const dict = getDictionary(lang);
-  const baseUrl = (process.env.NEXT_PUBLIC_APP_URL || "https://www.ytsnap.tech").replace(/\/$/, "");
+  const baseUrl = "https://www.ytsnap.tech";
 
   let fallbackTitle = "Creator Tool";
   let fallbackDesc = "Free YouTube Creator Utility on YTSnap.";
@@ -163,7 +163,7 @@ export default function ToolPage({ params, searchParams }: ToolPageProps) {
   }
 
   const dict = getDictionary(lang);
-  const baseUrl = process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3000";
+  const baseUrl = "https://www.ytsnap.tech";
 
   let toolTitle = "";
   let toolSubtitle = "";

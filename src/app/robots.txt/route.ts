@@ -4,7 +4,7 @@ import { getSetting } from "@/lib/settings";
 export const dynamic = "force-dynamic";
 
 export async function GET() {
-  const baseUrl = process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3000";
+  const baseUrl = "https://www.ytsnap.tech";
   const defaultRobots = `User-agent: *
 Allow: /
 Disallow: /api/
@@ -13,7 +13,10 @@ Disallow: /*/admin/
 
 Sitemap: ${baseUrl}/sitemap.xml`;
 
-  const content = await getSetting("robots_txt_content", defaultRobots);
+  let content = await getSetting("robots_txt_content", defaultRobots);
+  if (content) {
+    content = content.replace(/https?:\/\/(www\.)?ytsnap\.tech/g, "https://www.ytsnap.tech");
+  }
 
   return new NextResponse(content || defaultRobots, {
     status: 200,

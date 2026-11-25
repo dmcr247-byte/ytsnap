@@ -32,7 +32,7 @@ export async function generateMetadata({ params }: DownloadPageProps): Promise<M
     ? "अपनी पसंद की वीडियो क्वालिटी (1080p, 720p, 480p, 360p) और ऑडियो ट्रैक चुनें और तुरंत डाउनलोड करें।"
     : "Choose your preferred video quality (1080p, 720p, 480p, 360p) and audio track to download instantly.";
 
-  const baseUrl = process.env.NEXT_PUBLIC_APP_URL || "https://www.ytsnap.tech";
+  const baseUrl = "https://www.ytsnap.tech";
 
   return {
     title,

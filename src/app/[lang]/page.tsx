@@ -34,7 +34,7 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
   if (!isValidLanguage(lang)) return {};
 
   const dict = getDictionary(lang);
-  const baseUrl = (process.env.NEXT_PUBLIC_APP_URL || "https://www.ytsnap.tech").replace(/\/$/, "");
+  const baseUrl = "https://www.ytsnap.tech";
 
   const alternatesLanguages: Record<string, string> = {};
   for (const l of SUPPORTED_LANGUAGES) {
@@ -73,7 +73,7 @@ export default async function HomePage({ params, searchParams }: PageProps) {
   if (!isValidLanguage(lang)) notFound();
 
   const dict = getDictionary(lang);
-  const baseUrl = process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3000";
+  const baseUrl = "https://www.ytsnap.tech";
 
   // Fetch FAQs from database with fallback
   let faqs: Array<{ question: string; answer: string }> = [];

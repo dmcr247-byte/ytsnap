@@ -6,10 +6,14 @@ import { Breadcrumbs } from "@/components/Breadcrumbs";
 import Link from "next/link";
 import { FileText, Mail } from "lucide-react";
 
-export async function generateMetadata(): Promise<Metadata> {
+export async function generateMetadata({ params }: { params: { lang: string } }): Promise<Metadata> {
+  const { lang } = params;
   return {
     title: "DMCA Copyright Notice & Removal Request | YTSnap",
     description: "Submit a DMCA takedown request or notice of copyright infringement to YTSnap.",
+    alternates: {
+      canonical: `https://www.ytsnap.tech/${lang}/dmca`,
+    },
   };
 }
 

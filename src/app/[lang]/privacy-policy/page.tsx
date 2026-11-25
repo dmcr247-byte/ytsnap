@@ -4,10 +4,14 @@ import { notFound } from "next/navigation";
 import { isValidLanguage, getDictionary, SupportedLanguage } from "@/lib/i18n";
 import { Breadcrumbs } from "@/components/Breadcrumbs";
 
-export async function generateMetadata(): Promise<Metadata> {
+export async function generateMetadata({ params }: { params: { lang: string } }): Promise<Metadata> {
+  const { lang } = params;
   return {
     title: "Privacy Policy | YTSnap",
     description: "YTSnap Privacy Policy. Learn how we handle information, cookies, and protect creator privacy.",
+    alternates: {
+      canonical: `https://www.ytsnap.tech/${lang}/privacy-policy`,
+    },
   };
 }
 

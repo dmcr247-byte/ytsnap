@@ -34,9 +34,14 @@ export async function generateMetadata({ params }: ArticlePageProps): Promise<Me
   const baseUrl = "https://www.ytsnap.tech";
   let post: any = null;
   try {
-    post = await prisma.blogPost.findFirst({
-      where: { slug, isPublished: true },
+    post = await prisma.blogPost.findUnique({
+      where: { slug_language: { slug, language: lang } },
     });
+    if (!post) {
+      post = await prisma.blogPost.findFirst({
+        where: { slug, language: "en", isPublished: true },
+      });
+    }
   } catch (e) {
     console.warn("DB metadata fetch error:", e);
   }
@@ -88,7 +93,7 @@ export default async function BlogPostDetailPage({ params }: ArticlePageProps) {
 
     if (!post) {
       post = await prisma.blogPost.findFirst({
-        where: { slug, isPublished: true },
+        where: { slug, language: "en", isPublished: true },
       });
     }
   } catch (e) {

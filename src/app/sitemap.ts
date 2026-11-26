@@ -2,6 +2,7 @@ import { MetadataRoute } from "next";
 import { SUPPORTED_LANGUAGES } from "@/lib/i18n";
 import prisma from "@/lib/prisma";
 import { getSetting } from "@/lib/settings";
+import { STATIC_BLOG_POSTS } from "@/data/static-posts";
 
 export const dynamic = "force-dynamic";
 
@@ -57,7 +58,22 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     }
   }
 
-  // Add blog posts
+  // Add blog posts (static + db)
+  const allPostEntries = new Map<
+    string,
+    { url: string; lastModified: Date; changeFrequency: "monthly"; priority: number }
+  >();
+
+  for (const post of STATIC_BLOG_POSTS) {
+    const key = `${post.language}/blog/${post.slug}`;
+    allPostEntries.set(key, {
+      url: `${baseUrl}/${key}`,
+      lastModified: post.updatedAt,
+      changeFrequency: "monthly",
+      priority: 0.8,
+    });
+  }
+
   try {
     const posts = await prisma.blogPost.findMany({
       where: { isPublished: true },
@@ -65,8 +81,9 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     });
 
     for (const post of posts) {
-      entries.push({
-        url: `${baseUrl}/${post.language}/blog/${post.slug}`,
+      const key = `${post.language}/blog/${post.slug}`;
+      allPostEntries.set(key, {
+        url: `${baseUrl}/${key}`,
         lastModified: post.updatedAt,
         changeFrequency: "monthly",
         priority: 0.8,
@@ -74,6 +91,10 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     }
   } catch (e) {
     console.warn("Sitemap blog fetch warning:", e);
+  }
+
+  for (const entry of allPostEntries.values()) {
+    entries.push(entry);
   }
 
   return entries;

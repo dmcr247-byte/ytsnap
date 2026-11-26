@@ -12,6 +12,7 @@ import { Breadcrumbs } from "@/components/Breadcrumbs";
 import { JsonLd } from "@/components/JsonLd";
 import { MarkdownRenderer } from "@/components/MarkdownRenderer";
 import prisma from "@/lib/prisma";
+import { getStaticPost, STATIC_BLOG_POSTS } from "@/data/static-posts";
 import {
   Clock,
   Calendar,
@@ -31,9 +32,18 @@ export async function generateMetadata({ params }: ArticlePageProps): Promise<Me
   if (!isValidLanguage(lang)) return {};
 
   const baseUrl = "https://www.ytsnap.tech";
-  const post = await prisma.blogPost.findFirst({
-    where: { slug, isPublished: true },
-  });
+  let post: any = null;
+  try {
+    post = await prisma.blogPost.findFirst({
+      where: { slug, isPublished: true },
+    });
+  } catch (e) {
+    console.warn("DB metadata fetch error:", e);
+  }
+
+  if (!post) {
+    post = getStaticPost(slug, lang);
+  }
 
   if (!post) return {};
 
@@ -55,8 +65,8 @@ export async function generateMetadata({ params }: ArticlePageProps): Promise<Me
       url: `${baseUrl}/${lang}/blog/${slug}`,
       siteName: "YTSnap",
       type: "article",
-      publishedTime: post.createdAt.toISOString(),
-      modifiedTime: post.updatedAt.toISOString(),
+      publishedTime: post.createdAt instanceof Date ? post.createdAt.toISOString() : new Date(post.createdAt).toISOString(),
+      modifiedTime: post.updatedAt instanceof Date ? post.updatedAt.toISOString() : new Date(post.updatedAt).toISOString(),
       images: post.coverImage ? [post.coverImage] : [],
     },
   };
@@ -70,38 +80,54 @@ export default async function BlogPostDetailPage({ params }: ArticlePageProps) {
   const baseUrl = "https://www.ytsnap.tech";
 
   // Try finding post in user's language, fallback to English version
-  let post = await prisma.blogPost.findUnique({
-    where: { slug_language: { slug, language: lang } },
-  });
+  let post: any = null;
+  try {
+    post = await prisma.blogPost.findUnique({
+      where: { slug_language: { slug, language: lang } },
+    });
+
+    if (!post) {
+      post = await prisma.blogPost.findFirst({
+        where: { slug, isPublished: true },
+      });
+    }
+  } catch (e) {
+    console.warn("DB detail fetch error:", e);
+  }
 
   if (!post) {
-    post = await prisma.blogPost.findFirst({
-      where: { slug, isPublished: true },
-    });
+    post = getStaticPost(slug, lang);
   }
 
   if (!post) notFound();
 
   // Related posts
-  const relatedPosts = await prisma.blogPost.findMany({
-    where: {
-      slug: { not: slug },
-      isPublished: true,
-      category: post.category,
-    },
-    take: 3,
-  });
+  let relatedPosts: any[] = [];
+  try {
+    relatedPosts = await prisma.blogPost.findMany({
+      where: {
+        slug: { not: slug },
+        isPublished: true,
+        category: post.category,
+      },
+      take: 3,
+    });
+  } catch (e) {
+    console.warn("DB related fetch error:", e);
+  }
 
   // Check if content has FAQ section to generate FAQPage Schema
   let faqSchema: any = null;
-  if (post.content.includes("Frequently Asked Questions")) {
-    const faqSection = post.content.split(/## Frequently Asked Questions/i)[1];
+  const faqRegex = /## (Frequently Asked Questions|अक्सर पूछे जाने वाले सवाल|Preguntas Frecuentes|Perguntas Frequentes|Foire Aux Questions|Häufig gestellte Fragen|الأسئلة الشائعة|Pertanyaan yang Sering Diajukan)/i;
+  if (faqRegex.test(post.content)) {
+    const parts = post.content.split(faqRegex);
+    const faqSection = parts[2] || parts[1];
     if (faqSection) {
       const qBlocks = faqSection.split(/\n### /).slice(1);
       if (qBlocks.length > 0) {
         faqSchema = {
           "@type": "FAQPage",
-          mainEntity: qBlocks.map((block) => {
+          mainEntity: qBlocks.map((block: string) => {
             const firstLineBreak = block.indexOf("\n");
             const q = firstLineBreak > 0 ? block.slice(0, firstLineBreak).trim() : block.trim();
             const a = firstLineBreak > 0 ? block.slice(firstLineBreak).trim() : "";
@@ -136,8 +162,8 @@ export default async function BlogPostDetailPage({ params }: ArticlePageProps) {
           name: "YTSnap",
           logo: `${baseUrl}/favicon.ico`,
         },
-        datePublished: post.createdAt.toISOString(),
-        dateModified: post.updatedAt.toISOString(),
+        datePublished: post.createdAt instanceof Date ? post.createdAt.toISOString() : new Date(post.createdAt).toISOString(),
+        dateModified: post.updatedAt instanceof Date ? post.updatedAt.toISOString() : new Date(post.updatedAt).toISOString(),
         mainEntityOfPage: {
           "@type": "WebPage",
           "@id": `${baseUrl}/${lang}/blog/${post.slug}`,

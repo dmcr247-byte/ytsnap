@@ -10,6 +10,7 @@ import {
 } from "@/lib/i18n";
 import { Breadcrumbs } from "@/components/Breadcrumbs";
 import prisma from "@/lib/prisma";
+import { STATIC_BLOG_POSTS } from "@/data/static-posts";
 import { Clock, Calendar, BookOpen, ArrowRight, Search } from "lucide-react";
 
 interface BlogPageProps {
@@ -46,13 +47,39 @@ export default async function BlogListPage({ params, searchParams }: BlogPagePro
   const activeCategory = searchParams?.category;
   const searchQuery = searchParams?.q?.toLowerCase();
 
-  let posts = await prisma.blogPost.findMany({
-    where: {
-      isPublished: true,
-      category: activeCategory ? activeCategory : undefined,
-    },
-    orderBy: { createdAt: "desc" },
-  });
+  let dbPosts: any[] = [];
+  try {
+    dbPosts = await prisma.blogPost.findMany({
+      where: {
+        isPublished: true,
+        category: activeCategory ? activeCategory : undefined,
+      },
+      orderBy: { createdAt: "desc" },
+    });
+  } catch (err) {
+    console.warn("DB posts fetch error:", err);
+  }
+
+  // Merge static posts for this language or fallback to English
+  const staticForLang = STATIC_BLOG_POSTS.filter(
+    (p) => p.language === lang && (!activeCategory || p.category === activeCategory)
+  );
+  const fallbackStatic =
+    staticForLang.length > 0
+      ? staticForLang
+      : STATIC_BLOG_POSTS.filter(
+          (p) => p.language === "en" && (!activeCategory || p.category === activeCategory)
+        );
+
+  const existingSlugs = new Set(dbPosts.map((p) => p.slug));
+  const mergedPosts = [...dbPosts];
+  for (const sp of fallbackStatic) {
+    if (!existingSlugs.has(sp.slug)) {
+      mergedPosts.push(sp);
+    }
+  }
+
+  let posts = mergedPosts;
 
   if (searchQuery) {
     posts = posts.filter(
